@@ -109,7 +109,6 @@ import {
         )}
       </main>
 
-<<<<<<< HEAD
       <DialogoAlerta open={mostrarAlerta} onOpenChange={setMostrarAlerta}>
         <ContenidoDialogoAlerta>
           <EncabezadoDialogoAlerta>
@@ -132,8 +131,6 @@ import {
         </ContenidoDialogoAlerta>
       </DialogoAlerta>
 
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
       <NavegacionInferior />
     </div>
   );

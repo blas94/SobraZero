@@ -241,7 +241,6 @@ const Pedidos = () => {
     };
   }, []);
 
-=======
   const obtenerEtiquetaEstado = (estado) => {
     switch (normalizarEstado(estado)) {
       case "pendiente":
@@ -276,7 +275,6 @@ const Pedidos = () => {
     );
   };
 
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
   const manejarReorden = (pedido) => {
     const nuevoPedido = {
       ...pedido,
@@ -287,7 +285,6 @@ const Pedidos = () => {
 
     const pedidosActualizados = [nuevoPedido, ...pedidos];
     setPedidos(pedidosActualizados);
-<<<<<<< HEAD
     const jsonPedidos = JSON.stringify(pedidosActualizados);
     localStorage.setItem("pedidos", jsonPedidos);
     ultimoValorRef.current = jsonPedidos;

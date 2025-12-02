@@ -342,10 +342,7 @@ const Configuracion = () => {
                   placeholder="123"
                   value={cvv}
                   onChange={(e) => setCvv(e.target.value)}
-<<<<<<< HEAD
                   aria-label="Código de seguridad"
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
                 />
               </div>
             </div>

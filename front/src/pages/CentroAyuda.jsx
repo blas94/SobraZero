@@ -135,11 +135,9 @@ const CentroAyuda = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold">Centro de ayuda</h1>
-=======
             <p className="text-sm text-muted-foreground">
               Encontramos soluciones rápidas para vos y tu comercio
             </p>
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
           </div>
         </div>
       </header>
@@ -147,7 +145,6 @@ const CentroAyuda = () => {
       <main className="px-4 py-6 space-y-6 relative z-10">
         <Tarjeta>
           <EncabezadoTarjeta className="pb-2">
-<<<<<<< HEAD
             <h2 className="text-base font-semibold leading-none tracking-tight">
               ¿Cómo podemos ayudarte?
             </h2>
