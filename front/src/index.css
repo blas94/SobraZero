@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+@layer base {
+  :root {
+   
+    --brand-green: 142 34% 36%;      
+    --brand-dark: 200 6% 25%;    
+    --brand-cream: 30 21% 91%;       
+    
+    
+    --background: 30 21% 91%;       
+    --foreground: 200 6% 25%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 200 6% 25%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 6% 25%;
+
+    --primary: 142 34% 36%;          
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 142 34% 30%;
+
+    --secondary: 30 21% 85%;
+    --secondary-foreground: 200 6% 25%;
+
+    --muted: 30 15% 88%;
+    --muted-foreground: 200 6% 45%;
+
+    --accent: 142 40% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 30 15% 85%;
+    --input: 30 15% 88%;
+    --ring: 142 34% 36%;
+
+    --radius: 1rem;
+    
+
+    --success: 142 34% 36%;
+    --success-light: 142 40% 95%;
+    --discount: 0 84% 60%;
+    --shadow-sm: 0px 2px 8px hsla(200, 6%, 25%, 0.08);
+    --shadow-md: 0px 4px 16px hsla(200, 6%, 25%, 0.12);
+  }
+
+  .dark {
+    --background: 200 8% 12%;
+    --foreground: 30 21% 91%;
+
+    --card: 200 6% 18%;
+    --card-foreground: 30 21% 91%;
+
+    --popover: 200 6% 18%;
+    --popover-foreground: 30 21% 91%;
+
+    --primary: 142 40% 45%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 142 40% 38%;
+
+    --secondary: 200 6% 22%;
+    --secondary-foreground: 30 21% 91%;
+
+    --muted: 200 6% 20%;
+    --muted-foreground: 30 15% 65%;
+
+    --accent: 142 40% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 30 21% 91%;
+
+    --border: 200 6% 25%;
+    --input: 200 6% 25%;
+    --ring: 142 40% 45%;
+    
+    --success: 142 45% 65%;
+    --success-light: 142 40% 25%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+}
+
+@layer utilities {
+  .shadow-card {
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .shadow-card-hover {
+    box-shadow: var(--shadow-md);
+  }
+}
