@@ -138,13 +138,20 @@ const Autenticacion = () => {
           Volver al inicio
         </Boton>
 
+<<<<<<< HEAD
         <h1 className="sr-only">Autenticación - SobraZero</h1>
 
+=======
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
         <Tarjeta className="w-full max-w-md p-6 relative z-10">
           <div className="text-center mb-6">
             <img
               src={modoOscuro ? logoDark : logo}
+<<<<<<< HEAD
               alt="Logo de SobraZero"
+=======
+              alt="SobraZero"
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               className="w-36 mx-auto my-6"
               loading="eager"
               fetchPriority="high"
@@ -161,7 +168,10 @@ const Autenticacion = () => {
             </ListaPestanas>
 
             <ContenidoPestanas value="inicio">
+<<<<<<< HEAD
               <h2 className="sr-only">Iniciar sesión</h2>
+=======
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               <Formulario {...formularioInicio}>
                 <form
                   onSubmit={formularioInicio.handleSubmit(manejarInicioSesion)}
@@ -215,7 +225,11 @@ const Autenticacion = () => {
                       to="/recuperar-password"
                       className="underline text-primary hover:text-primary/80"
                     >
+<<<<<<< HEAD
                       Hace click acá
+=======
+                      Hace click aca
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
                     </Link>
                   </div>
 
@@ -238,7 +252,10 @@ const Autenticacion = () => {
             </ContenidoPestanas>
 
             <ContenidoPestanas value="registro">
+<<<<<<< HEAD
               <h2 className="sr-only">Registrarse</h2>
+=======
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               <Formulario {...formularioRegistro}>
                 <form
                   onSubmit={formularioRegistro.handleSubmit(manejarRegistro)}
@@ -372,7 +389,11 @@ const Autenticacion = () => {
                       onClick={() => setPestanaActiva("inicio")}
                       className="text-primary hover:underline"
                     >
+<<<<<<< HEAD
                       Iniciá sesión
+=======
+                      Inicia sesión
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
                     </button>
                   </p>
                 </form>

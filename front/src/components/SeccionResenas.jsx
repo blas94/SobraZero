@@ -22,7 +22,11 @@ const SeccionResenas = ({ resenas, calificacionPromedio, totalResenas }) => {
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
+<<<<<<< HEAD
             {totalResenas} reseñas
+=======
+            {totalResenas} resenas
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
           </p>
         </div>
 

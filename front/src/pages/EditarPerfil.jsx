@@ -212,7 +212,10 @@ const EditarPerfil = () => {
                     accept="image/*"
                     className="hidden"
                     onChange={manejarCambioArchivo}
+<<<<<<< HEAD
                     aria-label="Cambiar foto de perfil"
+=======
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
                   />
                 </div>
                 <p className="text-sm text-muted-foreground">

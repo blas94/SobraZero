@@ -320,7 +320,10 @@ const Configuracion = () => {
                 placeholder="Ej: Visa personal"
                 value={alias}
                 onChange={(e) => setAlias(e.target.value)}
+<<<<<<< HEAD
                 aria-label="Alias de la tarjeta"
+=======
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               />
             </div>
 
@@ -331,7 +334,10 @@ const Configuracion = () => {
                 placeholder="Número de prueba"
                 value={numero}
                 onChange={(e) => setNumero(e.target.value)}
+<<<<<<< HEAD
                 aria-label="Número de tarjeta"
+=======
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               />
             </div>
 
@@ -343,7 +349,10 @@ const Configuracion = () => {
                   placeholder="Visa, Master..."
                   value={marca}
                   onChange={(e) => setMarca(e.target.value)}
+<<<<<<< HEAD
                   aria-label="Marca de la tarjeta"
+=======
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
                 />
               </div>
               <div className="w-24">
@@ -353,7 +362,10 @@ const Configuracion = () => {
                   placeholder="MM/AA"
                   value={vencimiento}
                   onChange={(e) => setVencimiento(e.target.value)}
+<<<<<<< HEAD
                   aria-label="Fecha de vencimiento"
+=======
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
                 />
               </div>
               <div className="w-20">
@@ -363,7 +375,10 @@ const Configuracion = () => {
                   placeholder="123"
                   value={cvv}
                   onChange={(e) => setCvv(e.target.value)}
+<<<<<<< HEAD
                   aria-label="Código de seguridad"
+=======
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
                 />
               </div>
             </div>

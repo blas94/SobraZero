@@ -2,4 +2,8 @@ node_modules
 .env
 dist
 .vscode
+<<<<<<< HEAD
 .DS_Store
+=======
+.DS_Store
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7

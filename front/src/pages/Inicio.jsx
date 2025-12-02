@@ -271,8 +271,11 @@ const Inicio = () => {
         className="absolute inset-0 w-full h-full mapbox-container"
       />
 
+<<<<<<< HEAD
       <h1 className="sr-only">Buscador de Comercios</h1>
 
+=======
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
       <style>{`
         .mapbox-container .mapboxgl-ctrl-bottom-left,
         .mapbox-container .mapboxgl-ctrl-bottom-right {
@@ -296,8 +299,11 @@ const Inicio = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Entrada
+<<<<<<< HEAD
               id="busqueda"
               aria-label="Buscar comercios"
+=======
+>>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               placeholder="Buscar comercios..."
               value={busquedaTexto}
               onChange={(e) => setBusquedaTexto(e.target.value)}
