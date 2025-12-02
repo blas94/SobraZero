@@ -291,6 +291,16 @@ const ContenidoComercio = ({
         }
       );
 
+      const nuevoPedido = {
+        id: `pedido-${Date.now()}`,
+        nombreComercio: comercio.nombre,
+        estado: "pendiente",
+        horarioRetiro: comercio.horarioRetiro,
+        direccion: comercio.direccion,
+        total,
+        articulos: totalItems,
+        fecha: "Hoy",
+        productos: productosDetalle,
       };
 
       const pedidosExistentes = localStorage.getItem("pedidos");
