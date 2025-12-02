@@ -320,24 +320,7 @@ const Configuracion = () => {
                 placeholder="Ej: Visa personal"
                 value={alias}
                 onChange={(e) => setAlias(e.target.value)}
-<<<<<<< HEAD
                 aria-label="Alias de la tarjeta"
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
-              />
-            </div>
-
-            <div>
-              <Etiqueta className="text-sm">Número de tarjeta</Etiqueta>
-              <input
-                className="mt-1 w-full border rounded-md px-2 py-1 text-sm bg-background"
-                placeholder="Número de prueba"
-                value={numero}
-                onChange={(e) => setNumero(e.target.value)}
-<<<<<<< HEAD
-                aria-label="Número de tarjeta"
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               />
             </div>
 
@@ -349,23 +332,7 @@ const Configuracion = () => {
                   placeholder="Visa, Master..."
                   value={marca}
                   onChange={(e) => setMarca(e.target.value)}
-<<<<<<< HEAD
                   aria-label="Marca de la tarjeta"
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
-                />
-              </div>
-              <div className="w-24">
-                <Etiqueta className="text-sm">Venc.</Etiqueta>
-                <input
-                  className="mt-1 w-full border rounded-md px-2 py-1 text-sm bg-background"
-                  placeholder="MM/AA"
-                  value={vencimiento}
-                  onChange={(e) => setVencimiento(e.target.value)}
-<<<<<<< HEAD
-                  aria-label="Fecha de vencimiento"
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
                 />
               </div>
               <div className="w-20">

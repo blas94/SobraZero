@@ -21,13 +21,8 @@ const mapaOfertaPorComercio = {
   1: "68c753ffb17ad728abc253e1",
   2: "68c7546ab17ad728abc253e5",
   3: "68c754bbb17ad728abc253e7",
-<<<<<<< HEAD
   4: "6918c3ef9a76952f91f39741",
   5: "6918c3159a76952f91f3973f",
-=======
-  4: "6918c3159a76952f91f3973f",
-  5: "6918c3ef9a76952f91f39741",
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
 };
 
 const ESTADO_COMERCIOS_KEY = "estadoComercios";
@@ -286,7 +281,6 @@ const ContenidoComercio = ({
         return comercioActualizado;
       });
 
-<<<<<<< HEAD
       const productosDetalle = Object.entries(productosSeleccionados).map(
         ([id, cantidad]) => {
           const prod = comercio.productos.find((p) => p.id === id);
@@ -297,21 +291,6 @@ const ContenidoComercio = ({
         }
       );
 
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
-      const nuevoPedido = {
-        id: Date.now().toString(),
-        nombreComercio: comercio.nombre,
-        estado: "pendiente",
-        horarioRetiro: comercio.horarioRetiro,
-        direccion: comercio.direccion,
-        total,
-        articulos: totalItems,
-        fecha: "Hoy",
-<<<<<<< HEAD
-        productos: productosDetalle,
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
       };
 
       const pedidosExistentes = localStorage.getItem("pedidos");
@@ -350,11 +329,7 @@ const ContenidoComercio = ({
     setResenasLocales([nueva, ...resenasLocales]);
     setNuevaResenaComentario("");
     setNuevaResenaCalificacion(5);
-<<<<<<< HEAD
     toast.success("Reseña agregada con éxito");
-=======
-    toast.success("Resena agregada con exito");
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
   };
 
   const manejarFavorito = () => {
@@ -414,11 +389,7 @@ const ContenidoComercio = ({
         <Tarjeta className="p-4 mb-4 shadow-card-hover -mt-24 relative z-10">
           <div className="flex items-start justify_between gap-3 mb-3">
             <div className="flex-1">
-<<<<<<< HEAD
               <h2 className="text-xl font-bold mb-1">{comercio.nombre}</h2>
-=======
-              <h1 className="text-xl font-bold mb-1">{comercio.nombre}</h1>
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               <p className="text-sm text-muted-foreground capitalize">
                 {comercio.categoria}
               </p>
@@ -438,11 +409,7 @@ const ContenidoComercio = ({
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
             <span className="font-medium">{comercio.calificacion}</span>
             <span className="text-sm text-muted-foreground">
-<<<<<<< HEAD
               ({comercio.totalResenas} reseñas)
-=======
-              ({comercio.totalResenas} resenas)
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
             </span>
           </div>
 
@@ -472,11 +439,7 @@ const ContenidoComercio = ({
                   {producto.imageUrl ? (
                     <img
                       src={producto.imageUrl}
-<<<<<<< HEAD
                       alt={`Foto de ${producto.nombre}`}
-=======
-                      alt={producto.nombre}
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
                       className="w-16 h-16 object-cover rounded flex-shrink-0"
                     />
                   ) : (
@@ -532,11 +495,7 @@ const ContenidoComercio = ({
         </Tarjeta>
 
         <Tarjeta className="p-4 mb-4">
-<<<<<<< HEAD
           <h3 className="font-semibold mb-3">Resumen</h3>
-=======
-          <h2 className="font-semibold mb-3">Resumen</h2>
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
 
           {obtenerTotalItems() > 0 ? (
             <>
@@ -593,11 +552,7 @@ const ContenidoComercio = ({
         </Tarjeta>
 
         <Tarjeta className="p-4">
-<<<<<<< HEAD
           <h3 className="font-semibold mb-4">Reseñas</h3>
-=======
-          <h2 className="font-semibold mb-4">Resenas</h2>
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
 
           <SeccionResenas
             resenas={resenas}
@@ -607,11 +562,7 @@ const ContenidoComercio = ({
 
           {yaReservo() ? (
             <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-<<<<<<< HEAD
               <h3 className="font-medium mb-3">Deja tu reseña</h3>
-=======
-              <h3 className="font-medium mb-3">Deja tu resena</h3>
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
 
               <div className="mb-3">
                 <Etiqueta className="mb-2 block text-sm">Calificacion</Etiqueta>
@@ -650,21 +601,13 @@ const ContenidoComercio = ({
               </div>
 
               <Boton onClick={manejarAgregarResena} className="w-full">
-<<<<<<< HEAD
                 Publicar reseña
-=======
-                Publicar resena
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               </Boton>
             </div>
           ) : (
             <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
               <p className="text-sm text-muted-foreground">
-<<<<<<< HEAD
                 Necesitas reservar en este comercio para poder dejar una reseña
-=======
-                Necesitas reservar en este comercio para poder dejar una resena
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               </p>
             </div>
           )}

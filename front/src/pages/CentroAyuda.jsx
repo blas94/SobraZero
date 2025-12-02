@@ -135,7 +135,6 @@ const CentroAyuda = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold">Centro de ayuda</h1>
-<<<<<<< HEAD
 =======
             <p className="text-sm text-muted-foreground">
               Encontramos soluciones rápidas para vos y tu comercio
@@ -152,9 +151,6 @@ const CentroAyuda = () => {
             <h2 className="text-base font-semibold leading-none tracking-tight">
               ¿Cómo podemos ayudarte?
             </h2>
-=======
-            <TituloTarjeta className="text-base">¿Cómo podemos ayudarte?</TituloTarjeta>
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
             <DescripcionTarjeta>
               Explorá preguntas frecuentes, escribinos o dejá un comentario.
             </DescripcionTarjeta>
@@ -190,27 +186,16 @@ const CentroAyuda = () => {
         </Tarjeta>
 
         <div>
-<<<<<<< HEAD
           <h3 className="font-semibold mb-3 px-1 flex items-center gap-2 text-lg">
             <BookOpen className="w-5 h-5" />
             Preguntas frecuentes
           </h3>
-=======
-          <h2 className="font-semibold mb-3 px-1 flex items-center gap-2">
-            <BookOpen className="w-5 h-5" />
-            Preguntas frecuentes
-          </h2>
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
           <Tarjeta>
             <Acordeon type="single" collapsible className="w-full">
               {preguntasFrecuentes.map((item, index) => (
                 <ItemAcordeon key={index} value={`pregunta-${index}`}>
                   <ActivadorAcordeon className="px-4 text-left">
-<<<<<<< HEAD
                     <h4 className="text-sm font-medium">{item.pregunta}</h4>
-=======
-                    {item.pregunta}
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
                   </ActivadorAcordeon>
                   <ContenidoAcordeon className="px-4 text-muted-foreground">
                     {item.respuesta}
@@ -222,27 +207,16 @@ const CentroAyuda = () => {
         </div>
 
         <div>
-<<<<<<< HEAD
           <h3 className="font-semibold mb-3 px-1 flex items-center gap-2 text-lg">
             <HelpCircle className="w-5 h-5" />
             Recursos adicionales
           </h3>
-=======
-          <h2 className="font-semibold mb-3 px-1 flex items-center gap-2">
-            <HelpCircle className="w-5 h-5" />
-            Recursos adicionales
-          </h2>
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
           <Tarjeta>
             <Acordeon type="single" collapsible className="w-full">
               {recursosAdicionales.map((recurso, index) => (
                 <ItemAcordeon key={index} value={`recurso-${index}`}>
                   <ActivadorAcordeon className="px-4 text-left">
-<<<<<<< HEAD
                     <h4 className="text-sm font-medium">{recurso.titulo}</h4>
-=======
-                    {recurso.titulo}
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
                   </ActivadorAcordeon>
                   <ContenidoAcordeon className="px-4 text-muted-foreground">
                     {recurso.contenido}

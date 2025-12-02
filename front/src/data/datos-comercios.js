@@ -196,11 +196,7 @@ export const comercios = [
     productos: [
       {
         id: "4-1",
-<<<<<<< HEAD
         nombre: "Milanesa napolitana con guarnición",
-=======
-        nombre: "Milanesa napolitana con guarnicion",
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
         stock: 12,
         precioOriginal: 1500,
         precioDescuento: 450,
@@ -263,11 +259,7 @@ export const comercios = [
       },
       {
         id: "5-3",
-<<<<<<< HEAD
         nombre: "Budín de limón",
-=======
-        nombre: "Budin de limon",
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
         stock: 12,
         peso: 0.5,
         precioOriginal: 600,

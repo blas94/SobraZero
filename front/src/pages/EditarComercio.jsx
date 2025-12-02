@@ -319,11 +319,7 @@ const EditarComercio = () => {
           {datosComercio.imageUrl ? (
             <img
               src={datosComercio.imageUrl}
-<<<<<<< HEAD
               alt={`Imagen de portada de ${datosComercio.nombreComercio}`}
-=======
-              alt={datosComercio.nombreComercio}
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               className="w-full h-full object-cover"
             />
           ) : (
@@ -375,23 +371,7 @@ const EditarComercio = () => {
           accept="image/*"
           onChange={manejarCambioImagen}
           className="hidden"
-<<<<<<< HEAD
           aria-label="Cambiar imagen del comercio"
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
-        />
-
-        <Tarjeta className="p-4">
-          <div className="flex items-center justify-between mb-4">
-<<<<<<< HEAD
-            <h2 className="text-xl font-bold">
-              {datosComercio.nombreComercio}
-            </h2>
-=======
-            <h1 className="text-xl font-bold">
-              {datosComercio.nombreComercio}
-            </h1>
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
             {campoEditando !== "informacion" && (
               <Boton
                 variant="ghost"
@@ -547,11 +527,7 @@ const EditarComercio = () => {
                               <div className="relative">
                                 <img
                                   src={producto.imageUrl}
-<<<<<<< HEAD
                                   alt={`Imagen del producto ${producto.name}`}
-=======
-                                  alt={producto.name}
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
                                   className="w-16 h-16 object-cover rounded"
                                 />
                                 <button

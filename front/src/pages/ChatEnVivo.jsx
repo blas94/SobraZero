@@ -92,7 +92,6 @@ const ChatEnVivo = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold">Chat en vivo</h1>
-<<<<<<< HEAD
 =======
             <p className="text-sm text-muted-foreground">
               Estamos respondiendo consultas por orden de llegada
@@ -109,12 +108,6 @@ const ChatEnVivo = () => {
             <h2 className="text-base font-semibold leading-none tracking-tight">
               Estado de la sala
             </h2>
-=======
-      <main className="px-4 py-6 space-y-4">
-        <Tarjeta>
-          <EncabezadoTarjeta className="pb-2">
-            <TituloTarjeta className="text-base">Estado de la sala</TituloTarjeta>
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
           </EncabezadoTarjeta>
           <ContenidoTarjeta className="grid gap-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
@@ -128,11 +121,7 @@ const ChatEnVivo = () => {
           </ContenidoTarjeta>
         </Tarjeta>
 
-<<<<<<< HEAD
         <Tarjeta className="h-[55vh] flex flex-col bg-white shadow-none border-none">
-=======
-        <Tarjeta className="h-[55vh] flex flex-col">
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
           <ContenidoTarjeta className="flex-1 overflow-y-auto space-y-3 pt-6">
             {mensajes.map((mensaje) => {
               const esUsuario = mensaje.autor === "usuario";
@@ -164,20 +153,7 @@ const ChatEnVivo = () => {
             className="p-4 border-t border-border space-y-3"
           >
             <AreaTexto
-<<<<<<< HEAD
               aria-label="Mensaje"
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
-              placeholder="Escribí tu mensaje..."
-              value={mensajeEntrada}
-              onChange={(event) => setMensajeEntrada(event.target.value)}
-              className="min-h-[80px]"
-            />
-            <Boton type="submit" className="w-full" disabled={enviando}>
-<<<<<<< HEAD
-=======
-              <Send className="w-4 h-4 mr-2" />
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               {enviando ? "Enviando..." : "Enviar mensaje"}
             </Boton>
           </form>

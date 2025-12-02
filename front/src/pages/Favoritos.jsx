@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { comercios as comerciosMock } from "@/data/datos-comercios";
 
-<<<<<<< HEAD
 import {
   DialogoAlerta,
   AccionDialogoAlerta,
@@ -19,17 +18,6 @@ import {
   TituloDialogoAlerta,
 } from "@/components/ui/dialogo-alerta";
 
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
-const Favoritos = () => {
-  const navegar = useNavigate();
-
-  const [comerciosFavoritos, setComerciosFavoritos] = useState([]);
-<<<<<<< HEAD
-  const [comercioAEliminar, setComercioAEliminar] = useState(null);
-  const [mostrarAlerta, setMostrarAlerta] = useState(false);
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
 
   const cargarFavoritos = () => {
     const favoritos = localStorage.getItem("favoritos");
@@ -60,7 +48,6 @@ const Favoritos = () => {
       window.removeEventListener("comercioReservado", manejarReserva);
   }, []);
 
-<<<<<<< HEAD
   const manejarIntentoEliminar = (idComercio, evento) => {
     evento.stopPropagation();
     setComercioAEliminar(idComercio);
@@ -72,18 +59,11 @@ const Favoritos = () => {
 
     setComerciosFavoritos((previos) =>
       previos.filter((comercio) => comercio.id !== comercioAEliminar)
-=======
-  const manejarQuitarFavorito = (idComercio, evento) => {
-    evento.stopPropagation();
-    setComerciosFavoritos((previos) =>
-      previos.filter((comercio) => comercio.id !== idComercio)
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
     );
 
     const favoritos = localStorage.getItem("favoritos");
     if (favoritos) {
       const listaActualizada = JSON.parse(favoritos).filter(
-<<<<<<< HEAD
         (idFavorito) => idFavorito !== comercioAEliminar
       );
       localStorage.setItem("favoritos", JSON.stringify(listaActualizada));
@@ -91,12 +71,6 @@ const Favoritos = () => {
 
     setMostrarAlerta(false);
     setComercioAEliminar(null);
-=======
-        (idFavorito) => idFavorito !== idComercio
-      );
-      localStorage.setItem("favoritos", JSON.stringify(listaActualizada));
-    }
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
   };
 
   return (
@@ -106,11 +80,7 @@ const Favoritos = () => {
         <div className="px-4 py-4">
           <h1 className="text-2xl font-bold">Comercios Favoritos</h1>
           <p className="text-sm text-muted-foreground mt-1">
-<<<<<<< HEAD
             {comerciosFavoritos.length} comercio/s guardados
-=======
-            {comerciosFavoritos.length} comercios guardados
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
           </p>
         </div>
       </header>
@@ -131,14 +101,9 @@ const Favoritos = () => {
               {...comercio}
               onClick={() => navegar(`/comercio/${comercio.id}`)}
               esFavorito
-<<<<<<< HEAD
               alAlternarFavorito={(e) => manejarIntentoEliminar(comercio.id, e)}
               usarIconoCruz={true}
               nivelEncabezado="h2"
-=======
-              alAlternarFavorito={(e) => manejarQuitarFavorito(comercio.id, e)}
-              usarIconoCruz={true}
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
             />
           ))
         )}

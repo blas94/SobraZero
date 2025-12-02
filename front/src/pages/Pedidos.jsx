@@ -4,11 +4,7 @@ import { Insignia } from "@/components/ui/insignia";
 import { Boton } from "@/components/ui/boton";
 import NavegacionInferior from "@/components/NavegacionInferior";
 import FormasDecorativas from "@/components/FormasDecorativas";
-<<<<<<< HEAD
 import { useState, useEffect, useRef } from "react";
-=======
-import { useState, useEffect } from "react";
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
 import { toast } from "sonner";
 import {
   Plegable,
@@ -34,7 +30,6 @@ const normalizarEstado = (valor = "") => {
 const obtenerNombreComercio = (pedido) =>
   pedido.nombreComercio || pedido.storeName || "Comercio";
 
-<<<<<<< HEAD
 const obtenerEtiquetaEstado = (estado) => {
   switch (normalizarEstado(estado)) {
     case "pendiente":
@@ -146,11 +141,6 @@ const ItemPedido = ({ pedido, manejarReorden }) => {
 const Pedidos = () => {
   const [filtroEstado, setFiltroEstado] = useState("todos");
   const ultimoValorRef = useRef(localStorage.getItem("pedidos"));
-=======
-const Pedidos = () => {
-  const [pedidosExpandidos, setPedidosExpandidos] = useState([]);
-  const [filtroEstado, setFiltroEstado] = useState("todos");
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
 
   const [pedidos, setPedidos] = useState(() => {
     const pedidosGuardados = localStorage.getItem("pedidos");
@@ -234,25 +224,16 @@ const Pedidos = () => {
 
   useEffect(() => {
     const manejarCambioStorage = () => {
-<<<<<<< HEAD
       const valorActual = localStorage.getItem("pedidos");
       if (valorActual !== ultimoValorRef.current) {
         ultimoValorRef.current = valorActual;
         setPedidos(valorActual ? JSON.parse(valorActual) : []);
       }
-=======
-      const pedidosGuardados = localStorage.getItem("pedidos");
-      setPedidos(pedidosGuardados ? JSON.parse(pedidosGuardados) : []);
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
     };
 
     window.addEventListener("storage", manejarCambioStorage);
 
-<<<<<<< HEAD
     const interval = setInterval(manejarCambioStorage, 1000);
-=======
-    const interval = setInterval(manejarCambioStorage, 500);
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
 
     return () => {
       window.removeEventListener("storage", manejarCambioStorage);
@@ -260,7 +241,6 @@ const Pedidos = () => {
     };
   }, []);
 
-<<<<<<< HEAD
 =======
   const obtenerEtiquetaEstado = (estado) => {
     switch (normalizarEstado(estado)) {
@@ -311,9 +291,6 @@ const Pedidos = () => {
     const jsonPedidos = JSON.stringify(pedidosActualizados);
     localStorage.setItem("pedidos", jsonPedidos);
     ultimoValorRef.current = jsonPedidos;
-=======
-    localStorage.setItem("pedidos", JSON.stringify(pedidosActualizados));
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
 
     toast.success(
       `Pedido de ${obtenerNombreComercio(pedido)} agregado nuevamente`
@@ -362,7 +339,6 @@ const Pedidos = () => {
           </div>
         ) : (
           <div className="space-y-4">
-<<<<<<< HEAD
             {pedidosFiltrados.map((pedido) => (
               <ItemPedido
                 key={pedido.id}
@@ -370,101 +346,6 @@ const Pedidos = () => {
                 manejarReorden={manejarReorden}
               />
             ))}
-=======
-            {pedidosFiltrados.map((pedido) => {
-              const estadoNormalizado = normalizarEstado(
-                pedido.estado || pedido.status
-              );
-              const cantidadProductos = pedido.articulos ?? pedido.items ?? 0;
-              const productos = pedido.productos || pedido.products || [];
-
-              return (
-                <Tarjeta key={pedido.id} className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="font-semibold">
-                        {obtenerNombreComercio(pedido)}
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {pedido.fecha || pedido.date}
-                      </p>
-                    </div>
-                    <Insignia variant={obtenerVarianteEstado(estadoNormalizado)}>
-                      {obtenerEtiquetaEstado(estadoNormalizado)}
-                    </Insignia>
-                  </div>
-
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-start gap-2 text-muted-foreground">
-                      <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                      <span>{pedido.direccion || pedido.address}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Clock className="w-4 h-4" />
-                      <span>
-                        Retiro: {pedido.horarioRetiro || pedido.pickupTime}
-                      </span>
-                    </div>
-                  </div>
-
-                  <Plegable
-                    open={pedidosExpandidos.includes(pedido.id)}
-                    onOpenChange={() => alternarExpandido(pedido.id)}
-                    className="mt-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Package className="w-4 h-4 text-muted-foreground" />
-                      <ActivadorPlegable className="text-sm text-green-600 underline cursor-pointer hover:text-green-700">
-                        {cantidadProductos}{" "}
-                        {cantidadProductos === 1 ? "producto" : "productos"}
-                      </ActivadorPlegable>
-                    </div>
-                    <ContenidoPlegable className="mt-2">
-                      <div className="p-3 bg-muted/50 rounded-md">
-                        <ul className="space-y-1.5">
-                          {productos.map((producto, index) => (
-                            <li key={index} className="text-sm">
-                              <div className="flex justify-between items-center">
-                                <span className="text-muted-foreground">
-                                  {producto.nombre || producto.name}
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  Unidades:{" "}
-                                  {producto.cantidad || producto.quantity}
-                                  {producto.weight &&
-                                    `  Peso: ${producto.weight} kilo/s`}
-                                </span>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </ContenidoPlegable>
-                  </Plegable>
-
-                  <div className="mt-4 pt-3 border-t border-border">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium">Total</span>
-                      <span className="text-lg font-bold text-primary">
-                        ${pedido.total.toLocaleString()}
-                      </span>
-                    </div>
-
-                    {normalizarEstado(pedido.estado || pedido.status) ===
-                      "retirado" && (
-                        <Boton
-                          onClick={() => manejarReorden(pedido)}
-                          className="w-full"
-                          size="sm"
-                        >
-                          Volver a pedir
-                        </Boton>
-                      )}
-                  </div>
-                </Tarjeta>
-              );
-            })}
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
           </div>
         )}
       </main>

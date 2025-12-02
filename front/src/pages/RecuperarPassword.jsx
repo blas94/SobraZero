@@ -80,11 +80,7 @@ const RecuperarPassword = () => {
           <div className="text-center mb-6">
             <img
               src={modoOscuro ? logoDark : logo}
-<<<<<<< HEAD
               alt="Logo de SobraZero"
-=======
-              alt="SobraZero"
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               className="w-24 h-24 mx-auto my-6"
               loading="eager"
               fetchPriority="high"

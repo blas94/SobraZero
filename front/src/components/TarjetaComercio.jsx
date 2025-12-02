@@ -16,14 +16,10 @@ const TarjetaComercio = ({
   esFavorito,
   alAlternarFavorito,
   usarIconoCruz = false,
-<<<<<<< HEAD
   nivelEncabezado = "h3",
 }) => {
   const EtiquetaTitulo = nivelEncabezado;
 
-=======
-}) => {
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
   return (
     <Tarjeta
       className="overflow-hidden cursor-pointer transition-all hover:shadow-card-hover active:scale-[0.98]"
@@ -34,11 +30,7 @@ const TarjetaComercio = ({
           {imagenUrl ? (
             <img
               src={imagenUrl}
-<<<<<<< HEAD
               alt={`Imagen de portada de ${nombre}`}
-=======
-              alt={nombre}
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               className="w-full h-full object-cover"
             />
           ) : (
@@ -50,11 +42,7 @@ const TarjetaComercio = ({
 
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
-<<<<<<< HEAD
             <EtiquetaTitulo className="font-semibold text-sm truncate">{nombre}</EtiquetaTitulo>
-=======
-            <h3 className="font-semibold text-sm truncate">{nombre}</h3>
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
             {esFavorito ? (
               <button
                 onClick={alAlternarFavorito}

@@ -271,39 +271,8 @@ const Inicio = () => {
         className="absolute inset-0 w-full h-full mapbox-container"
       />
 
-<<<<<<< HEAD
       <h1 className="sr-only">Buscador de Comercios</h1>
 
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
-      <style>{`
-        .mapbox-container .mapboxgl-ctrl-bottom-left,
-        .mapbox-container .mapboxgl-ctrl-bottom-right {
-          display: none !important;
-        }
-        .mapbox-container .mapboxgl-ctrl-top-right {
-          top: 140px !important;
-        }
-        .mapbox-popup-custom .mapboxgl-popup-content {
-          padding: 0;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        }
-        .mapbox-popup-custom .mapboxgl-popup-tip {
-          border-top-color: white;
-        }
-      `}</style>
-
-      <div className="absolute top-0 left-0 right-0 z-10 p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Entrada
-<<<<<<< HEAD
-              id="busqueda"
-              aria-label="Buscar comercios"
-=======
->>>>>>> c4485221984c1b59f330c839a806751c19be7cd7
               placeholder="Buscar comercios..."
               value={busquedaTexto}
               onChange={(e) => setBusquedaTexto(e.target.value)}
