@@ -270,52 +270,62 @@ const Inicio = () => {
         ref={contenedorMapa}
         className="absolute inset-0 w-full h-full mapbox-container"
       />
+      <style>{`
+        .mapboxgl-ctrl-top-right {
+          top: 160px !important;
+        }
+      `}</style>
 
       <h1 className="sr-only">Buscador de Comercios</h1>
 
-              placeholder="Buscar comercios..."
-              value={busquedaTexto}
-              onChange={(e) => setBusquedaTexto(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  setBusquedaMapa(busquedaTexto);
-                  e.currentTarget.blur();
-                }
+      <div className="absolute top-4 left-4 right-4 z-10 flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+          <Entrada
+            placeholder="Buscar comercios..."
+            value={busquedaTexto}
+            onChange={(e) => setBusquedaTexto(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setBusquedaMapa(busquedaTexto);
+                e.currentTarget.blur();
+              }
+            }}
+            className="pl-10 pr-10 bg-white dark:bg-card shadow-lg"
+          />
+          {busquedaTexto && (
+            <Boton
+              variant="ghost"
+              size="icon"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
+              onClick={() => {
+                setBusquedaTexto("");
+                setBusquedaMapa("");
               }}
-              className="pl-10 pr-10 bg-white dark:bg-card shadow-lg"
-            />
-            {busquedaTexto && (
-              <Boton
-                variant="ghost"
-                size="icon"
-                className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8"
-                onClick={() => {
-                  setBusquedaTexto("");
-                  setBusquedaMapa("");
-                }}
-              >
-                <X className="w-4 h-4" />
-              </Boton>
-            )}
-          </div>
-          <Boton
-            variant="ghost"
-            size="icon"
-            className="relative flex-shrink-0 bg-white dark:bg-card shadow-lg"
-            onClick={() => setMostrarNotificaciones(true)}
-          >
-            <Bell className="w-5 h-5" />
-            {notificacionesSinLeer > 0 && (
-              <Insignia
-                variant="destructive"
-                className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-xs"
-              >
-                {notificacionesSinLeer}
-              </Insignia>
-            )}
-          </Boton>
+            >
+              <X className="w-4 h-4" />
+            </Boton>
+          )}
         </div>
+        <Boton
+          variant="ghost"
+          size="icon"
+          className="relative flex-shrink-0 bg-white dark:bg-card shadow-lg"
+          onClick={() => setMostrarNotificaciones(true)}
+        >
+          <Bell className="w-5 h-5" />
+          {notificacionesSinLeer > 0 && (
+            <Insignia
+              variant="destructive"
+              className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center text-xs"
+            >
+              {notificacionesSinLeer}
+            </Insignia>
+          )}
+        </Boton>
+      </div>
 
+      <div className="absolute top-16 left-4 right-4 z-10">
         <FiltrosComercio
           categoriaSeleccionada={categoriaSeleccionada}
           alCambiarCategoria={(categoria) => {
@@ -324,12 +334,13 @@ const Inicio = () => {
             setBusquedaMapa("");
           }}
         />
-
-        <div className="bg-white/95 dark:bg-card/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg inline-flex items-center gap-2 text-sm">
-          <MapPin className="w-4 h-4 text-primary" />
-          <span className="font-medium">Balvanera, CABA</span>
-        </div>
       </div>
+
+      <div className="absolute top-28 left-4 z-10 bg-white/95 dark:bg-card/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg inline-flex items-center gap-2 text-sm">
+        <MapPin className="w-4 h-4 text-primary" />
+        <span className="font-medium">Balvanera, CABA</span>
+      </div>
+
 
       <NavegacionInferior />
 
@@ -441,7 +452,7 @@ const Inicio = () => {
           </div>
         </ContenidoHoja>
       </Hoja>
-    </div>
+    </div >
   );
 };
 

@@ -138,8 +138,12 @@ const Autenticacion = () => {
           Volver al inicio
         </Boton>
 
-        <h1 className="sr-only">Autenticación - SobraZero</h1>
-
+        <Tarjeta className="w-full max-w-md p-6 shadow-xl border-border/50 bg-card/50 backdrop-blur-sm relative z-10">
+          <div className="text-center mb-6">
+            <h1 className="sr-only">Autenticación - SobraZero</h1>
+            <img
+              src={modoOscuro ? logoDark : logo}
+              alt="Logo de SobraZero"
               className="w-36 mx-auto my-6"
               loading="eager"
               fetchPriority="high"
@@ -157,6 +161,60 @@ const Autenticacion = () => {
 
             <ContenidoPestanas value="inicio">
               <h2 className="sr-only">Iniciar sesión</h2>
+              <Formulario {...formularioInicio}>
+                <form
+                  onSubmit={formularioInicio.handleSubmit(manejarInicioSesion)}
+                  className="space-y-4"
+                >
+                  <CampoFormulario
+                    control={formularioInicio.control}
+                    name="email"
+                    render={({ field }) => (
+                      <ItemFormulario>
+                        <EtiquetaFormulario>Email</EtiquetaFormulario>
+                        <ControlFormulario>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Entrada
+                              placeholder="tu@email.com"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </ControlFormulario>
+                        <MensajeFormulario />
+                      </ItemFormulario>
+                    )}
+                  />
+
+                  <CampoFormulario
+                    control={formularioInicio.control}
+                    name="clave"
+                    render={({ field }) => (
+                      <ItemFormulario>
+                        <EtiquetaFormulario>Contraseña</EtiquetaFormulario>
+                        <ControlFormulario>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Entrada
+                              type="password"
+                              placeholder="••••••"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </ControlFormulario>
+                        <MensajeFormulario />
+                      </ItemFormulario>
+                    )}
+                  />
+
+                  <div className="flex justify-end">
+                    <Link
+                      to="/recuperar-password"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      ¿Olvidaste tu contraseña?
                     </Link>
                   </div>
 
@@ -180,6 +238,151 @@ const Autenticacion = () => {
 
             <ContenidoPestanas value="registro">
               <h2 className="sr-only">Registrarse</h2>
+              <Formulario {...formularioRegistro}>
+                <form
+                  onSubmit={formularioRegistro.handleSubmit(manejarRegistro)}
+                  className="space-y-4"
+                >
+                  <CampoFormulario
+                    control={formularioRegistro.control}
+                    name="nombre"
+                    render={({ field }) => (
+                      <ItemFormulario>
+                        <EtiquetaFormulario>Nombre completo</EtiquetaFormulario>
+                        <ControlFormulario>
+                          <div className="relative">
+                            <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Entrada
+                              placeholder="Juan Pérez"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </ControlFormulario>
+                        <MensajeFormulario />
+                      </ItemFormulario>
+                    )}
+                  />
+
+                  <CampoFormulario
+                    control={formularioRegistro.control}
+                    name="email"
+                    render={({ field }) => (
+                      <ItemFormulario>
+                        <EtiquetaFormulario>Email</EtiquetaFormulario>
+                        <ControlFormulario>
+                          <div className="relative">
+                            <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Entrada
+                              placeholder="tu@email.com"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </ControlFormulario>
+                        <MensajeFormulario />
+                      </ItemFormulario>
+                    )}
+                  />
+
+                  <CampoFormulario
+                    control={formularioRegistro.control}
+                    name="tel"
+                    render={({ field }) => (
+                      <ItemFormulario>
+                        <EtiquetaFormulario>Teléfono</EtiquetaFormulario>
+                        <ControlFormulario>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Entrada
+                              placeholder="11 1234 5678"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </ControlFormulario>
+                        <MensajeFormulario />
+                      </ItemFormulario>
+                    )}
+                  />
+
+                  <CampoFormulario
+                    control={formularioRegistro.control}
+                    name="ubicacion"
+                    render={({ field }) => (
+                      <ItemFormulario>
+                        <EtiquetaFormulario>Ubicación</EtiquetaFormulario>
+                        <ControlFormulario>
+                          <div className="relative">
+                            <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Entrada
+                              placeholder="Calle 123, Ciudad"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </ControlFormulario>
+                        <MensajeFormulario />
+                      </ItemFormulario>
+                    )}
+                  />
+
+                  <CampoFormulario
+                    control={formularioRegistro.control}
+                    name="clave"
+                    render={({ field }) => (
+                      <ItemFormulario>
+                        <EtiquetaFormulario>Contraseña</EtiquetaFormulario>
+                        <ControlFormulario>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Entrada
+                              type="password"
+                              placeholder="••••••"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </ControlFormulario>
+                        <MensajeFormulario />
+                      </ItemFormulario>
+                    )}
+                  />
+
+                  <CampoFormulario
+                    control={formularioRegistro.control}
+                    name="confirmarClave"
+                    render={({ field }) => (
+                      <ItemFormulario>
+                        <EtiquetaFormulario>Confirmar contraseña</EtiquetaFormulario>
+                        <ControlFormulario>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Entrada
+                              type="password"
+                              placeholder="••••••"
+                              className="pl-9"
+                              {...field}
+                            />
+                          </div>
+                        </ControlFormulario>
+                        <MensajeFormulario />
+                      </ItemFormulario>
+                    )}
+                  />
+
+                  <Boton type="submit" className="w-full" disabled={cargando}>
+                    {cargando ? "Registrando..." : "Crear cuenta"}
+                  </Boton>
+
+                  <p className="text-sm text-center mt-3">
+                    ¿Ya tenés cuenta?{" "}
+                    <button
+                      type="button"
+                      onClick={() => setPestanaActiva("inicio")}
+                      className="text-primary hover:underline"
+                    >
+                      Iniciá sesión
                     </button>
                   </p>
                 </form>

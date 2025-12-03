@@ -50,6 +50,15 @@ const Configuracion = () => {
   const [vencimiento, setVencimiento] = useState("");
   const [cvv, setCvv] = useState("");
 
+  const [usuario] = useState(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
+
   useEffect(() => {
     if (modoOscuro) document.documentElement.classList.add("dark");
     else document.documentElement.classList.remove("dark");
@@ -60,7 +69,10 @@ const Configuracion = () => {
 
   const cargarTarjetas = async () => {
     try {
-      const data = await obtenerTarjetasGuardadas();
+      const userId = usuario?.id || usuario?._id;
+      if (!userId) return;
+
+      const data = await obtenerTarjetasGuardadas(userId);
       setTarjetas(normalizarTarjetas(data));
     } catch (error) {
       console.error("Error obteniendo tarjetas:", error);
@@ -71,7 +83,7 @@ const Configuracion = () => {
 
   useEffect(() => {
     cargarTarjetas();
-  }, []);
+  }, [usuario]);
 
   const limpiarFormularioTarjeta = () => {
     setAlias("");
@@ -107,6 +119,7 @@ const Configuracion = () => {
 
     try {
       await agregarTarjeta({
+        usuarioId: usuario?.id || usuario?._id,
         alias: alias.trim(),
         marca: marca.trim() || "Tarjeta",
         ultimos4: numeroLimpio.slice(-4),
@@ -321,6 +334,18 @@ const Configuracion = () => {
                 value={alias}
                 onChange={(e) => setAlias(e.target.value)}
                 aria-label="Alias de la tarjeta"
+              />
+            </div>
+
+            <div>
+              <Etiqueta className="text-sm">Número de tarjeta</Etiqueta>
+              <input
+                className="mt-1 w-full border rounded-md px-2 py-1 text-sm bg-background"
+                placeholder="0000 0000 0000 0000"
+                value={numero}
+                onChange={(e) => setNumero(e.target.value)}
+                maxLength={19}
+                aria-label="Número de tarjeta"
               />
             </div>
 

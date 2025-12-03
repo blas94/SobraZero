@@ -19,6 +19,13 @@ import {
 } from "@/components/ui/dialogo-alerta";
 
 
+
+const Favoritos = () => {
+  const navegar = useNavigate();
+  const [comerciosFavoritos, setComerciosFavoritos] = useState([]);
+  const [mostrarAlerta, setMostrarAlerta] = useState(false);
+  const [comercioAEliminar, setComercioAEliminar] = useState(null);
+
   const cargarFavoritos = () => {
     const favoritos = localStorage.getItem("favoritos");
     if (!favoritos) return;
