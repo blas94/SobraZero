@@ -1,8 +1,8 @@
-import { useToast } from "@/hooks/use-toast";
+import { usarToast } from "@/hooks/usar-toast";
 import { Notificacion, CerrarNotificacion, DescripcionNotificacion, ProveedorNotificacion, TituloNotificacion, VistaNotificacion } from "@/components/ui/notificacion";
 
 const Notificador = () => {
-  const { toasts: notificaciones } = useToast();
+  const { toasts: notificaciones } = usarToast();
   return (<ProveedorNotificacion>
     {notificaciones.map(function ({ id, title, description, action, ...props }) {
       return (<Notificacion key={id} {...props}>

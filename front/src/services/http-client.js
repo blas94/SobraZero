@@ -9,18 +9,10 @@ const baseURL =
 const withBaseConfig = () =>
   axios.create({
     baseURL,
+    withCredentials: true, // Enviar cookies automáticamente
   });
 
 export const http = withBaseConfig();
 export const authHttp = withBaseConfig();
 
-authHttp.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers = {
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    };
-  }
-  return config;
-});
+// Ya no necesitamos interceptor - la cookie se envía automáticamente

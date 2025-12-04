@@ -20,6 +20,7 @@ import {
   MensajeFormulario,
 } from "@/components/ui/formulario";
 import { iniciarSesion, registrarCuenta } from "@/services/autenticacion";
+import { usarTema } from "@/hooks/usar-tema";
 
 const esquemaInicioSesion = z.object({
   email: z.string().trim().email("Email inválido").max(255),
@@ -44,9 +45,7 @@ const Autenticacion = () => {
   const navegar = useNavigate();
   const [pestanaActiva, setPestanaActiva] = useState("inicio");
   const [cargando, setCargando] = useState(false);
-  const [modoOscuro, setModoOscuro] = useState(() =>
-    document.documentElement.classList.contains("dark")
-  );
+  const { esModoOscuro } = usarTema();
 
   const formularioInicio = useForm({
     resolver: zodResolver(esquemaInicioSesion),
@@ -65,28 +64,15 @@ const Autenticacion = () => {
     },
   });
 
-  useEffect(() => {
-    const observador = new MutationObserver(() => {
-      setModoOscuro(document.documentElement.classList.contains("dark"));
-    });
-
-    observador.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => observador.disconnect();
-  }, []);
-
   const manejarInicioSesion = async (datos) => {
     setCargando(true);
     try {
-      const { token, user } = await iniciarSesion({
+      const { user } = await iniciarSesion({
         email: datos.email,
         clave: datos.clave,
       });
 
-      localStorage.setItem("token", token);
+      // Solo guardar user - el token está en la cookie HttpOnly
       localStorage.setItem("user", JSON.stringify(user));
 
       toast.success("Sesión iniciada correctamente");
@@ -102,7 +88,7 @@ const Autenticacion = () => {
   const manejarRegistro = async (datos) => {
     setCargando(true);
     try {
-      const { token, user } = await registrarCuenta({
+      const { user } = await registrarCuenta({
         nombre: datos.nombre,
         email: datos.email,
         tel: datos.tel,
@@ -110,7 +96,7 @@ const Autenticacion = () => {
         clave: datos.clave,
       });
 
-      localStorage.setItem("token", token);
+      // Solo guardar user - el token está en la cookie HttpOnly
       localStorage.setItem("user", JSON.stringify(user));
 
       toast.success("Cuenta creada correctamente");
@@ -142,7 +128,7 @@ const Autenticacion = () => {
           <div className="text-center mb-6">
             <h1 className="sr-only">Autenticación - SobraZero</h1>
             <img
-              src={modoOscuro ? logoDark : logo}
+              src={esModoOscuro ? logoDark : logo}
               alt="Logo de SobraZero"
               className="w-36 mx-auto my-6"
               loading="eager"

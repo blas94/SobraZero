@@ -31,13 +31,11 @@ import {
   eliminarTarjeta,
   establecerTarjetaPrincipal,
 } from "@/services/metodos-pago";
+import { usarTema } from "@/hooks/usar-tema";
 
 const Configuracion = () => {
   const navegar = useNavigate();
-
-  const [modoOscuro, setModoOscuro] = useState(() =>
-    document.documentElement.classList.contains("dark")
-  );
+  const { esModoOscuro, alternarModoOscuro } = usarTema();
   const [mostrarDialogoEliminar, setMostrarDialogoEliminar] = useState(false);
 
   const [tarjetas, setTarjetas] = useState([]);
@@ -57,12 +55,7 @@ const Configuracion = () => {
     } catch {
       return null;
     }
-  });
-
-  useEffect(() => {
-    if (modoOscuro) document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-  }, [modoOscuro]);
+  })
 
   const normalizarTarjetas = (data) =>
     Array.isArray(data) ? data : data?.tarjetas ?? [];
@@ -93,9 +86,9 @@ const Configuracion = () => {
     setCvv("");
   };
 
-  const manejarToggleModoOscuro = (checked) => {
-    setModoOscuro(checked);
-    toast.success(checked ? "Modo oscuro activado" : "Modo claro activado");
+  const manejarToggleModoOscuro = () => {
+    alternarModoOscuro();
+    toast.success(!esModoOscuro ? "Modo oscuro activado" : "Modo claro activado");
   };
 
   const manejarEliminarCuenta = () => {
@@ -186,7 +179,7 @@ const Configuracion = () => {
           <div className="flex items-center justify-between">
             <Etiqueta className="cursor-pointer">Modo oscuro</Etiqueta>
             <Interruptor
-              checked={modoOscuro}
+              checked={esModoOscuro}
               onCheckedChange={manejarToggleModoOscuro}
             />
           </div>

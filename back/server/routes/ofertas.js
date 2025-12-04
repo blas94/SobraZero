@@ -1,5 +1,6 @@
 import { Router } from "express";
 import Oferta from "../models/oferta.js";
+import Comercio from "../models/comercio.js";
 
 const router = Router();
 
@@ -20,6 +21,34 @@ router.get("/:id", async (req, res) => {
     }
     res.json(oferta);
   } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+});
+
+// Obtener oferta por ID externo de comercio
+router.get("/comercio/:idComercio", async (req, res) => {
+  try {
+    const { idComercio } = req.params;
+
+    // Buscar el comercio por su idExterno (ej: "1", "2", "3")
+    const comercio = await Comercio.findOne({ idExterno: idComercio });
+
+    if (!comercio) {
+      return res.status(404).json({ message: "Comercio no encontrado" });
+    }
+
+    // Buscar la oferta usando el ObjectId del comercio
+    const oferta = await Oferta.findOne({
+      comercio: comercio._id
+    }).populate("comercio");
+
+    if (!oferta) {
+      return res.status(404).json({ message: "No se encontró oferta para este comercio" });
+    }
+
+    res.json(oferta);
+  } catch (e) {
+    console.error("Error buscando oferta por comercio:", e);
     res.status(500).json({ message: e.message });
   }
 });

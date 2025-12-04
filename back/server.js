@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
+import cookieParser from "cookie-parser";
 import reservasRouter from "./server/routes/reservas.js";
 import authRouter from "./server/routes/auth.js";
 import pagosRouter from "./server/routes/pagos.js";
@@ -33,6 +34,7 @@ app.use(
     credentials: true,
   })
 );
+app.use(cookieParser());
 app.use(express.json());
 
 mongoose

@@ -9,8 +9,8 @@ const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_cambia_esto";
 
 
 function getAuthPayload(req) {
-  const auth = req.headers.authorization || "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+  // Leer token desde cookie HttpOnly
+  const token = req.cookies?.token;
   if (!token) return null;
   try {
     return jwt.verify(token, JWT_SECRET);
@@ -79,8 +79,15 @@ router.post("/register", async (req, res) => {
 
     const token = jwt.sign({ uid: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 
+    // Enviar token como cookie HttpOnly
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // lax para desarrollo
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+    });
+
     return res.status(201).json({
-      token,
       user: {
         id: user._id.toString(),
         nombre: user.nombre,
@@ -112,8 +119,15 @@ router.post("/login", async (req, res) => {
 
     const token = jwt.sign({ uid: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 
+    // Enviar token como cookie HttpOnly
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // lax para desarrollo
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+    });
+
     return res.json({
-      token,
       user: {
         id: user._id.toString(),
         nombre: user.nombre,
@@ -161,10 +175,10 @@ router.put("/me", async (req, res) => {
 
   if (typeof ubicacion !== "undefined") {
     const { ubicacionTexto, ubicacionGeo } = await construirUbicacion(ubicacion);
-    actualizacion.ubicacion = ubicacionTexto;  
+    actualizacion.ubicacion = ubicacionTexto;
     actualizacion.ubicacionTexto = ubicacionTexto;
     actualizacion.ubicacionGeo = ubicacionGeo;
-}
+  }
 
   const user = await Usuario.findByIdAndUpdate(
     payload.uid,
@@ -181,6 +195,35 @@ router.put("/me", async (req, res) => {
     tel: user.tel,
     ubicacion: user.ubicacionTexto,
     ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
+  });
+});
+
+// Logout - Limpiar cookie
+router.post("/logout", (req, res) => {
+  res.clearCookie("token");
+  return res.json({ message: "Sesión cerrada exitosamente" });
+});
+
+// Verificar autenticación
+router.get("/verificar", async (req, res) => {
+  const payload = getAuthPayload(req);
+  if (!payload) return res.status(401).json({ autenticado: false });
+
+  const user = await Usuario.findById(payload.uid).select(
+    "_id nombre email tel ubicacionTexto ubicacionGeo"
+  );
+  if (!user) return res.status(404).json({ autenticado: false });
+
+  return res.json({
+    autenticado: true,
+    user: {
+      id: user._id.toString(),
+      nombre: user.nombre,
+      email: user.email,
+      tel: user.tel,
+      ubicacion: user.ubicacionTexto,
+      ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
+    },
   });
 });
 

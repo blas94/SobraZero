@@ -16,14 +16,7 @@ import SeccionResenas from "@/components/SeccionResenas";
 import { toast } from "sonner";
 import { crearReserva } from "@/services/reservas";
 import { obtenerTarjetaPrincipal } from "@/services/metodos-pago";
-
-const mapaOfertaPorComercio = {
-  1: "68c753ffb17ad728abc253e1",
-  2: "68c7546ab17ad728abc253e5",
-  3: "68c754bbb17ad728abc253e7",
-  4: "6918c3ef9a76952f91f39741",
-  5: "6918c3159a76952f91f3973f",
-};
+import { obtenerOfertaPorComercio } from "@/services/ofertas";
 
 const ESTADO_COMERCIOS_KEY = "estadoComercios";
 
@@ -105,6 +98,8 @@ const ContenidoComercio = ({
     return false;
   });
   const [tarjetaPrincipal, setTarjetaPrincipal] = useState(null);
+  const [ofertaId, setOfertaId] = useState(null);
+  const [cargandoOferta, setCargandoOferta] = useState(false);
 
   useEffect(() => {
     const cargarTarjeta = async () => {
@@ -117,6 +112,29 @@ const ContenidoComercio = ({
     };
     cargarTarjeta();
   }, []);
+
+  // Cargar oferta del comercio desde el servicio
+  useEffect(() => {
+    const cargarOferta = async () => {
+      if (!idComercio) return;
+
+      setCargandoOferta(true);
+      try {
+        const oferta = await obtenerOfertaPorComercio(idComercio);
+        if (oferta && oferta._id) {
+          setOfertaId(oferta._id);
+        }
+      } catch (error) {
+        console.error("Error cargando oferta:", error);
+        // No mostramos toast aquí para no molestar al usuario
+        // El componente puede funcionar sin oferta (solo no podrá reservar)
+      } finally {
+        setCargandoOferta(false);
+      }
+    };
+
+    cargarOferta();
+  }, [idComercio]);
 
   const yaReservo = () => {
     if (!comercio) return false;
@@ -204,9 +222,8 @@ const ContenidoComercio = ({
 
     if (!confirmar) return;
 
-    const ofertaId = mapaOfertaPorComercio[idComercio];
     if (!ofertaId) {
-      toast.error("No se encontro la oferta asociada a este comercio");
+      toast.error("No se pudo obtener la oferta de este comercio. Intenta recargar la página.");
       return;
     }
 

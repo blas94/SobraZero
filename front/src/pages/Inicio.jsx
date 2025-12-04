@@ -34,9 +34,11 @@ import {
 } from "@/data/datos-comercios";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { usarTema } from "@/hooks/usar-tema";
 
 const Inicio = () => {
   const navegar = useNavigate();
+  const { esModoOscuro } = usarTema();
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("all");
   const [busquedaTexto, setBusquedaTexto] = useState("");
   const [busquedaMapa, setBusquedaMapa] = useState("");
@@ -46,9 +48,6 @@ const Inicio = () => {
   const [comercioSeleccionado, setComercioSeleccionado] = useState(null);
   const [tokenMapbox] = useState(
     "pk.eyJ1IjoidG9tYXNtaXNyYWhpIiwiYSI6ImNtaDJwZDkwaDJ1eW0yd3B5eDZ6b3Y1djMifQ.44qXpnbdv09ro4NME7QxJQ"
-  );
-  const [modoOscuro, setModoOscuro] = useState(() =>
-    document.documentElement.classList.contains("dark")
   );
   const [comerciosLocales, setComerciosLocales] = useState(comerciosMock);
   const [notificaciones, setNotificaciones] = useState([
@@ -151,7 +150,7 @@ const Inicio = () => {
 
     mapaRef.current = new mapboxgl.Map({
       container: contenedorMapa.current,
-      style: modoOscuro
+      style: esModoOscuro
         ? "mapbox://styles/mapbox/dark-v11"
         : "mapbox://styles/mapbox/light-v11",
       center: [-58.3960002, -34.6043469],
@@ -206,30 +205,18 @@ const Inicio = () => {
     return () => {
       window.removeEventListener("mapLoaded", updateMarkers);
     };
-  }, [navegar, comerciosMapaFiltrados, modoOscuro]);
+  }, [navegar, comerciosMapaFiltrados, esModoOscuro]);
 
+  // Actualizar estilo del mapa cuando cambie el modo oscuro
   useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const darkModeEnabled =
-        document.documentElement.classList.contains("dark");
-      setModoOscuro(darkModeEnabled);
-
-      if (mapaRef.current && mapaRef.current.loaded()) {
-        mapaRef.current.setStyle(
-          darkModeEnabled
-            ? "mapbox://styles/mapbox/dark-v11"
-            : "mapbox://styles/mapbox/light-v11"
-        );
-      }
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
+    if (mapaRef.current && mapaRef.current.loaded()) {
+      mapaRef.current.setStyle(
+        esModoOscuro
+          ? "mapbox://styles/mapbox/dark-v11"
+          : "mapbox://styles/mapbox/light-v11"
+      );
+    }
+  }, [esModoOscuro]);
 
   useEffect(() => {
     if (mostrarNotificaciones) {

@@ -10,6 +10,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { useEffect } from "react";
+import { ProveedorTema } from "@/hooks/usar-tema";
 
 import Inicio from "./pages/Inicio";
 import DetalleComercio from "./pages/DetalleComercio";
@@ -38,15 +39,17 @@ const ScrollToTop = () => {
 };
 
 function RutaProtegida({ children }) {
-  const token = localStorage.getItem("token");
-  if (!token) return <Navigate to="/autenticacion" replace />;
+  // Verificar si hay usuario en localStorage (el token está en cookie HttpOnly)
+  const user = localStorage.getItem("user");
+  if (!user) return <Navigate to="/autenticacion" replace />;
   return children;
 }
 
 function RutaInicial() {
-  const token = localStorage.getItem("token");
+  // Verificar si hay usuario en localStorage (el token está en cookie HttpOnly)
+  const user = localStorage.getItem("user");
 
-  if (!token) {
+  if (!user) {
     return <Navigate to="/autenticacion" replace />;
   }
 
@@ -57,7 +60,7 @@ const App = () => {
   useEffect(() => {
     const sessionFlag = sessionStorage.getItem("sobrazeroSessionStarted");
     if (!sessionFlag) {
-      localStorage.removeItem("token");
+      // Solo limpiar user, el token está en cookie HttpOnly
       localStorage.removeItem("user");
       sessionStorage.setItem("sobrazeroSessionStarted", "1");
     }
@@ -65,103 +68,105 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ProveedorGloboInformacion>
-        <Notificador />
-        <Sonner />
-        <BrowserRouter>
-          <ScrollToTop />
-          <Routes>
-            <Route path="/autenticacion" element={<Autenticacion />} />
-            <Route path="/pagos/estado" element={<EstadoPago />} />
+      <ProveedorTema>
+        <ProveedorGloboInformacion>
+          <Notificador />
+          <Sonner />
+          <BrowserRouter>
+            <ScrollToTop />
+            <Routes>
+              <Route path="/autenticacion" element={<Autenticacion />} />
+              <Route path="/pagos/estado" element={<EstadoPago />} />
 
-            <Route path="/" element={<RutaInicial />} />
-            <Route
-              path="/comercio/:id"
-              element={
-                <RutaProtegida>
-                  <DetalleComercio />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/pedidos"
-              element={
-                <RutaProtegida>
-                  <Pedidos />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/favoritos"
-              element={
-                <RutaProtegida>
-                  <Favoritos />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/perfil"
-              element={
-                <RutaProtegida>
-                  <Perfil />
-                </RutaProtegida>
-              }
-            />
+              <Route path="/" element={<RutaInicial />} />
+              <Route
+                path="/comercio/:id"
+                element={
+                  <RutaProtegida>
+                    <DetalleComercio />
+                  </RutaProtegida>
+                }
+              />
+              <Route
+                path="/pedidos"
+                element={
+                  <RutaProtegida>
+                    <Pedidos />
+                  </RutaProtegida>
+                }
+              />
+              <Route
+                path="/favoritos"
+                element={
+                  <RutaProtegida>
+                    <Favoritos />
+                  </RutaProtegida>
+                }
+              />
+              <Route
+                path="/perfil"
+                element={
+                  <RutaProtegida>
+                    <Perfil />
+                  </RutaProtegida>
+                }
+              />
 
-            <Route
-              path="/perfil/editar"
-              element={
-                <RutaProtegida>
-                  <EditarPerfil />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/perfil/registrar-comercio"
-              element={
-                <RutaProtegida>
-                  <RegistrarTienda />
-                </RutaProtegida>
-              }
-            />
+              <Route
+                path="/perfil/editar"
+                element={
+                  <RutaProtegida>
+                    <EditarPerfil />
+                  </RutaProtegida>
+                }
+              />
+              <Route
+                path="/perfil/registrar-comercio"
+                element={
+                  <RutaProtegida>
+                    <RegistrarTienda />
+                  </RutaProtegida>
+                }
+              />
 
-            <Route
-              path="/perfil/configuracion"
-              element={
-                <RutaProtegida>
-                  <Configuracion />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/perfil/notificaciones"
-              element={
-                <RutaProtegida>
-                  <Notificaciones />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/perfil/centro-ayuda"
-              element={
-                <RutaProtegida>
-                  <CentroAyuda />
-                </RutaProtegida>
-              }
-            />
-            <Route
-              path="/perfil/centro-ayuda/chat"
-              element={
-                <RutaProtegida>
-                  <ChatEnVivo />
-                </RutaProtegida>
-              }
-            />
+              <Route
+                path="/perfil/configuracion"
+                element={
+                  <RutaProtegida>
+                    <Configuracion />
+                  </RutaProtegida>
+                }
+              />
+              <Route
+                path="/perfil/notificaciones"
+                element={
+                  <RutaProtegida>
+                    <Notificaciones />
+                  </RutaProtegida>
+                }
+              />
+              <Route
+                path="/perfil/centro-ayuda"
+                element={
+                  <RutaProtegida>
+                    <CentroAyuda />
+                  </RutaProtegida>
+                }
+              />
+              <Route
+                path="/perfil/centro-ayuda/chat"
+                element={
+                  <RutaProtegida>
+                    <ChatEnVivo />
+                  </RutaProtegida>
+                }
+              />
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </ProveedorGloboInformacion>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </ProveedorGloboInformacion>
+      </ProveedorTema>
     </QueryClientProvider>
   );
 };

@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialogo-alerta";
 
 import { obtenerPerfil } from "@/services/autenticacion";
+import { authHttp } from "@/services/http-client";
 
 const opcionesMenu = [
   {
@@ -117,8 +118,13 @@ const Perfil = () => {
     cargarPerfil();
   }, []);
 
-  const manejarCerrarSesion = () => {
-    localStorage.removeItem("token");
+  const manejarCerrarSesion = async () => {
+    try {
+      await authHttp.post("/auth/logout");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+
     localStorage.removeItem("user");
 
     toast.success("Sesión cerrada correctamente");

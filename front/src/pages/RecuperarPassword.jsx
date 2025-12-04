@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tarjeta } from "@/components/ui/tarjeta";
 import { Boton } from "@/components/ui/boton";
 import { Entrada } from "@/components/ui/entrada";
-import { Etiqueta } from "@/components/ui/etiqueta";
 import { Mail, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.png";
 import logoDark from "@/assets/logo-dark.png";
@@ -19,6 +17,7 @@ import {
   EtiquetaFormulario,
   MensajeFormulario,
 } from "@/components/ui/formulario";
+import { usarTema } from "@/hooks/usar-tema";
 
 const esquemaRecupero = z.object({
   email: z
@@ -30,9 +29,7 @@ const esquemaRecupero = z.object({
 
 const RecuperarPassword = () => {
   const navegar = useNavigate();
-  const [modoOscuro, setModoOscuro] = useState(() =>
-    document.documentElement.classList.contains("dark")
-  );
+  const { esModoOscuro } = usarTema();
 
   const formulario = useForm({
     resolver: zodResolver(esquemaRecupero),
@@ -47,21 +44,6 @@ const RecuperarPassword = () => {
     );
     setTimeout(() => navegar("/autenticacion"), 2000);
   };
-
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      const darkModeEnabled =
-        document.documentElement.classList.contains("dark");
-      setModoOscuro(darkModeEnabled);
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center p-4">
@@ -79,7 +61,7 @@ const RecuperarPassword = () => {
         <Tarjeta className="p-6">
           <div className="text-center mb-6">
             <img
-              src={modoOscuro ? logoDark : logo}
+              src={esModoOscuro ? logoDark : logo}
               alt="Logo de SobraZero"
               className="w-24 h-24 mx-auto my-6"
               loading="eager"
