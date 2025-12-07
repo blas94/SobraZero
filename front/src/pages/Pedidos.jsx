@@ -1,7 +1,7 @@
 import { Clock, MapPin, Package, ChevronDown } from "lucide-react";
-import { Tarjeta } from "@/components/ui/tarjeta";
-import { Insignia } from "@/components/ui/insignia";
-import { Boton } from "@/components/ui/boton";
+import { Tarjeta } from "@/components/ui/Tarjeta";
+import { Insignia } from "@/components/ui/Insignia";
+import { Boton } from "@/components/ui/Boton";
 import NavegacionInferior from "@/components/NavegacionInferior";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { useState, useEffect, useRef } from "react";
@@ -10,7 +10,7 @@ import {
   Plegable,
   ContenidoPlegable,
   ActivadorPlegable,
-} from "@/components/ui/plegable";
+} from "@/components/ui/Plegable";
 
 const ESTADOS_FILTRO = [
   { id: "todos", etiqueta: "Todos" },
@@ -57,7 +57,7 @@ const obtenerVarianteEstado = (estado) => {
 };
 
 const ItemPedido = ({ pedido, manejarReorden }) => {
-  console.log("Renderizando ItemPedido:", pedido.id, pedido.productos);
+
   const estadoNormalizado = normalizarEstado(pedido.estado || pedido.status);
   const cantidadProductos = pedido.productos?.length || 0;
   const productos = pedido.productos || pedido.products || [];

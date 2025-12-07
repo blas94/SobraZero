@@ -16,16 +16,16 @@ import {
   DescripcionTarjeta,
   EncabezadoTarjeta,
   TituloTarjeta,
-} from "@/components/ui/tarjeta";
-import { Boton } from "@/components/ui/boton";
-import { AreaTexto } from "@/components/ui/area-texto";
-import { Etiqueta } from "@/components/ui/etiqueta";
+} from "@/components/ui/Tarjeta";
+import { Boton } from "@/components/ui/Boton";
+import { AreaTexto } from "@/components/ui/AreaTexto";
+import { Etiqueta } from "@/components/ui/Etiqueta";
 import {
   Acordeon,
   ContenidoAcordeon,
   ItemAcordeon,
   ActivadorAcordeon,
-} from "@/components/ui/acordeon";
+} from "@/components/ui/Acordeon";
 
 const esquemaFeedback = z.object({
   feedback: z
@@ -135,9 +135,7 @@ const CentroAyuda = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold">Centro de ayuda</h1>
-            <p className="text-sm text-muted-foreground">
-              Encontramos soluciones rápidas para vos y tu comercio
-            </p>
+
           </div>
         </div>
       </header>
@@ -145,12 +143,10 @@ const CentroAyuda = () => {
       <main className="px-4 py-6 space-y-6 relative z-10">
         <Tarjeta>
           <EncabezadoTarjeta className="pb-2">
-            <h2 className="text-base font-semibold leading-none tracking-tight">
+            <h2 className="text-lg font-semibold">
               ¿Cómo podemos ayudarte?
             </h2>
-            <DescripcionTarjeta>
-              Explorá preguntas frecuentes, escribinos o dejá un comentario.
-            </DescripcionTarjeta>
+
           </EncabezadoTarjeta>
           <ContenidoTarjeta className="grid gap-4 md:grid-cols-2">
             {opcionesContacto.map((opcion, index) => {
@@ -233,7 +229,7 @@ const CentroAyuda = () => {
           </p>
           <div className="space-y-3">
             <div>
-              <Etiqueta htmlFor="feedback">Tu comentario</Etiqueta>
+
               <AreaTexto
                 id="feedback"
                 placeholder="Escribí tu sugerencia acá..."

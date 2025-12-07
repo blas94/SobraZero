@@ -15,7 +15,7 @@ export const comercios = [
     horarioRetiro: "18:00 - 20:00",
     disponibles: 5,
     descripcion:
-      "Bolsa sorpresa con productos de panaderia frescos del dia: pan, facturas, medialunas y mas. Todos los productos estan en perfecto estado.",
+      "Bolsa sorpresa con productos de panadería frescos del día: pan, facturas, medialunas y más. Todos los productos están en perfecto estado.",
     productos: [
       {
         id: "1-1",
@@ -27,7 +27,7 @@ export const comercios = [
       },
       {
         id: "1-2",
-        nombre: "Pan frances",
+        nombre: "Pan francés",
         stock: 15,
         peso: 0.5,
         precioOriginal: 200,
@@ -58,7 +58,7 @@ export const comercios = [
     latitud: -34.6058,
     longitud: -58.3975,
     distancia: "0.9 km",
-    direccion: "Av. Pueyrredon 258, Balvanera",
+    direccion: "Av. Pueyrredón 258, Balvanera",
     calificacion: 4.2,
     totalResenas: 89,
     descuento: 50,
@@ -67,11 +67,11 @@ export const comercios = [
     horarioRetiro: "19:00 - 21:00",
     disponibles: 8,
     descripcion:
-      "Bolsa sorpresa con variedad de productos: verduras, frutas, lacteos y otros productos frescos. Perfecto para abastecer tu hogar.",
+      "Bolsa sorpresa con variedad de productos: verduras, frutas, lácteos y otros productos frescos. Perfecto para abastecer tu hogar.",
     productos: [
       {
         id: "2-1",
-        nombre: "Frutas de estacion variadas",
+        nombre: "Frutas de estación variadas",
         stock: 30,
         peso: 2.0,
         precioOriginal: 800,
@@ -87,14 +87,14 @@ export const comercios = [
       },
       {
         id: "2-3",
-        nombre: "Lacteos (leche, yogurt)",
+        nombre: "Lácteos (leche, yogurt)",
         stock: 40,
         precioOriginal: 500,
         precioDescuento: 250,
       },
       {
         id: "2-4",
-        nombre: "Pan del dia",
+        nombre: "Pan del día",
         stock: 20,
         peso: 0.5,
         precioOriginal: 250,
@@ -102,7 +102,7 @@ export const comercios = [
       },
       {
         id: "2-5",
-        nombre: "Productos de almacen",
+        nombre: "Productos de almacén",
         stock: 35,
         precioOriginal: 400,
         precioDescuento: 200,
@@ -111,12 +111,12 @@ export const comercios = [
   },
   {
     id: "3",
-    nombre: "Verduleria Los Andes",
+    nombre: "Verdulería Los Andes",
     categoria: "verduleria",
     latitud: -34.607,
     longitud: -58.395,
     distancia: "0.7 km",
-    direccion: "Av. Cordoba 2645, Balvanera",
+    direccion: "Av. Córdoba 2645, Balvanera",
     calificacion: 4.7,
     totalResenas: 156,
     descuento: 55,
@@ -125,7 +125,7 @@ export const comercios = [
     horarioRetiro: "17:00 - 19:00",
     disponibles: 3,
     descripcion:
-      "Bolsa sorpresa con frutas y verduras frescas de estacion. Productos de excelente calidad directos de la quinta.",
+      "Bolsa sorpresa con frutas y verduras frescas de estación. Productos de excelente calidad directos de la quinta.",
     productos: [
       {
         id: "3-1",
@@ -192,7 +192,7 @@ export const comercios = [
     horarioRetiro: "20:00 - 21:30",
     disponibles: 4,
     descripcion:
-      "Bolsa sorpresa con platos preparados del dia: minutas, guarniciones y postres. Comida casera de alta calidad.",
+      "Bolsa sorpresa con platos preparados del día: minutas, guarniciones y postres. Comida casera de alta calidad.",
     productos: [
       {
         id: "4-1",
@@ -226,7 +226,7 @@ export const comercios = [
   },
   {
     id: "5",
-    nombre: "Panaderia Artesanal",
+    nombre: "Panadería Artesanal",
     categoria: "panaderia",
     latitud: -34.6048,
     longitud: -58.3918,
@@ -240,7 +240,7 @@ export const comercios = [
     horarioRetiro: "18:30 - 20:00",
     disponibles: 6,
     descripcion:
-      "Bolsa sorpresa con pan artesanal, masas dulces y productos de pasteleria. Todo elaborado con masa madre y productos naturales.",
+      "Bolsa sorpresa con pan artesanal, masas dulces y productos de pastelería. Todo elaborado con masa madre y productos naturales.",
     productos: [
       {
         id: "5-1",
@@ -280,60 +280,60 @@ export const resenasPorComercio = {
   1: [
     {
       id: "1",
-      nombreUsuario: "Maria Gonzalez",
+      nombreUsuario: "María González",
       calificacion: 5,
       comentario:
         "Excelente calidad y variedad. Las medialunas estaban perfectas!",
-      fecha: "Hace 2 dias",
+      fecha: "Hace 2 días",
     },
     {
       id: "2",
-      nombreUsuario: "Carlos Perez",
+      nombreUsuario: "Carlos Pérez",
       calificacion: 4,
-      comentario: "Muy buena relacion precio-calidad. Repetire seguro.",
-      fecha: "Hace 5 dias",
+      comentario: "Muy buena relación precio-calidad. Repetiré seguro.",
+      fecha: "Hace 5 días",
     },
   ],
   2: [
     {
       id: "1",
-      nombreUsuario: "Laura Martinez",
+      nombreUsuario: "Laura Martínez",
       calificacion: 4,
       comentario:
         "Buena variedad de productos frescos. El precio es excelente.",
-      fecha: "Hace 1 dia",
+      fecha: "Hace 1 día",
     },
     {
       id: "2",
-      nombreUsuario: "Diego Rodriguez",
+      nombreUsuario: "Diego Rodríguez",
       calificacion: 5,
       comentario: "Siempre encuentro productos de calidad. Muy recomendable.",
-      fecha: "Hace 3 dias",
+      fecha: "Hace 3 días",
     },
   ],
   3: [
     {
       id: "1",
-      nombreUsuario: "Ana Lopez",
+      nombreUsuario: "Ana López",
       calificacion: 5,
-      comentario: "Las frutas y verduras estan super frescas. Volvere!",
-      fecha: "Hace 1 dia",
+      comentario: "Las frutas y verduras están súper frescas. Volveré!",
+      fecha: "Hace 1 día",
     },
     {
       id: "2",
-      nombreUsuario: "Roberto Sanchez",
+      nombreUsuario: "Roberto Sánchez",
       calificacion: 5,
       comentario: "Productos de primera calidad a excelente precio.",
-      fecha: "Hace 4 dias",
+      fecha: "Hace 4 días",
     },
   ],
   4: [
     {
       id: "1",
-      nombreUsuario: "Silvia Fernandez",
+      nombreUsuario: "Silvia Fernández",
       calificacion: 5,
       comentario: "La comida es deliciosa! Como si fuera casera.",
-      fecha: "Hace 2 dias",
+      fecha: "Hace 2 días",
     },
     {
       id: "2",
@@ -349,14 +349,14 @@ export const resenasPorComercio = {
       nombreUsuario: "Gabriela Ruiz",
       calificacion: 5,
       comentario: "El mejor pan artesanal del barrio. Vale la pena!",
-      fecha: "Hace 1 dia",
+      fecha: "Hace 1 día",
     },
     {
       id: "2",
-      nombreUsuario: "Martin Castro",
+      nombreUsuario: "Martín Castro",
       calificacion: 5,
-      comentario: "La masa madre es espectacular. Todo super fresco.",
-      fecha: "Hace 5 dias",
+      comentario: "La masa madre es espectacular. Todo súper fresco.",
+      fecha: "Hace 5 días",
     },
   ],
 };

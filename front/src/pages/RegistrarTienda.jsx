@@ -1,8 +1,8 @@
-import { Boton } from "@/components/ui/boton";
-import { Entrada } from "@/components/ui/entrada";
-import { Etiqueta } from "@/components/ui/etiqueta";
-import { CasillaVerificacion } from "@/components/ui/casilla-verificacion";
-import { Tarjeta } from "@/components/ui/tarjeta";
+import { Boton } from "@/components/ui/Boton";
+import { Entrada } from "@/components/ui/Entrada";
+import { Etiqueta } from "@/components/ui/Etiqueta";
+import { CasillaVerificacion } from "@/components/ui/CasillaVerificacion";
+import { Tarjeta } from "@/components/ui/Tarjeta";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -130,8 +130,8 @@ const RegistrarTienda = () => {
                       })
                     }
                     className={`p-3 rounded-lg border-2 transition-all ${tipoComercioSeleccionado === tipo.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
+                      ? "border-primary bg-primary/10"
+                      : "border-border hover:border-primary/50"
                       }`}
                   >
                     <span className="font-medium">{tipo.label}</span>

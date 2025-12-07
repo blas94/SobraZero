@@ -8,10 +8,10 @@ import {
   ShoppingBag,
   Heart,
 } from "lucide-react";
-import { Boton } from "@/components/ui/boton";
-import { Tarjeta } from "@/components/ui/tarjeta";
-import { AreaTexto } from "@/components/ui/area-texto";
-import { Etiqueta } from "@/components/ui/etiqueta";
+import { Boton } from "@/components/ui/Boton";
+import { Tarjeta } from "@/components/ui/Tarjeta";
+import { AreaTexto } from "@/components/ui/AreaTexto";
+import { Etiqueta } from "@/components/ui/Etiqueta";
 import SeccionResenas from "@/components/SeccionResenas";
 import { toast } from "sonner";
 import { crearReserva } from "@/services/reservas";
@@ -592,7 +592,7 @@ const ContenidoComercio = ({
               <h3 className="font-medium mb-3">Deja tu reseña</h3>
 
               <div className="mb-3">
-                <Etiqueta className="mb-2 block text-sm">Calificacion</Etiqueta>
+                <Etiqueta className="mb-2 block text-sm">Calificación</Etiqueta>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((puntuacion) => (
                     <button
@@ -634,7 +634,7 @@ const ContenidoComercio = ({
           ) : (
             <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
               <p className="text-sm text-muted-foreground">
-                Necesitas reservar en este comercio para poder dejar una reseña
+                Necesitás reservar en este comercio para poder dejar una reseña
               </p>
             </div>
           )}

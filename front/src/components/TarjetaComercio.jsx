@@ -1,6 +1,6 @@
 import { MapPin, Clock, Star, TrendingDown, Heart, X } from "lucide-react";
-import { Tarjeta } from "@/components/ui/tarjeta";
-import { Insignia } from "@/components/ui/insignia";
+import { Tarjeta } from "@/components/ui/Tarjeta";
+import { Insignia } from "@/components/ui/Insignia";
 
 const TarjetaComercio = ({
   nombre,

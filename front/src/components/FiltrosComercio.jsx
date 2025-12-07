@@ -5,13 +5,13 @@ import {
   Store,
   UtensilsCrossed,
 } from "lucide-react";
-import { Boton } from "@/components/ui/boton";
+import { Boton } from "@/components/ui/Boton";
 
 const categorias = [
   { id: "all", label: "Todos", icon: Store },
-  { id: "panaderia", label: "Panaderia", icon: Croissant },
+  { id: "panaderia", label: "Panadería", icon: Croissant },
   { id: "supermercado", label: "Supermercado", icon: ShoppingBag },
-  { id: "verduleria", label: "Verduleria", icon: Salad },
+  { id: "verduleria", label: "Verdulería", icon: Salad },
   { id: "restaurante", label: "Restaurante", icon: UtensilsCrossed },
 ];
 

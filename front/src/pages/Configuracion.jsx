@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Moon, Lock, CreditCard, Trash2 } from "lucide-react";
-import { Tarjeta } from "@/components/ui/tarjeta";
-import { Boton } from "@/components/ui/boton";
-import { Interruptor } from "@/components/ui/interruptor";
-import { Etiqueta } from "@/components/ui/etiqueta";
+import { Tarjeta } from "@/components/ui/Tarjeta";
+import { Boton } from "@/components/ui/Boton";
+import { Interruptor } from "@/components/ui/Interruptor";
+import { Etiqueta } from "@/components/ui/Etiqueta";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { toast } from "sonner";
 import {
@@ -16,7 +16,7 @@ import {
   PieDialogoAlerta,
   EncabezadoDialogoAlerta,
   TituloDialogoAlerta,
-} from "@/components/ui/dialogo-alerta";
+} from "@/components/ui/DialogoAlerta";
 import {
   Dialogo,
   ContenidoDialogo,
@@ -24,7 +24,7 @@ import {
   PieDialogo,
   EncabezadoDialogo,
   TituloDialogo,
-} from "@/components/ui/dialogo";
+} from "@/components/ui/Dialogo";
 import {
   obtenerTarjetasGuardadas,
   agregarTarjeta,

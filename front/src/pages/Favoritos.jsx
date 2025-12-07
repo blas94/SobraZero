@@ -1,5 +1,5 @@
 ﻿import { Heart } from "lucide-react";
-import { Tarjeta } from "@/components/ui/tarjeta";
+import { Tarjeta } from "@/components/ui/Tarjeta";
 import TarjetaComercio from "@/components/TarjetaComercio";
 import NavegacionInferior from "@/components/NavegacionInferior";
 import FormasDecorativas from "@/components/FormasDecorativas";
@@ -16,7 +16,7 @@ import {
   PieDialogoAlerta,
   EncabezadoDialogoAlerta,
   TituloDialogoAlerta,
-} from "@/components/ui/dialogo-alerta";
+} from "@/components/ui/DialogoAlerta";
 
 
 

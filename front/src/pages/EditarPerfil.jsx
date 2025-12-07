@@ -10,11 +10,11 @@ import {
   ItemFormulario,
   EtiquetaFormulario,
   MensajeFormulario,
-} from "@/components/ui/formulario";
-import { Avatar, RespaldoAvatar, ImagenAvatar } from "@/components/ui/avatar";
-import { Tarjeta } from "@/components/ui/tarjeta";
-import { Boton } from "@/components/ui/boton";
-import { Entrada } from "@/components/ui/entrada";
+} from "@/components/ui/Formulario";
+import { Avatar, RespaldoAvatar, ImagenAvatar } from "@/components/ui/Avatar";
+import { Tarjeta } from "@/components/ui/Tarjeta";
+import { Boton } from "@/components/ui/Boton";
+import { Entrada } from "@/components/ui/Entrada";
 import NavegacionInferior from "@/components/NavegacionInferior";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { toast } from "sonner";

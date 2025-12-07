@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Tarjeta } from "@/components/ui/tarjeta";
-import { Boton } from "@/components/ui/boton";
-import { Entrada } from "@/components/ui/entrada";
+import { Tarjeta } from "@/components/ui/Tarjeta";
+import { Boton } from "@/components/ui/Boton";
+import { Entrada } from "@/components/ui/Entrada";
 import { Mail, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.png";
 import logoDark from "@/assets/logo-dark.png";
@@ -16,7 +16,7 @@ import {
   ItemFormulario,
   EtiquetaFormulario,
   MensajeFormulario,
-} from "@/components/ui/formulario";
+} from "@/components/ui/Formulario";
 import { usarTema } from "@/hooks/usar-tema";
 
 const esquemaRecupero = z.object({

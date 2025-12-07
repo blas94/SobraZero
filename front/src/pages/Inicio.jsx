@@ -9,22 +9,22 @@ import {
   Clock,
   X,
 } from "lucide-react";
-import { Entrada } from "@/components/ui/entrada";
-import { Boton } from "@/components/ui/boton";
-import { Insignia } from "@/components/ui/insignia";
+import { Entrada } from "@/components/ui/Entrada";
+import { Boton } from "@/components/ui/Boton";
+import { Insignia } from "@/components/ui/Insignia";
 import {
   Hoja,
   ContenidoHoja,
   EncabezadoHoja,
   TituloHoja,
-} from "@/components/ui/hoja";
+} from "@/components/ui/Hoja";
 import {
   Cajon,
   ContenidoCajon,
   EncabezadoCajon,
   TituloCajon,
-} from "@/components/ui/cajon";
-import { Tarjeta } from "@/components/ui/tarjeta";
+} from "@/components/ui/Cajon";
+import { Tarjeta } from "@/components/ui/Tarjeta";
 import FiltrosComercio from "@/components/FiltrosComercio";
 import ContenidoComercio from "@/components/ContenidoComercio";
 import NavegacionInferior from "@/components/NavegacionInferior";
@@ -141,6 +141,20 @@ const Inicio = () => {
     return coincideCategoria && coincideBusqueda;
   });
 
+  const [ubicacionUsuario, setUbicacionUsuario] = useState(() => {
+    return localStorage.getItem("ultimaDireccion") || "Balvanera, CABA";
+  });
+
+  const [mapaCentro] = useState(() => {
+    const coordsGuardadas = localStorage.getItem("ultimasCoordenadas");
+    return coordsGuardadas
+      ? JSON.parse(coordsGuardadas)
+      : [-58.3960002, -34.6043469];
+  });
+
+  // Referencia para guardar la ubicación sin causar re-renders
+  const ultimaUbicacionRef = useRef(mapaCentro);
+
   const marcadoresRef = useRef([]);
 
   useEffect(() => {
@@ -153,16 +167,96 @@ const Inicio = () => {
       style: esModoOscuro
         ? "mapbox://styles/mapbox/dark-v11"
         : "mapbox://styles/mapbox/light-v11",
-      center: [-58.3960002, -34.6043469],
+      center: mapaCentro,
       zoom: 14,
     });
 
     mapaRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
-    mapaRef.current.on("load", () => {
+    const geolocate = new mapboxgl.GeolocateControl({
+      positionOptions: {
+        enableHighAccuracy: true,
+      },
+      trackUserLocation: true,
+      showUserHeading: true,
+    });
+    mapaRef.current.addControl(geolocate, "top-right");
+
+    // Obtener ubicación con el API nativa del navegador para asegurar control total
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+
+          // Efecto visual: Volar a la ubicación del usuario
+          if (mapaRef.current) {
+            // Pequeño delay para que se note la transición
+            setTimeout(() => {
+              mapaRef.current.flyTo({
+                center: [longitude, latitude],
+                zoom: 15,
+                speed: 1.2,
+                curve: 1.42,
+                essential: true
+              });
+            }, 1000);
+          }
+
+          // Reverse Geocoding
+          try {
+            const response = await fetch(
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=place,neighborhood&access_token=${tokenMapbox}`
+            );
+            const data = await response.json();
+
+            if (data.features && data.features.length > 0) {
+              const lugar = data.features.find((f) =>
+                f.place_type.includes("neighborhood")
+              );
+              const ciudad = data.features.find((f) =>
+                f.place_type.includes("place")
+              );
+
+              const nombreLugar = lugar ? lugar.text : "";
+              const nombreCiudad = ciudad ? ciudad.text : "";
+
+              let nuevaUbicacion = "";
+              if (nombreLugar && nombreCiudad) {
+                nuevaUbicacion = `${nombreLugar}, ${nombreCiudad}`;
+              } else if (nombreCiudad) {
+                nuevaUbicacion = nombreCiudad;
+              }
+
+              if (nuevaUbicacion) {
+                setUbicacionUsuario(nuevaUbicacion);
+                localStorage.setItem("ultimaDireccion", nuevaUbicacion);
+              }
+            }
+          } catch (error) {
+            console.error("Error obteniendo ubicación:", error);
+          }
+        },
+        (error) => {
+          console.error("Error nativo de geolocalización:", error);
+        },
+        { enableHighAccuracy: true }
+      );
+    }
+
+    // Activar el control visual de Mapbox en cuanto cargue
+    mapaRef.current.on('load', () => {
+      geolocate.trigger();
+      const event = new CustomEvent("mapLoaded");
+      window.dispatchEvent(event);
+    });
+
+    // Guardar la última posición del mapa cuando el usuario deja de moverlo
+    mapaRef.current.on("moveend", () => {
       if (mapaRef.current) {
-        const event = new CustomEvent("mapLoaded");
-        window.dispatchEvent(event);
+        const center = mapaRef.current.getCenter();
+        const centerArray = [center.lng, center.lat];
+        ultimaUbicacionRef.current = centerArray;
+        localStorage.setItem("ultimasCoordenadas", JSON.stringify(centerArray));
       }
     });
 
@@ -176,12 +270,42 @@ const Inicio = () => {
     };
   }, [tokenMapbox]);
 
+  // Efecto para ajustar el mapa a los comercios filtrados
   useEffect(() => {
-    const updateMarkers = () => {
-      if (!mapaRef.current || !mapaRef.current.loaded()) return;
+    if (
+      !mapaRef.current ||
+      !mapaRef.current.loaded() ||
+      comerciosMapaFiltrados.length === 0
+    )
+      return;
 
+    // Si hay una búsqueda activa (texto o categoría que no sea 'all'), ajustamos el mapa
+    if (busquedaMapa || categoriaSeleccionada !== "all") {
+      const bounds = new mapboxgl.LngLatBounds();
+
+      comerciosMapaFiltrados.forEach((comercio) => {
+        bounds.extend([comercio.longitud, comercio.latitud]);
+      });
+
+      mapaRef.current.fitBounds(bounds, {
+        padding: 50,
+        maxZoom: 15,
+        duration: 1000,
+      });
+    }
+  }, [comerciosMapaFiltrados, busquedaMapa, categoriaSeleccionada]);
+
+  useEffect(() => {
+    // Función para limpiar todos los marcadores actuales
+    const clearMarkers = () => {
       marcadoresRef.current.forEach((marker) => marker.remove());
       marcadoresRef.current = [];
+    };
+
+    const updateMarkers = () => {
+      if (!mapaRef.current) return;
+
+      clearMarkers();
 
       comerciosMapaFiltrados.forEach((comercio) => {
         if (mapaRef.current) {
@@ -198,18 +322,20 @@ const Inicio = () => {
       });
     };
 
+    // Asegurarse de limpiar antes de actualizar
     updateMarkers();
 
     window.addEventListener("mapLoaded", updateMarkers);
 
     return () => {
       window.removeEventListener("mapLoaded", updateMarkers);
+      clearMarkers(); // Limpiar al desmontar efecto
     };
   }, [navegar, comerciosMapaFiltrados, esModoOscuro]);
 
   // Actualizar estilo del mapa cuando cambie el modo oscuro
   useEffect(() => {
-    if (mapaRef.current && mapaRef.current.loaded()) {
+    if (mapaRef.current) {
       mapaRef.current.setStyle(
         esModoOscuro
           ? "mapbox://styles/mapbox/dark-v11"
@@ -260,6 +386,32 @@ const Inicio = () => {
       <style>{`
         .mapboxgl-ctrl-top-right {
           top: 160px !important;
+        }
+        /* Ocultar el círculo de precisión (celeste grande) */
+        .mapboxgl-user-location-accuracy-circle {
+          display: none !important;
+        }
+        /* Cambiar color del punto central a verde SobraZero */
+        .mapboxgl-user-location-dot {
+          background-color: #407b41 !important;
+        }
+        /* Cambiar el color del halo pulsante */
+        .mapboxgl-user-location-dot::before {
+          background-color: #407b41 !important;
+        }
+        /* Icono de flecha de dirección (cuando hay heading) */
+        .mapboxgl-user-location-show-heading .mapboxgl-user-location-heading:before {
+          border-bottom-color: #407b41 !important;
+        }
+        .mapboxgl-user-location-show-heading .mapboxgl-user-location-heading:after {
+          border-bottom-color: #407b41 !important;
+        }
+        /* Cambiar color del icono del botón de geolocalización usando filtros CSS para mantener la forma original */
+        .mapboxgl-ctrl-geolocate .mapboxgl-ctrl-icon {
+          filter: invert(38%) sepia(61%) saturate(464%) hue-rotate(86deg) brightness(80%) contrast(90%) !important;
+        }
+        .mapboxgl-ctrl-geolocate.mapboxgl-ctrl-geolocate-active .mapboxgl-ctrl-icon {
+          filter: invert(38%) sepia(61%) saturate(464%) hue-rotate(86deg) brightness(80%) contrast(90%) !important;
         }
       `}</style>
 
@@ -325,7 +477,7 @@ const Inicio = () => {
 
       <div className="absolute top-28 left-4 z-10 bg-white/95 dark:bg-card/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg inline-flex items-center gap-2 text-sm">
         <MapPin className="w-4 h-4 text-primary" />
-        <span className="font-medium">Balvanera, CABA</span>
+        <span className="font-medium">{ubicacionUsuario}</span>
       </div>
 
 
@@ -435,10 +587,11 @@ const Inicio = () => {
                   Eliminar todas las notificaciones
                 </Boton>
               </>
-            )}
-          </div>
-        </ContenidoHoja>
-      </Hoja>
+            )
+            }
+          </div >
+        </ContenidoHoja >
+      </Hoja >
     </div >
   );
 };

@@ -8,11 +8,11 @@ import {
   Camera,
   ChevronDown,
 } from "lucide-react";
-import { Boton } from "@/components/ui/boton";
-import { Tarjeta } from "@/components/ui/tarjeta";
-import { Entrada } from "@/components/ui/entrada";
-import { AreaTexto } from "@/components/ui/area-texto";
-import { Etiqueta } from "@/components/ui/etiqueta";
+import { Boton } from "@/components/ui/Boton";
+import { Tarjeta } from "@/components/ui/Tarjeta";
+import { Entrada } from "@/components/ui/Entrada";
+import { AreaTexto } from "@/components/ui/AreaTexto";
+import { Etiqueta } from "@/components/ui/Etiqueta";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { toast } from "sonner";
 import {
@@ -22,12 +22,12 @@ import {
   PieDialogoAlerta,
   EncabezadoDialogoAlerta,
   TituloDialogoAlerta,
-} from "@/components/ui/dialogo-alerta";
+} from "@/components/ui/DialogoAlerta";
 import {
   Plegable,
   ContenidoPlegable,
   ActivadorPlegable,
-} from "@/components/ui/plegable";
+} from "@/components/ui/Plegable";
 
 const EditarComercio = () => {
   const navegar = useNavigate();
@@ -371,17 +371,17 @@ const EditarComercio = () => {
           accept="image/*"
           onChange={manejarCambioImagen}
           className="hidden"
-          aria-label="Cambiar imagen del comercio"
-            {campoEditando !== "informacion" && (
-              <Boton
-                variant="ghost"
-                size="sm"
-                onClick={() => setCampoEditando("informacion")}
-              >
-                Editar
-              </Boton>
-            )}
-          </div>
+          aria-label="Cambiar imagen del comercio" />
+        {campoEditando !== "informacion" && (
+          <Boton
+            variant="ghost"
+            size="sm"
+            onClick={() => setCampoEditando("informacion")}
+          >
+            Editar
+          </Boton>
+        )}
+        <Tarjeta className="p-4">
 
           {campoEditando === "informacion" ? (
             <div className="space-y-3">
@@ -817,8 +817,8 @@ const EditarComercio = () => {
             resolver cualquier inconveniente.
           </p>
         </Tarjeta>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

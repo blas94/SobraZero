@@ -11,9 +11,9 @@ import {
   Store,
 } from "lucide-react";
 
-import { Tarjeta } from "@/components/ui/tarjeta";
-import { Boton } from "@/components/ui/boton";
-import { Avatar, RespaldoAvatar } from "@/components/ui/avatar";
+import { Tarjeta } from "@/components/ui/Tarjeta";
+import { Boton } from "@/components/ui/Boton";
+import { Avatar, RespaldoAvatar } from "@/components/ui/Avatar";
 import NavegacionInferior from "@/components/NavegacionInferior";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { toast } from "sonner";
@@ -28,7 +28,7 @@ import {
   PieDialogoAlerta,
   EncabezadoDialogoAlerta,
   TituloDialogoAlerta,
-} from "@/components/ui/dialogo-alerta";
+} from "@/components/ui/DialogoAlerta";
 
 import { obtenerPerfil } from "@/services/autenticacion";
 import { authHttp } from "@/services/http-client";

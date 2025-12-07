@@ -1,9 +1,9 @@
 import { ArrowLeft, Bell } from "lucide-react";
-import { Tarjeta } from "@/components/ui/tarjeta";
-import { Boton } from "@/components/ui/boton";
-import { Interruptor } from "@/components/ui/interruptor";
-import { Etiqueta } from "@/components/ui/etiqueta";
-import { Separador } from "@/components/ui/separador";
+import { Tarjeta } from "@/components/ui/Tarjeta";
+import { Boton } from "@/components/ui/Boton";
+import { Interruptor } from "@/components/ui/Interruptor";
+import { Etiqueta } from "@/components/ui/Etiqueta";
+import { Separador } from "@/components/ui/Separador";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";

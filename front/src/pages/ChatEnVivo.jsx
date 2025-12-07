@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Clock4, ShieldCheck, Send } from "lucide-react";
-import { Tarjeta, ContenidoTarjeta, EncabezadoTarjeta } from "@/components/ui/tarjeta";
-import { Boton } from "@/components/ui/boton";
-import { AreaTexto } from "@/components/ui/area-texto";
+import { Tarjeta, ContenidoTarjeta, EncabezadoTarjeta } from "@/components/ui/Tarjeta";
+import { Boton } from "@/components/ui/Boton";
+import { AreaTexto } from "@/components/ui/AreaTexto";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { useNavigate } from "react-router-dom";
 
@@ -92,9 +92,7 @@ const ChatEnVivo = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold">Chat en vivo</h1>
-            <p className="text-sm text-muted-foreground">
-              Estamos respondiendo consultas por orden de llegada
-            </p>
+
           </div>
         </div>
       </header>
@@ -161,7 +159,7 @@ const ChatEnVivo = () => {
               disabled={enviando || !mensajeEntrada.trim()}
             >
               {enviando ? "Enviando..." : "Enviar mensaje"}
-              <Send className="w-4 h-4 ml-2" />
+
             </Boton>
           </form>
         </Tarjeta>

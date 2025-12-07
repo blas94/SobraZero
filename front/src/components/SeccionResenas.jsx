@@ -1,6 +1,6 @@
 import { Star, User } from "lucide-react";
-import { Tarjeta } from "@/components/ui/tarjeta";
-import { Avatar, RespaldoAvatar } from "@/components/ui/avatar";
+import { Tarjeta } from "@/components/ui/Tarjeta";
+import { Avatar, RespaldoAvatar } from "@/components/ui/Avatar";
 
 const SeccionResenas = ({ resenas, calificacionPromedio, totalResenas }) => {
   return (

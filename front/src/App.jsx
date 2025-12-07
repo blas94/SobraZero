@@ -1,6 +1,6 @@
-import { Notificador } from "@/components/ui/notificador";
-import { Avisador as Sonner } from "@/components/ui/avisador";
-import { ProveedorGloboInformacion } from "@/components/ui/globo-informacion";
+import { Notificador } from "@/components/ui/Notificador";
+import { Avisador as Sonner } from "@/components/ui/Avisador";
+import { ProveedorGloboInformacion } from "@/components/ui/GloboInformacion";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   BrowserRouter,

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Tarjeta } from "@/components/ui/tarjeta";
-import { Boton } from "@/components/ui/boton";
-import { Entrada } from "@/components/ui/entrada";
-import { Pestanas, ContenidoPestanas, ListaPestanas, ActivadorPestanas } from "@/components/ui/pestanas";
+import { Tarjeta } from "@/components/ui/Tarjeta";
+import { Boton } from "@/components/ui/Boton";
+import { Entrada } from "@/components/ui/Entrada";
+import { Pestanas, ContenidoPestanas, ListaPestanas, ActivadorPestanas } from "@/components/ui/Pestanas";
 import { Mail, Lock, User, Phone, MapPin, ArrowLeft } from "lucide-react";
 import logo from "@/assets/logo.png";
 import logoDark from "@/assets/logo-dark.png";
@@ -18,7 +18,7 @@ import {
   ItemFormulario,
   EtiquetaFormulario,
   MensajeFormulario,
-} from "@/components/ui/formulario";
+} from "@/components/ui/Formulario";
 import { iniciarSesion, registrarCuenta } from "@/services/autenticacion";
 import { usarTema } from "@/hooks/usar-tema";
 
@@ -114,15 +114,7 @@ const Autenticacion = () => {
       <div className="flex-1 flex items-center justify-center px-4 py-10 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent pointer-events-none" />
 
-        <Boton
-          variant="ghost"
-          size="sm"
-          onClick={() => navegar("/")}
-          className="absolute top-6 left-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Volver al inicio
-        </Boton>
+
 
         <Tarjeta className="w-full max-w-md p-6 shadow-xl border-border/50 bg-card/50 backdrop-blur-sm relative z-10">
           <div className="text-center mb-6">
