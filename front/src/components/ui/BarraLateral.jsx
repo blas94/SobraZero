@@ -4,12 +4,17 @@ import { cva } from "class-variance-authority";
 import { PanelLeft } from "lucide-react";
 import { usarEsCelular } from "@/hooks/usar-celular";
 import { cn } from "@/lib/utils";
-import { Boton } from "@/components/ui/boton";
-import { Entrada } from "@/components/ui/entrada";
-import { Separador } from "@/components/ui/separador";
-import { Hoja, ContenidoHoja } from "@/components/ui/hoja";
-import { Skeleton } from "@/components/ui/esqueleto";
-import { GloboInformacion, ContenidoGloboInformacion, ProveedorGloboInformacion, DisparadorGloboInformacion } from "@/components/ui/globo-informacion";
+import { Boton } from "@/components/ui/Boton";
+import { Entrada } from "@/components/ui/Entrada";
+import { Separador } from "@/components/ui/Separador";
+import { Hoja, ContenidoHoja } from "@/components/ui/Hoja";
+import { Skeleton } from "@/components/ui/Esqueleto";
+import {
+    GloboInformacion,
+    ContenidoGloboInformacion,
+    ProveedorGloboInformacion,
+    DisparadorGloboInformacion,
+} from "@/components/ui/GloboInformacion";
 
 const NOMBRE_COOKIE_BARRA = "sidebar:state";
 const EDAD_MAX_COOKIE_BARRA = 60 * 60 * 24 * 7;

@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group";
 import { cn } from "@/lib/utils";
-import { variantesAlternar } from "@/components/ui/alternar";
+import { variantesAlternar } from "@/components/ui/Alternar";
 
 const ContextoGrupoAlternar = React.createContext({
   size: "default",

@@ -1,5 +1,5 @@
 import { usarToast } from "@/hooks/usar-toast";
-import { Notificacion, CerrarNotificacion, DescripcionNotificacion, ProveedorNotificacion, TituloNotificacion, VistaNotificacion } from "@/components/ui/notificacion";
+import { Notificacion, CerrarNotificacion, DescripcionNotificacion, ProveedorNotificacion, TituloNotificacion, VistaNotificacion } from "@/components/ui/Notificacion";
 
 const Notificador = () => {
   const { toasts: notificaciones } = usarToast();

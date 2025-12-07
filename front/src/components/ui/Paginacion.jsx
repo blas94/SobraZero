@@ -1,7 +1,7 @@
 import * as React from "react";
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { variantesBoton } from "@/components/ui/boton";
+import { variantesBoton } from "@/components/ui/Boton";
 
 const Paginacion = ({ className, ...props }) => (
   <nav role="navigation" aria-label="paginación" className={cn("mx-auto flex w-full justify-center", className)} {...props} />

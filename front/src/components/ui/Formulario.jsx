@@ -2,7 +2,7 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { Controller, FormProvider, useFormContext } from "react-hook-form";
 import { cn } from "@/lib/utils";
-import { Etiqueta } from "@/components/ui/etiqueta";
+import { Etiqueta } from "@/components/ui/Etiqueta";
 
 const Formulario = FormProvider;
 

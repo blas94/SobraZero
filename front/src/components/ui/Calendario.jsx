@@ -2,7 +2,7 @@ import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { cn } from "@/lib/utils";
-import { variantesBoton } from "@/components/ui/boton";
+import { variantesBoton } from "@/components/ui/Boton";
 
 function Calendario({ className, classNames, showOutsideDays = true, ...props }) {
   return (

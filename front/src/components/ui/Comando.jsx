@@ -2,7 +2,7 @@ import * as React from "react";
 import { Command as CommandPrimitive } from "cmdk";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Dialogo, ContenidoDialogo } from "@/components/ui/dialogo";
+import { Dialogo, ContenidoDialogo } from "@/components/ui/Dialogo";
 
 const Comando = React.forwardRef(({ className, ...props }, ref) => (<CommandPrimitive ref={ref} className={cn("flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground", className)} {...props} />));
 Comando.displayName = "Comando";
