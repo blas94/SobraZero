@@ -32,8 +32,10 @@ import {
   comercios as comerciosMock,
   resenasPorComercio,
 } from "@/data/datos-comercios";
+import { categorias } from "@/data/categorias-comercios";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
+import { createRoot } from "react-dom/client";
 import { usarTema } from "@/hooks/usar-tema";
 
 const Inicio = () => {
@@ -309,7 +311,29 @@ const Inicio = () => {
 
       comerciosMapaFiltrados.forEach((comercio) => {
         if (mapaRef.current) {
-          const marker = new mapboxgl.Marker({ color: "#407b41" })
+          // Find category data to get the icon
+          const categoriaData = categorias.find(c => c.id === comercio.categoria) || categorias[0];
+          const Icono = categoriaData.icon;
+
+          // Create marker DOM element
+          const el = document.createElement('div');
+          el.className = 'custom-marker';
+          el.style.backgroundColor = '#407b41';
+          el.style.width = '32px';
+          el.style.height = '32px';
+          el.style.borderRadius = '50%';
+          el.style.display = 'flex';
+          el.style.justifyContent = 'center';
+          el.style.alignItems = 'center';
+          el.style.color = 'white';
+          el.style.cursor = 'pointer';
+          el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+
+          // Render icon into the element
+          const root = createRoot(el);
+          root.render(<Icono size={18} />);
+
+          const marker = new mapboxgl.Marker({ element: el })
             .setLngLat([comercio.longitud, comercio.latitud])
             .addTo(mapaRef.current);
 

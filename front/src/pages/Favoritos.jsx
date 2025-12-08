@@ -83,7 +83,7 @@ const Favoritos = () => {
   return (
     <div className="min-h-screen bg-background pb-20 relative">
       <FormasDecorativas />
-      <header className="sticky top-0 z-10 bg-background border-b border-border shadow-sm">
+      <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
         <div className="px-4 py-4">
           <h1 className="text-2xl font-bold">Comercios Favoritos</h1>
           <p className="text-sm text-muted-foreground mt-1">

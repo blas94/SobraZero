@@ -1,19 +1,5 @@
-import {
-  ShoppingBag,
-  Salad,
-  Croissant,
-  Store,
-  UtensilsCrossed,
-} from "lucide-react";
+import { categorias } from "@/data/categorias-comercios";
 import { Boton } from "@/components/ui/Boton";
-
-const categorias = [
-  { id: "all", label: "Todos", icon: Store },
-  { id: "panaderia", label: "Panadería", icon: Croissant },
-  { id: "supermercado", label: "Supermercado", icon: ShoppingBag },
-  { id: "verduleria", label: "Verdulería", icon: Salad },
-  { id: "restaurante", label: "Restaurante", icon: UtensilsCrossed },
-];
 
 const FiltrosComercio = ({ categoriaSeleccionada, alCambiarCategoria }) => {
   return (

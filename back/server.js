@@ -23,12 +23,23 @@ const {
   PORT = 3000,
   CLIENT_URL = "http://localhost:8080",
   MP_ACCESS_TOKEN,
+  NODE_ENV,
 } = process.env;
+
+const normalizarURL = (url = "") => url.replace(/\/+$/, "");
+
+let origenesPermitidos = [CLIENT_URL];
+
+if (NODE_ENV !== "production") {
+  origenesPermitidos.push("http://localhost:8080");
+}
+origenesPermitidos = origenesPermitidos.filter(Boolean).map(normalizarURL);
 
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin || origin === CLIENT_URL) return cb(null, true);
+      if (!origin || origenesPermitidos.includes(normalizarURL(origin)))
+        return cb(null, true);
       return cb(new Error("CORS bloqueado para origen: " + origin));
     },
     credentials: true,

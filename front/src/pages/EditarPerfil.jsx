@@ -163,7 +163,7 @@ const EditarPerfil = () => {
     <div className="min-h-screen bg-background pb-20 relative">
       <FormasDecorativas />
 
-      <header className="sticky top-0 z-10 bg-background border-b border-border shadow-sm">
+      <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
         <div className="px-4 py-4 flex items-center gap-3">
           <Boton
             variant="ghost"

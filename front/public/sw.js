@@ -6,8 +6,8 @@ const ASSETS = [
     "/",
     "/index.html",
     "/manifest.webmanifest",
-    "/icons/icon-192x192.png",
-    "/icons/icon-512x512.png"
+    "/iconos/icono-de-aplicacion-chico.png",
+    "/iconos/icono-de-aplicacion-grande.png"
 ];
 
 // INSTALACIÓN DEL SERVICE WORKER
