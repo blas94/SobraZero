@@ -83,7 +83,7 @@ router.post("/register", async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // lax para desarrollo
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' permite cross-site (Vercel -> Render)
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
     });
 
@@ -123,7 +123,7 @@ router.post("/login", async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // lax para desarrollo
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' permite cross-site (Vercel -> Render)
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
     });
 
