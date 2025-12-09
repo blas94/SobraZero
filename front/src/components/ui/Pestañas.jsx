@@ -2,9 +2,9 @@ import * as React from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "@/lib/utils";
 
-const Pestanas = TabsPrimitive.Root;
+const Pestañas = TabsPrimitive.Root;
 
-const ListaPestanas = React.forwardRef(({ className, ...props }, ref) => (
+const ListaPestañas = React.forwardRef(({ className, ...props }, ref) => (
     <TabsPrimitive.List
         ref={ref}
         className={cn(
@@ -14,9 +14,9 @@ const ListaPestanas = React.forwardRef(({ className, ...props }, ref) => (
         {...props}
     />
 ));
-ListaPestanas.displayName = TabsPrimitive.List.displayName;
+ListaPestañas.displayName = TabsPrimitive.List.displayName;
 
-const ActivadorPestanas = React.forwardRef(({ className, ...props }, ref) => (
+const ActivadorPestañas = React.forwardRef(({ className, ...props }, ref) => (
     <TabsPrimitive.Trigger
         ref={ref}
         className={cn(
@@ -26,9 +26,9 @@ const ActivadorPestanas = React.forwardRef(({ className, ...props }, ref) => (
         {...props}
     />
 ));
-ActivadorPestanas.displayName = TabsPrimitive.Trigger.displayName;
+ActivadorPestañas.displayName = TabsPrimitive.Trigger.displayName;
 
-const ContenidoPestanas = React.forwardRef(({ className, ...props }, ref) => (
+const ContenidoPestañas = React.forwardRef(({ className, ...props }, ref) => (
     <TabsPrimitive.Content
         ref={ref}
         className={cn(
@@ -38,6 +38,6 @@ const ContenidoPestanas = React.forwardRef(({ className, ...props }, ref) => (
         {...props}
     />
 ));
-ContenidoPestanas.displayName = TabsPrimitive.Content.displayName;
+ContenidoPestañas.displayName = TabsPrimitive.Content.displayName;
 
-export { Pestanas, ListaPestanas, ActivadorPestanas, ContenidoPestanas };
+export { Pestañas, ListaPestañas, ActivadorPestañas, ContenidoPestañas };

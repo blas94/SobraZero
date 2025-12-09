@@ -11,6 +11,7 @@ import {
 } from "react-router-dom";
 import { useEffect } from "react";
 import { ProveedorTema } from "@/hooks/usar-tema";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 import Inicio from "./pages/Inicio";
 import DetalleComercio from "./pages/DetalleComercio";
@@ -26,7 +27,7 @@ import NotFound from "./pages/NotFound";
 import EstadoPago from "./pages/EstadoPago";
 import EditarPerfil from "./pages/EditarPerfil";
 import RegistrarTienda from "./pages/RegistrarTienda";
-
+import RecuperarPassword from "./pages/RecuperarPassword";
 
 const queryClient = new QueryClient();
 
@@ -38,135 +39,131 @@ const ScrollToTop = () => {
   return null;
 };
 
+
 function RutaProtegida({ children }) {
-  // Verificar si hay usuario en localStorage (el token está en cookie HttpOnly)
-  const user = localStorage.getItem("user");
-  if (!user) return <Navigate to="/autenticacion" replace />;
+  const { usuario, cargando } = useAuth();
+
+  if (cargando) return <div className="h-screen flex items-center justify-center bg-background">Cargando...</div>;
+  if (!usuario) return <Navigate to="/autenticacion" replace />;
+
   return children;
 }
 
-function RutaInicial() {
-  // Verificar si hay usuario en localStorage (el token está en cookie HttpOnly)
-  const user = localStorage.getItem("user");
-
-  if (!user) {
-    return <Navigate to="/autenticacion" replace />;
-  }
-
-  return <Inicio />;
-}
-
 const App = () => {
-  useEffect(() => {
-    const sessionFlag = sessionStorage.getItem("sobrazeroSessionStarted");
-    if (!sessionFlag) {
-      // Solo limpiar user, el token está en cookie HttpOnly
-      localStorage.removeItem("user");
-      sessionStorage.setItem("sobrazeroSessionStarted", "1");
-    }
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
-      <ProveedorTema>
-        <ProveedorGloboInformacion>
-          <Notificador />
-          <Sonner />
-          <BrowserRouter>
-            <ScrollToTop />
-            <Routes>
-              <Route path="/autenticacion" element={<Autenticacion />} />
-              <Route path="/pagos/estado" element={<EstadoPago />} />
+      <AuthProvider>
+        <ProveedorTema>
+          <ProveedorGloboInformacion>
+            <Notificador />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <Routes>
+                <Route path="/autenticacion" element={<Autenticacion />} />
+                <Route path="/recuperar-password" element={<RecuperarPassword />} />
+                <Route path="/pagos/estado" element={<EstadoPago />} />
 
-              <Route path="/" element={<RutaInicial />} />
-              <Route
-                path="/comercio/:id"
-                element={
-                  <RutaProtegida>
-                    <DetalleComercio />
-                  </RutaProtegida>
-                }
-              />
-              <Route
-                path="/pedidos"
-                element={
-                  <RutaProtegida>
-                    <Pedidos />
-                  </RutaProtegida>
-                }
-              />
-              <Route
-                path="/favoritos"
-                element={
-                  <RutaProtegida>
-                    <Favoritos />
-                  </RutaProtegida>
-                }
-              />
-              <Route
-                path="/perfil"
-                element={
-                  <RutaProtegida>
-                    <Perfil />
-                  </RutaProtegida>
-                }
-              />
+                <Route path="/" element={<Navigate to="/autenticacion" replace />} />
 
-              <Route
-                path="/perfil/editar"
-                element={
-                  <RutaProtegida>
-                    <EditarPerfil />
-                  </RutaProtegida>
-                }
-              />
-              <Route
-                path="/perfil/registrar-comercio"
-                element={
-                  <RutaProtegida>
-                    <RegistrarTienda />
-                  </RutaProtegida>
-                }
-              />
+                <Route
+                  path="/inicio"
+                  element={
+                    <RutaProtegida>
+                      <Inicio />
+                    </RutaProtegida>
+                  }
+                />
 
-              <Route
-                path="/perfil/configuracion"
-                element={
-                  <RutaProtegida>
-                    <Configuracion />
-                  </RutaProtegida>
-                }
-              />
-              <Route
-                path="/perfil/notificaciones"
-                element={
-                  <RutaProtegida>
-                    <Notificaciones />
-                  </RutaProtegida>
-                }
-              />
-              <Route
-                path="/perfil/centro-ayuda"
-                element={
-                  <RutaProtegida>
-                    <CentroAyuda />
-                  </RutaProtegida>
-                }
-              />
-              <Route
-                path="/perfil/centro-ayuda/chat"
-                element={
-                  <RutaProtegida>
-                    <ChatEnVivo />
-                  </RutaProtegida>
-                }
-              />
+                <Route
+                  path="/comercio/:id"
+                  element={
+                    <RutaProtegida>
+                      <DetalleComercio />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/pedidos"
+                  element={
+                    <RutaProtegida>
+                      <Pedidos />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/favoritos"
+                  element={
+                    <RutaProtegida>
+                      <Favoritos />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/perfil"
+                  element={
+                    <RutaProtegida>
+                      <Perfil />
+                    </RutaProtegida>
+                  }
+                />
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </ProveedorGloboInformacion>
-      </ProveedorTema>
+                <Route
+                  path="/perfil/editar"
+                  element={
+                    <RutaProtegida>
+                      <EditarPerfil />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/perfil/registrar-comercio"
+                  element={
+                    <RutaProtegida>
+                      <RegistrarTienda />
+                    </RutaProtegida>
+                  }
+                />
+
+                <Route
+                  path="/perfil/configuracion"
+                  element={
+                    <RutaProtegida>
+                      <Configuracion />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/perfil/notificaciones"
+                  element={
+                    <RutaProtegida>
+                      <Notificaciones />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/perfil/centro-ayuda"
+                  element={
+                    <RutaProtegida>
+                      <CentroAyuda />
+                    </RutaProtegida>
+                  }
+                />
+                <Route
+                  path="/perfil/centro-ayuda/chat"
+                  element={
+                    <RutaProtegida>
+                      <ChatEnVivo />
+                    </RutaProtegida>
+                  }
+                />
+
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </ProveedorGloboInformacion>
+        </ProveedorTema>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

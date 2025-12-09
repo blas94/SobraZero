@@ -28,6 +28,7 @@ import { Tarjeta } from "@/components/ui/Tarjeta";
 import FiltrosComercio from "@/components/FiltrosComercio";
 import ContenidoComercio from "@/components/ContenidoComercio";
 import NavegacionInferior from "@/components/NavegacionInferior";
+import { PermisoUbicacion } from "@/components/ui/PermisoUbicacion";
 import {
   comercios as comerciosMock,
   resenasPorComercio,
@@ -48,6 +49,7 @@ const Inicio = () => {
   const mapaRef = useRef(null);
   const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
   const [comercioSeleccionado, setComercioSeleccionado] = useState(null);
+  const [mostrarPermisoUbicacion, setMostrarPermisoUbicacion] = useState(false);
   const [tokenMapbox] = useState(
     "pk.eyJ1IjoidG9tYXNtaXNyYWhpIiwiYSI6ImNtaDJwZDkwaDJ1eW0yd3B5eDZ6b3Y1djMifQ.44qXpnbdv09ro4NME7QxJQ"
   );
@@ -156,8 +158,35 @@ const Inicio = () => {
 
   // Referencia para guardar la ubicación sin causar re-renders
   const ultimaUbicacionRef = useRef(mapaCentro);
-
   const marcadoresRef = useRef([]);
+  const geolocateControlRef = useRef(null);
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    // Chequear si ya consultamos el permiso previamente
+    const permisoConsultado = localStorage.getItem("permisoUbicacionConsultado");
+    if (!permisoConsultado) {
+      // Mostrar modal custom
+      const timer = setTimeout(() => setMostrarPermisoUbicacion(true), 1500); // Pequeño delay de UX
+      return () => clearTimeout(timer);
+    }
+    // Si ya fue consultado, la lógica de activación se manejará en el evento 'load' del mapa
+  }, []);
+
+  const handleAceptarUbicacion = () => {
+    setMostrarPermisoUbicacion(false);
+    localStorage.setItem("permisoUbicacionConsultado", "true");
+    // Activar geolocalización ahora
+    if (geolocateControlRef.current) {
+      geolocateControlRef.current.trigger();
+    }
+  };
+
+  const handleDenegarUbicacion = () => {
+    setMostrarPermisoUbicacion(false);
+    localStorage.setItem("permisoUbicacionConsultado", "true");
+    // No hacemos nada, queda la ubicación default
+  };
 
   useEffect(() => {
     if (!contenedorMapa.current || mapaRef.current) return;
@@ -182,74 +211,62 @@ const Inicio = () => {
       trackUserLocation: true,
       showUserHeading: true,
     });
+
+    geolocateControlRef.current = geolocate;
     mapaRef.current.addControl(geolocate, "top-right");
 
-    // Obtener ubicación con el API nativa del navegador para asegurar control total
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
+    // Escuchar evento de geolocalización exitosa para Reverse Geocoding
+    geolocate.on('geolocate', async (e) => {
+      // En algunos casos e.coords no existe directamente, o es e.position.coords
+      // Mapbox GL JS v2/v3 event structure: e.coords should be there.
+      // Defensiva: chequeamos e.coords
+      if (!e || !e.coords) return;
 
-          // Efecto visual: Volar a la ubicación del usuario
-          if (mapaRef.current) {
-            // Pequeño delay para que se note la transición
-            setTimeout(() => {
-              mapaRef.current.flyTo({
-                center: [longitude, latitude],
-                zoom: 15,
-                speed: 1.2,
-                curve: 1.42,
-                essential: true
-              });
-            }, 1000);
+      const { longitude, latitude } = e.coords;
+
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=place,neighborhood&access_token=${tokenMapbox}`
+        );
+        const data = await response.json();
+
+        if (data.features && data.features.length > 0) {
+          const lugar = data.features.find((f) =>
+            f.place_type.includes("neighborhood")
+          );
+          const ciudad = data.features.find((f) =>
+            f.place_type.includes("place")
+          );
+
+          const nombreLugar = lugar ? lugar.text : "";
+          const nombreCiudad = ciudad ? ciudad.text : "";
+
+          let nuevaUbicacion = "";
+          if (nombreLugar && nombreCiudad) {
+            nuevaUbicacion = `${nombreLugar}, ${nombreCiudad}`;
+          } else if (nombreCiudad) {
+            nuevaUbicacion = nombreCiudad;
           }
 
-          // Reverse Geocoding
-          try {
-            const response = await fetch(
-              `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=place,neighborhood&access_token=${tokenMapbox}`
-            );
-            const data = await response.json();
-
-            if (data.features && data.features.length > 0) {
-              const lugar = data.features.find((f) =>
-                f.place_type.includes("neighborhood")
-              );
-              const ciudad = data.features.find((f) =>
-                f.place_type.includes("place")
-              );
-
-              const nombreLugar = lugar ? lugar.text : "";
-              const nombreCiudad = ciudad ? ciudad.text : "";
-
-              let nuevaUbicacion = "";
-              if (nombreLugar && nombreCiudad) {
-                nuevaUbicacion = `${nombreLugar}, ${nombreCiudad}`;
-              } else if (nombreCiudad) {
-                nuevaUbicacion = nombreCiudad;
-              }
-
-              if (nuevaUbicacion) {
-                setUbicacionUsuario(nuevaUbicacion);
-                localStorage.setItem("ultimaDireccion", nuevaUbicacion);
-              }
-            }
-          } catch (error) {
-            console.error("Error obteniendo ubicación:", error);
+          if (nuevaUbicacion) {
+            setUbicacionUsuario(nuevaUbicacion);
+            localStorage.setItem("ultimaDireccion", nuevaUbicacion);
           }
-        },
-        (error) => {
-          console.error("Error nativo de geolocalización:", error);
-        },
-        { enableHighAccuracy: true }
-      );
-    }
+        }
+      } catch (error) {
+        console.error("Error obteniendo ubicación:", error);
+      }
+    });
 
     // Activar el control visual de Mapbox en cuanto cargue
     mapaRef.current.on('load', () => {
-      geolocate.trigger();
       const event = new CustomEvent("mapLoaded");
       window.dispatchEvent(event);
+
+      const permisoConsultado = localStorage.getItem("permisoUbicacionConsultado");
+      if (permisoConsultado) {
+        geolocate.trigger();
+      }
     });
 
     // Guardar la última posición del mapa cuando el usuario deja de moverlo
@@ -273,7 +290,15 @@ const Inicio = () => {
   }, [tokenMapbox]);
 
   // Efecto para ajustar el mapa a los comercios filtrados
+  // Efecto para ajustar el mapa a los comercios filtrados
   useEffect(() => {
+    // Evitar que el mapa se centre automáticamente en el primer render,
+    // para respetar la geolocalización del usuario o la posición guardada
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     if (
       !mapaRef.current ||
       !mapaRef.current.loaded() ||
@@ -281,20 +306,21 @@ const Inicio = () => {
     )
       return;
 
-    // Si hay una búsqueda activa (texto o categoría que no sea 'all'), ajustamos el mapa
-    if (busquedaMapa || categoriaSeleccionada !== "all") {
-      const bounds = new mapboxgl.LngLatBounds();
+    const bounds = new mapboxgl.LngLatBounds();
 
-      comerciosMapaFiltrados.forEach((comercio) => {
-        bounds.extend([comercio.longitud, comercio.latitud]);
-      });
+    comerciosMapaFiltrados.forEach((comercio) => {
+      bounds.extend([comercio.longitud, comercio.latitud]);
+    });
 
+    // Solo ajustar si el bounds no está vacío (paranoia check)
+    if (!bounds.isEmpty()) {
       mapaRef.current.fitBounds(bounds, {
         padding: 50,
         maxZoom: 15,
         duration: 1000,
       });
     }
+
   }, [comerciosMapaFiltrados, busquedaMapa, categoriaSeleccionada]);
 
   useEffect(() => {
@@ -616,6 +642,14 @@ const Inicio = () => {
           </div >
         </ContenidoHoja >
       </Hoja >
+
+      <NavegacionInferior />
+
+      <PermisoUbicacion
+        open={mostrarPermisoUbicacion}
+        onAccept={handleAceptarUbicacion}
+        onDeny={handleDenegarUbicacion}
+      />
     </div >
   );
 };

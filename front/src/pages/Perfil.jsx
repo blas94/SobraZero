@@ -32,6 +32,7 @@ import {
 
 import { obtenerPerfil } from "@/services/autenticacion";
 import { authHttp } from "@/services/http-client";
+import { useAuth } from "@/context/AuthContext";
 
 const opcionesMenu = [
   {
@@ -70,6 +71,7 @@ const opcionesMenu = [
 
 const Perfil = () => {
   const navegar = useNavigate();
+  const { logout } = useAuth();
   const [mostrarDialogoSalir, setMostrarDialogoSalir] = useState(false);
   const [tieneComercioRegistrado, setTieneComercioRegistrado] = useState(false);
 
@@ -119,13 +121,7 @@ const Perfil = () => {
   }, []);
 
   const manejarCerrarSesion = async () => {
-    try {
-      await authHttp.post("/auth/logout");
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-    }
-
-    localStorage.removeItem("user");
+    await logout();
 
     toast.success("Sesión cerrada correctamente");
     setMostrarDialogoSalir(false);

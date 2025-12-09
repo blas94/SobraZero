@@ -19,3 +19,13 @@ export async function actualizarPerfil(datos) {
   const { data } = await authHttp.put("/auth/me", datos);
   return data;
 }
+
+export async function cerrarSesion() {
+  const { data } = await authHttp.post("/auth/logout");
+  return data;
+}
+
+export async function verificarSesion() {
+  const { data } = await authHttp.get("/auth/verificar");
+  return data;
+}

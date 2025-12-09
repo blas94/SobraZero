@@ -63,7 +63,7 @@ const RecuperarPassword = () => {
             <img
               src={esModoOscuro ? logoDark : logo}
               alt="Logo de SobraZero"
-              className="w-24 h-24 mx-auto my-6"
+              className="w-36 mx-auto my-6"
               loading="eager"
               fetchPriority="high"
             />
