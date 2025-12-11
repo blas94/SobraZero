@@ -11,14 +11,14 @@ import { MapPin } from "lucide-react";
 export function PermisoUbicacion({ open, onAccept, onDeny }) {
     return (
         <Dialogo open={open} onOpenChange={onDeny}>
-            <ContenidoDialogo className="sm:max-w-[425px] bg-[#EDE8E3] border-none shadow-xl">
+            <ContenidoDialogo className="sm:max-w-[425px] bg-[#EDE8E3] dark:bg-background dark:border-border border-none shadow-xl">
                 <div className="flex flex-col items-center gap-4 py-4 text-center">
                     <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
                         <MapPin className="h-6 w-6 text-primary" />
                     </div>
 
                     <div className="space-y-2">
-                        <TituloDialogo className="text-xl text-muted-foreground font-bold">
+                        <TituloDialogo className="text-xl text-foreground font-bold">
                             Encontrá ofertas cerca tuyo
                         </TituloDialogo>
                         <DescripcionDialogo className="text-muted-foreground text-base">

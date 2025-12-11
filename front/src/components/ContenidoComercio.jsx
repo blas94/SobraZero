@@ -460,61 +460,72 @@ const ContenidoComercio = ({
             {comercio.productos.map((producto) => (
               <div
                 key={producto.id}
-                className="p-3 border border-border rounded-lg"
+                className="border border-border rounded-lg overflow-hidden flex h-40"
               >
-                <div className="flex items-center gap-3">
+                {/* Div 1: Imagen (Ocupa el alto total) */}
+                <div className="w-32 bg-muted relative flex-shrink-0">
                   {producto.imageUrl ? (
                     <img
                       src={producto.imageUrl}
                       alt={`Foto de ${producto.nombre}`}
-                      className="w-16 h-16 object-cover rounded flex-shrink-0"
+                      className="absolute inset-0 w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-16 h-16 bg-muted rounded flex items-center justify-center flex-shrink-0">
-                      <ShoppingBag className="w-8 h-8 text-muted-foreground" />
+                    <div className="w-full h-full flex items-center justify-center">
+                      <ShoppingBag className="w-10 h-10 text-muted-foreground" />
                     </div>
                   )}
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{producto.nombre}</p>
+                </div>
+
+                {/* Div 2: Información y Controles */}
+                <div className="flex-1 p-3 flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <p className="font-medium text-sm line-clamp-2">{producto.nombre}</p>
+                    </div>
+
                     <div className="flex items-center gap-2 mt-1">
                       <span className="text-xs text-muted-foreground line-through">
                         ${producto.precioOriginal}
                       </span>
-                      <span className="text-sm font-bold text-primary">
+                      <span className="text-base font-bold text-primary">
                         ${producto.precioDescuento}
                       </span>
                     </div>
+
                     <p className="text-xs text-muted-foreground mt-1">
                       Unidades disponibles: {producto.stock}
-                      {producto.weight && ` - Peso: ${producto.weight} kilo/s`}
+                      {producto.weight && ` - ${producto.weight} kg`}
                     </p>
                   </div>
-                </div>
-                <div className="flex items-center justify-center gap-2 mt-3">
-                  <Boton
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => actualizarCantidadProducto(producto.id, -1)}
-                    disabled={!productosSeleccionados[producto.id]}
-                  >
-                    -
-                  </Boton>
-                  <span className="font-semibold w-8 text-center text-sm">
-                    {productosSeleccionados[producto.id] || 0}
-                  </span>
-                  <Boton
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => actualizarCantidadProducto(producto.id, 1)}
-                    disabled={
-                      (productosSeleccionados[producto.id] || 0) >=
-                      producto.stock
-                    }
-                  >
-                    +
-                  </Boton>
+
+                  {/* Controles integrados en Div 2 */}
+                  <div className="flex items-center gap-3 mt-2 self-start">
+                    <Boton
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 border-primary/20"
+                      onClick={() => actualizarCantidadProducto(producto.id, -1)}
+                      disabled={!productosSeleccionados[producto.id]}
+                    >
+                      -
+                    </Boton>
+                    <span className="font-semibold w-6 text-center text-sm">
+                      {productosSeleccionados[producto.id] || 0}
+                    </span>
+                    <Boton
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 border-primary/20"
+                      onClick={() => actualizarCantidadProducto(producto.id, 1)}
+                      disabled={
+                        (productosSeleccionados[producto.id] || 0) >=
+                        producto.stock
+                      }
+                    >
+                      +
+                    </Boton>
+                  </div>
                 </div>
               </div>
             ))}
@@ -589,7 +600,7 @@ const ContenidoComercio = ({
 
           {yaReservo() ? (
             <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-              <h3 className="font-medium mb-3">Deja tu reseña</h3>
+              <h3 className="font-medium mb-3">Dejá tu reseña</h3>
 
               <div className="mb-3">
                 <Etiqueta className="mb-2 block text-sm">Calificación</Etiqueta>
