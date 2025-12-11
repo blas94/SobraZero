@@ -33,6 +33,7 @@ const esquemaRegistro = z
 
 const Registrarse = ({ onCambiarPestana }) => {
     const navegar = useNavigate();
+    const { login } = useAuth();
     const [cargando, setCargando] = useState(false);
 
     const formularioRegistro = useForm({
@@ -50,7 +51,7 @@ const Registrarse = ({ onCambiarPestana }) => {
     const manejarRegistro = async (datos) => {
         setCargando(true);
         try {
-            const { user } = await registrarCuenta({
+            const response = await registrarCuenta({
                 nombre: datos.nombre,
                 email: datos.email,
                 tel: datos.tel,
@@ -58,7 +59,8 @@ const Registrarse = ({ onCambiarPestana }) => {
                 clave: datos.clave,
             });
 
-            localStorage.setItem("user", JSON.stringify(user));
+            // Usar método del contexto para consistencia (guarda user y token)
+            login({ user, token: response.token }); // response.token si existe, o verificar firma
 
             toast.success("Cuenta creada correctamente");
             navegar("/");

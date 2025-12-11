@@ -9,7 +9,17 @@ const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_cambia_esto";
 
 
 function getAuthPayload(req) {
-  // Leer token desde cookie HttpOnly
+  // 1. Intentar header Authorization: Bearer <token>
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    try {
+      return jwt.verify(authHeader.split(" ")[1], JWT_SECRET);
+    } catch {
+      // Token inválido en header, seguimos probando cookies
+    }
+  }
+
+  // 2. Leer token desde cookie HttpOnly (fallback)
   const token = req.cookies?.token;
   if (!token) return null;
   try {
@@ -79,7 +89,7 @@ router.post("/register", async (req, res) => {
 
     const token = jwt.sign({ uid: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 
-    // Enviar token como cookie HttpOnly
+    // Enviar token como cookie HttpOnly (Compatibilidad)
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -88,6 +98,7 @@ router.post("/register", async (req, res) => {
     });
 
     return res.status(201).json({
+      token, // Devolvemos el token para uso en localStorage (Bearer)
       user: {
         id: user._id.toString(),
         nombre: user.nombre,
@@ -119,7 +130,7 @@ router.post("/login", async (req, res) => {
 
     const token = jwt.sign({ uid: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
 
-    // Enviar token como cookie HttpOnly
+    // Enviar token como cookie HttpOnly (Compatibilidad)
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -128,6 +139,7 @@ router.post("/login", async (req, res) => {
     });
 
     return res.json({
+      token, // Devolvemos el token para uso en localStorage (Bearer)
       user: {
         id: user._id.toString(),
         nombre: user.nombre,

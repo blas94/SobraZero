@@ -36,14 +36,13 @@ const IniciarSesion = ({ onCambiarPestana }) => {
     const manejarInicioSesion = async (datos) => {
         setCargando(true);
         try {
-            const { user } = await iniciarSesion({
+            const data = await iniciarSesion({
                 email: datos.email,
                 clave: datos.clave,
             });
 
-            // Actualizar contexto. Esto disparará el redirect en Autenticacion.jsx si es necesario,
-            // pero como estamos navegando manualmente abajo, aseguramos el estado.
-            login(user);
+            // Actualizar contexto. Pasa user y token.
+            login(data);
 
             toast.success("Sesión iniciada correctamente");
             // Navegar a /inicio explícitamente, ya que / redirige a /autenticacion

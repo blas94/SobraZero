@@ -18,15 +18,19 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         const checkUser = async () => {
             try {
-                // 1. Intentar validar la cookie con el backend
-                const { user } = await verificarSesion();
+                // 1. Intentar validar la cookie/token con el backend
+                const { user, token } = await verificarSesion();
                 setUsuario(user);
-                // Actualizamos localStorage solo para tener una referencia rápida si se necesita en otros scripts no-React
+                // Persistencia local
                 localStorage.setItem("user", JSON.stringify(user));
+                // Si la sesión retorna nuevo token (opcional), guardarlo. 
+                // Pero verificarSesion normalmente solo retorna user y validación.
+                // En este caso, confiamos en el token que ya pueda estar almacenado o refrescado.
             } catch (error) {
                 // 2. Si falla (401/403), no hay sesión válida
                 setUsuario(null);
                 localStorage.removeItem("user");
+                localStorage.removeItem("token"); // Limpiar token también
             } finally {
                 setCargando(false);
             }
@@ -35,9 +39,13 @@ export const AuthProvider = ({ children }) => {
         checkUser();
     }, []);
 
-    const login = (user) => {
-        setUsuario(user);
-        localStorage.setItem("user", JSON.stringify(user));
+    const login = (data) => {
+        // Data debe contener { user, token }
+        setUsuario(data.user);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        if (data.token) {
+            localStorage.setItem("token", data.token); // Guardar token para próximas requests
+        }
     };
 
     const logout = async () => {
@@ -48,6 +56,7 @@ export const AuthProvider = ({ children }) => {
         }
         setUsuario(null);
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
     };
 
     return (

@@ -5,16 +5,23 @@ const baseURL =
     ? "http://localhost:3000/api"
     : import.meta.env.VITE_API_URL || "/api";
 
-const withBaseConfig = () =>
-  axios.create({
+const withBaseConfig = () => {
+  const instance = axios.create({
     baseURL,
-    withCredentials: true, // Enviar cookies automáticamente
-    headers: {
-      "Content-Type": "application/json",
-    },
+    withCredentials: true,
+    headers: { "Content-Type": "application/json" },
   });
+
+  instance.interceptors.request.use((config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  });
+
+  return instance;
+};
 
 export const http = withBaseConfig();
 export const authHttp = withBaseConfig();
-
-// Ya no necesitamos interceptor - la cookie se envía automáticamente
