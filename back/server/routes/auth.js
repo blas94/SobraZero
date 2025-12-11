@@ -212,7 +212,11 @@ router.put("/me", async (req, res) => {
 
 // Logout - Limpiar cookie
 router.post("/logout", (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  });
   return res.json({ message: "Sesión cerrada exitosamente" });
 });
 
