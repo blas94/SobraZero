@@ -79,10 +79,12 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+import { PantallaCarga } from "@/components/ui/PantallaCarga";
+
 function RutaProtegida({ children }) {
   const { usuario, cargando } = useAuth();
 
-  if (cargando) return <div className="h-screen flex items-center justify-center bg-background">Cargando...</div>;
+  if (cargando) return <PantallaCarga texto="Verificando sesión..." />;
   if (!usuario) return <Navigate to="/autenticacion" replace />;
 
   return children;
