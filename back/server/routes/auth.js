@@ -105,6 +105,7 @@ router.post("/register", async (req, res) => {
         email: user.email,
         tel: user.tel,
         ubicacion: user.ubicacionTexto,
+        avatar: user.avatar,
         ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
       },
     });
@@ -146,6 +147,7 @@ router.post("/login", async (req, res) => {
         email: user.email,
         tel: user.tel,
         ubicacion: user.ubicacionTexto,
+        avatar: user.avatar,
         ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
       },
     });
@@ -160,7 +162,7 @@ router.get("/me", async (req, res) => {
   if (!payload) return res.status(401).json({ error: "No autorizado" });
 
   const user = await Usuario.findById(payload.uid).select(
-    "_id nombre email tel ubicacionTexto ubicacionGeo"
+    "_id nombre email tel ubicacionTexto ubicacionGeo avatar"
   );
   if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
 
@@ -170,6 +172,7 @@ router.get("/me", async (req, res) => {
     email: user.email,
     tel: user.tel,
     ubicacion: user.ubicacionTexto,
+    avatar: user.avatar,
     ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
   });
 });
@@ -178,11 +181,12 @@ router.put("/me", async (req, res) => {
   const payload = getAuthPayload(req);
   if (!payload) return res.status(401).json({ error: "No autorizado" });
 
-  const { nombre, tel, ubicacion } = req.body || {};
+  const { nombre, tel, ubicacion, avatar } = req.body || {};
   const actualizacion = {};
 
   if (typeof nombre === "string" && nombre.trim()) actualizacion.nombre = nombre.trim();
   if (typeof tel === "string") actualizacion.tel = tel.trim();
+  if (typeof avatar === "string") actualizacion.avatar = avatar;
 
 
   if (typeof ubicacion !== "undefined") {
@@ -195,7 +199,7 @@ router.put("/me", async (req, res) => {
   const user = await Usuario.findByIdAndUpdate(
     payload.uid,
     { $set: actualizacion },
-    { new: true, runValidators: true, fields: "_id nombre email tel ubicacionTexto ubicacionGeo" }
+    { new: true, runValidators: true, fields: "_id nombre email tel ubicacionTexto ubicacionGeo avatar" }
   );
 
   if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
@@ -206,17 +210,26 @@ router.put("/me", async (req, res) => {
     email: user.email,
     tel: user.tel,
     ubicacion: user.ubicacionTexto,
+    avatar: user.avatar,
     ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
   });
 });
 
-// Logout - Limpiar cookie
+// Logout - Limpiar cookie de múltiples formas para asegurar borrado
 router.post("/logout", (req, res) => {
+  // 1. Instancia Segura (Prod/Dev)
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    path: "/"
   });
+
+  // 2. Instancia Fallback (por si acaso quedó una vieja sin secure)
+  res.clearCookie("token", {
+    path: "/"
+  });
+
   return res.json({ message: "Sesión cerrada exitosamente" });
 });
 
@@ -226,7 +239,7 @@ router.get("/verificar", async (req, res) => {
   if (!payload) return res.status(401).json({ autenticado: false });
 
   const user = await Usuario.findById(payload.uid).select(
-    "_id nombre email tel ubicacionTexto ubicacionGeo"
+    "_id nombre email tel ubicacionTexto ubicacionGeo avatar"
   );
   if (!user) return res.status(404).json({ autenticado: false });
 
@@ -238,6 +251,7 @@ router.get("/verificar", async (req, res) => {
       email: user.email,
       tel: user.tel,
       ubicacion: user.ubicacionTexto,
+      avatar: user.avatar,
       ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
     },
   });

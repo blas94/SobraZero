@@ -115,14 +115,14 @@ const EditarPerfil = () => {
   const manejarCambioArchivo = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("La imagen no puede superar los 5MB");
+      if (file.size > 3 * 1024 * 1024) {
+        toast.error("La imagen no puede superar los 3MB");
         return;
       }
       const reader = new FileReader();
       reader.onloadend = () => {
         setUrlAvatar(reader.result);
-        toast.success("Foto actualizada (solo en este dispositivo)");
+        toast.success("Foto cargada (guardá para aplicar cambios)");
       };
       reader.readAsDataURL(file);
     }
@@ -135,6 +135,7 @@ const EditarPerfil = () => {
         email: data.email,
         tel: data.phone,
         ubicacion: data.address,
+        avatar: urlAvatar,
       };
 
       const respuesta = await actualizarPerfil(payload);
@@ -145,6 +146,7 @@ const EditarPerfil = () => {
         email: data.email,
         phone: data.phone,
         address: data.address,
+        avatar: urlAvatar,
       };
       setUsuario(updated);
 
@@ -187,7 +189,7 @@ const EditarPerfil = () => {
               <div className="flex flex-col items-center gap-3 pb-4 border-b border-border">
                 <div className="relative">
                   <Avatar className="w-24 h-24">
-                    <ImagenAvatar src={urlAvatar || undefined} />
+                    <ImagenAvatar src={urlAvatar || usuario.avatar || undefined} />
                     <RespaldoAvatar className="bg-primary/10 text-primary text-2xl">
                       {usuario.name
                         .split(" ")
@@ -216,7 +218,7 @@ const EditarPerfil = () => {
                   />
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Hacé clic en el ícono para cambiar la foto (solo local)
+                  Hacé clic en el ícono para cambiar la foto
                 </p>
               </div>
 
