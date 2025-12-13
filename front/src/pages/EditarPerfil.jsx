@@ -57,6 +57,7 @@ const EditarPerfil = () => {
           email: parseado.email || "",
           phone: parseado.tel || parseado.phone || "",
           address: parseado.ubicacion || parseado.address || "",
+          avatar: parseado.avatar || null,
         };
       } catch { }
     }
@@ -65,6 +66,7 @@ const EditarPerfil = () => {
       email: "",
       phone: "",
       address: "",
+      avatar: null,
     };
   });
 
@@ -94,6 +96,7 @@ const EditarPerfil = () => {
           email: usuarioBackend.email || "",
           phone: usuarioBackend.tel || usuarioBackend.phone || "",
           address: usuarioBackend.ubicacion || usuarioBackend.address || "",
+          avatar: usuarioBackend.avatar || null,
         };
 
         setUsuario(datosMapeados);
@@ -138,7 +141,9 @@ const EditarPerfil = () => {
         avatar: urlAvatar,
       };
 
+      console.log("Enviando perfil con avatar size:", urlAvatar ? urlAvatar.length : 0);
       const respuesta = await actualizarPerfil(payload);
+      console.log("Respuesta actualización:", respuesta);
       const usuarioBackend = respuesta.user || respuesta.usuario || respuesta;
 
       const updated = {
@@ -157,6 +162,10 @@ const EditarPerfil = () => {
       toast.success("Perfil actualizado correctamente");
     } catch (error) {
       console.error("Error actualizando perfil:", error);
+      if (error.response) {
+        console.error("Detalles error backend:", error.response.data, error.response.status);
+        if (error.response.status === 413) toast.error("La imagen es muy pesada para el servidor");
+      }
       toast.error("No se pudo actualizar el perfil");
     }
   };

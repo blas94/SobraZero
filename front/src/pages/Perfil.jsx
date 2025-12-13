@@ -13,7 +13,7 @@ import {
 
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Boton } from "@/components/ui/Boton";
-import { Avatar, RespaldoAvatar } from "@/components/ui/Avatar";
+import { Avatar, RespaldoAvatar, ImagenAvatar } from "@/components/ui/Avatar";
 import NavegacionInferior from "@/components/NavegacionInferior";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { toast } from "sonner";
@@ -82,14 +82,15 @@ const Perfil = () => {
         const parsed = JSON.parse(almacenado);
         return {
           nombre: parsed.nombre || parsed.name || "Usuario",
+          avatar: parsed.avatar || null,
           pedidosCompletados:
             parsed.completedOrders ?? parsed.pedidosCompletados ?? 0,
         };
       } catch {
-        return { nombre: "Usuario", pedidosCompletados: 0 };
+        return { nombre: "Usuario", avatar: null, pedidosCompletados: 0 };
       }
     }
-    return { nombre: "Usuario", pedidosCompletados: 0 };
+    return { nombre: "Usuario", avatar: null, pedidosCompletados: 0 };
   });
 
   useEffect(() => {
@@ -104,6 +105,7 @@ const Perfil = () => {
 
         const perfilMapeado = {
           nombre: usuarioBackend.nombre || usuarioBackend.name || "Usuario",
+          avatar: usuarioBackend.avatar || null,
           pedidosCompletados:
             usuarioBackend.completedOrders ??
             usuarioBackend.pedidosCompletados ??
@@ -142,6 +144,7 @@ const Perfil = () => {
         <Tarjeta className="p-6">
           <div className="flex flex-col items-center text-center mb-6">
             <Avatar className="w-20 h-20 mb-3">
+              <ImagenAvatar src={usuario.avatar} />
               <RespaldoAvatar className="bg-primary/10 text-primary text-2xl">
                 {usuario.nombre
                   .split(" ")

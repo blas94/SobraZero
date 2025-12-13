@@ -20,17 +20,16 @@ export const AuthProvider = ({ children }) => {
             try {
                 // 1. Intentar validar la cookie/token con el backend
                 const { user, token } = await verificarSesion();
+                console.log("Sesión verificada:", user);
                 setUsuario(user);
                 // Persistencia local
                 localStorage.setItem("user", JSON.stringify(user));
-                // Si la sesión retorna nuevo token (opcional), guardarlo. 
-                // Pero verificarSesion normalmente solo retorna user y validación.
-                // En este caso, confiamos en el token que ya pueda estar almacenado o refrescado.
             } catch (error) {
                 // 2. Si falla (401/403), no hay sesión válida
+                console.log("Sesión no válida o expirada:", error);
                 setUsuario(null);
                 localStorage.removeItem("user");
-                localStorage.removeItem("token"); // Limpiar token también
+                localStorage.removeItem("token");
             } finally {
                 setCargando(false);
             }
