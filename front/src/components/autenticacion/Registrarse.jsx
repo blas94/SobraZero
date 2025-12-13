@@ -16,6 +16,7 @@ import {
     MensajeFormulario,
 } from "@/components/ui/Formulario";
 import { registrarCuenta } from "@/services/autenticacion";
+import { useAuth } from "@/context/AuthContext";
 
 const esquemaRegistro = z
     .object({
@@ -60,7 +61,7 @@ const Registrarse = ({ onCambiarPestana }) => {
             });
 
             // Usar método del contexto para consistencia (guarda user y token)
-            login({ user, token: response.token }); // response.token si existe, o verificar firma
+            login({ user: response.user, token: response.token }); // response.token si existe, o verificar firma
 
             toast.success("Cuenta creada correctamente");
             navegar("/");

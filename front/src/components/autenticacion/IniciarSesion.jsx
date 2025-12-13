@@ -109,7 +109,7 @@ const IniciarSesion = ({ onCambiarPestana }) => {
                     <p className="text-sm text-center mt-2">
                         ¿Olvidaste tu contraseña?{" "}
                         <Link
-                            to="/recuperar-password"
+                            to="/recuperar-clave"
                             className="text-primary hover:underline"
                         >
                             Hacé click acá

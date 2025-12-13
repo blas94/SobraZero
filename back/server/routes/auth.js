@@ -3,6 +3,8 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import Usuario from "../models/usuario.js";
 import { obtenerCoordenadas } from "../utils/geocodificacion.js";
+import crypto from "crypto";
+import { enviarCorreoRecuperacion, enviarCorreoCambioEmail } from "../utils/email.js";
 
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_cambia_esto";
@@ -255,6 +257,121 @@ router.get("/verificar", async (req, res) => {
       ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
     },
   });
+});
+
+// --- RECUPERACIÓN DE CONTRASEÑA ---
+
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: "Email requerido" });
+
+    const user = await Usuario.findOne({ email });
+    if (!user) return res.status(404).json({ error: "No existe un usuario con ese email" });
+
+    const token = crypto.randomBytes(20).toString("hex");
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hora
+    await user.save();
+
+    const enviado = await enviarCorreoRecuperacion(user.email, user.nombre, token);
+    if (!enviado) return res.status(500).json({ error: "Error enviando correo" });
+
+    res.json({ message: "Correo de recuperación enviado" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Error en el servidor" });
+  }
+});
+
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) return res.status(400).json({ error: "Datos incompletos" });
+
+    const user = await Usuario.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    }).select("+resetPasswordToken +resetPasswordExpires");
+
+    if (!user) return res.status(400).json({ error: "Token inválido o expirado" });
+
+    user.clave = await bcrypt.hash(newPassword, 10);
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
+    await user.save();
+
+    res.json({ message: "Contraseña restablecida correctamente" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Error en el servidor" });
+  }
+});
+
+// --- CAMBIO DE EMAIL ---
+
+router.post("/request-email-change", async (req, res) => {
+  try {
+    const payload = getAuthPayload(req);
+    if (!payload) return res.status(401).json({ error: "No autorizado" });
+
+    const { newEmail } = req.body;
+    if (!newEmail) return res.status(400).json({ error: "Nuevo email requerido" });
+
+    const existe = await Usuario.findOne({ email: newEmail });
+    if (existe) return res.status(409).json({ error: "El email ya está en uso" });
+
+    const user = await Usuario.findById(payload.uid);
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    const token = crypto.randomBytes(20).toString("hex");
+    user.emailChangeToken = token;
+    user.emailChangeExpires = Date.now() + 3600000;
+    user.newEmailPending = newEmail;
+    await user.save();
+
+    const enviado = await enviarCorreoCambioEmail(newEmail, user.nombre, token);
+    if (!enviado) return res.status(500).json({ error: "Error enviando correo" });
+
+    res.json({ message: "Se ha enviado un correo de confirmación a tu nueva dirección" });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Error en el servidor" });
+  }
+});
+
+router.post("/verify-email-change", async (req, res) => {
+  try {
+    const { token } = req.body;
+    if (!token) return res.status(400).json({ error: "Token requerido" });
+
+    const user = await Usuario.findOne({
+      emailChangeToken: token,
+      emailChangeExpires: { $gt: Date.now() },
+    }).select("+emailChangeToken +emailChangeExpires +newEmailPending");
+
+    if (!user) return res.status(400).json({ error: "Token inválido o expirado" });
+
+    // Verificar doble check de unicidad por si acaso
+    const existe = await Usuario.findOne({ email: user.newEmailPending });
+    if (existe && existe._id.toString() !== user._id.toString()) {
+      return res.status(409).json({ error: "El email ya fue ocupado por otro usuario mientras esperabas" });
+    }
+
+    user.email = user.newEmailPending;
+    user.emailChangeToken = undefined;
+    user.emailChangeExpires = undefined;
+    user.newEmailPending = undefined;
+    await user.save();
+
+    // Opcional: Invalidar sesiones viejas (cambio de email altera el JWT payload si se regenera)
+    // Por ahora solo confirmamos cambio.
+
+    res.json({ message: "Email actualizado correctamente. Por favor inicia sesión nuevamente." });
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: "Error en el servidor" });
+  }
 });
 
 export default router;

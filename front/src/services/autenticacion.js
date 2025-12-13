@@ -29,3 +29,30 @@ export async function verificarSesion() {
   const { data } = await authHttp.get("/auth/verificar");
   return data;
 }
+
+export const recuperarPassword = async (email) => {
+  const { data } = await authHttp.post("/auth/forgot-password", { email });
+  return data;
+};
+
+export const restablecerPassword = async (token, newPassword) => {
+  const { data } = await authHttp.post("/auth/reset-password", {
+    token,
+    newPassword,
+  });
+  return data;
+};
+
+export const solicitarCambioEmail = async (newEmail) => {
+  const { data } = await authHttp.post("/auth/request-email-change", {
+    newEmail,
+  });
+  return data;
+};
+
+export const verificarCambioEmail = async (token) => {
+  const { data } = await authHttp.post("/auth/verify-email-change", {
+    token,
+  });
+  return data;
+};

@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Boton } from "@/components/ui/Boton";
@@ -27,9 +28,12 @@ const esquemaRecupero = z.object({
     .max(255, "Máximo 255 caracteres"),
 });
 
+import { recuperarPassword } from "@/services/autenticacion";
+
 const RecuperarPassword = () => {
   const navegar = useNavigate();
   const { esModoOscuro } = usarTema();
+  const [enviando, setEnviando] = useState(false);
 
   const formulario = useForm({
     resolver: zodResolver(esquemaRecupero),
@@ -38,11 +42,20 @@ const RecuperarPassword = () => {
     },
   });
 
-  const manejarEnvio = (data) => {
-    toast.success(
-      "Enviamos un correo con instrucciones para restablecer tu contraseña"
-    );
-    setTimeout(() => navegar("/autenticacion"), 2000);
+  const manejarEnvio = async (data) => {
+    setEnviando(true);
+    try {
+      await recuperarPassword(data.email);
+      toast.success(
+        "Enviamos un correo con instrucciones para restablecer tu contraseña"
+      );
+      setTimeout(() => navegar("/autenticacion"), 3000);
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.error || "Error al enviar la solicitud");
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
@@ -65,7 +78,7 @@ const RecuperarPassword = () => {
               alt="Logo de SobraZero"
               className="w-36 mx-auto my-6"
               loading="eager"
-              fetchPriority="high"
+              fetchpriority="high"
             />
             <h1 className="text-2xl font-bold mb-2">Recuperar contraseña</h1>
             <p className="text-sm text-muted-foreground">

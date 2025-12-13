@@ -1,6 +1,8 @@
 import React from "react";
 import { Notificador } from "@/components/ui/Notificador";
 import { Avisador as Sonner } from "@/components/ui/Avisador";
+import InstalarAndroid from "@/components/InstalarAndroid";
+import InstalarIOS from "@/components/InstalarIOS";
 import { ProveedorGloboInformacion } from "@/components/ui/GloboInformacion";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
@@ -29,6 +31,8 @@ import EstadoPago from "./pages/EstadoPago";
 import EditarPerfil from "./pages/EditarPerfil";
 import RegistrarTienda from "./pages/RegistrarTienda";
 import RecuperarPassword from "./pages/RecuperarPassword";
+import RestablecerPassword from "./pages/RestablecerPassword";
+import VerificarCambioEmail from "./pages/VerificarCambioEmail";
 
 const queryClient = new QueryClient();
 
@@ -99,11 +103,15 @@ const App = () => {
             <ProveedorGloboInformacion>
               <Notificador />
               <Sonner />
+              <InstalarAndroid />
+              <InstalarIOS />
               <BrowserRouter>
                 <ScrollToTop />
                 <Routes>
                   <Route path="/autenticacion" element={<Autenticacion />} />
-                  <Route path="/recuperar-password" element={<RecuperarPassword />} />
+                  <Route path="/recuperar-clave" element={<RecuperarPassword />} />
+                  <Route path="/restablecer-password" element={<RestablecerPassword />} />
+                  <Route path="/verificar-cambio-email" element={<VerificarCambioEmail />} />
                   <Route path="/pagos/estado" element={<EstadoPago />} />
 
                   <Route path="/" element={<Navigate to="/autenticacion" replace />} />

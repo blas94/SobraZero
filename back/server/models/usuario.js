@@ -23,6 +23,15 @@ const UserSchema = new mongoose.Schema(
         default: undefined,
       },
     },
+
+    // Recuperación de contraseña
+    resetPasswordToken: { type: String, select: false },
+    resetPasswordExpires: { type: Date, select: false },
+
+    // Cambio de email
+    emailChangeToken: { type: String, select: false },
+    emailChangeExpires: { type: Date, select: false },
+    newEmailPending: { type: String, trim: true, lowercase: true, select: false },
   },
   {
     timestamps: true,

@@ -6,7 +6,8 @@ const Avisador = ({ ...props }) => {
   return (
     <Sonner
       theme={theme}
-      className="toaster group"
+      className="toaster group z-[99999]"
+      richColors
       toastOptions={{
         classNames: {
           toast:

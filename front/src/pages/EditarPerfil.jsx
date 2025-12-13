@@ -19,7 +19,15 @@ import NavegacionInferior from "@/components/NavegacionInferior";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
-import { actualizarPerfil, obtenerPerfil } from "@/services/autenticacion";
+import {
+  Dialogo,
+  DisparadorDialogo,
+  ContenidoDialogo,
+  EncabezadoDialogo,
+  TituloDialogo,
+  DescripcionDialogo,
+} from "@/components/ui/Dialogo";
+import { actualizarPerfil, obtenerPerfil, solicitarCambioEmail } from "@/services/autenticacion";
 
 const esquemaPerfil = z.object({
   name: z
@@ -135,15 +143,13 @@ const EditarPerfil = () => {
     try {
       const payload = {
         nombre: data.name,
-        email: data.email,
+        // email: data.email, // Email ya no se actualiza por aquí
         tel: data.phone,
         ubicacion: data.address,
         avatar: urlAvatar,
       };
 
-      console.log("Enviando perfil con avatar size:", urlAvatar ? urlAvatar.length : 0);
       const respuesta = await actualizarPerfil(payload);
-      console.log("Respuesta actualización:", respuesta);
       const usuarioBackend = respuesta.user || respuesta.usuario || respuesta;
 
       const updated = {
@@ -163,10 +169,19 @@ const EditarPerfil = () => {
     } catch (error) {
       console.error("Error actualizando perfil:", error);
       if (error.response) {
-        console.error("Detalles error backend:", error.response.data, error.response.status);
         if (error.response.status === 413) toast.error("La imagen es muy pesada para el servidor");
       }
       toast.error("No se pudo actualizar el perfil");
+    }
+  };
+
+  const manejarCambioEmail = async (newEmail) => {
+    if (!newEmail) return;
+    try {
+      await solicitarCambioEmail(newEmail);
+      toast.success(`Se envió un link de confirmación a ${newEmail}`);
+    } catch (error) {
+      toast.error(error.response?.data?.error || "Error al solicitar cambio de email");
     }
   };
 
@@ -257,9 +272,37 @@ const EditarPerfil = () => {
                       <Mail className="w-4 h-4 text-muted-foreground" />
                       Email
                     </EtiquetaFormulario>
-                    <ControlFormulario>
-                      <Entrada {...field} type="email" />
-                    </ControlFormulario>
+                    <div className="flex gap-2">
+                      <ControlFormulario>
+                        <Entrada {...field} type="email" disabled className="bg-muted text-muted-foreground" />
+                      </ControlFormulario>
+                      <Dialogo>
+                        <DisparadorDialogo asChild>
+                          <Boton type="button" variant="outline" size="sm">Cambiar</Boton>
+                        </DisparadorDialogo>
+                        <ContenidoDialogo>
+                          <EncabezadoDialogo>
+                            <TituloDialogo>Cambiar Email</TituloDialogo>
+                            <DescripcionDialogo>
+                              Ingresá tu nueva dirección de correo. Te enviaremos un link de confirmación.
+                            </DescripcionDialogo>
+                          </EncabezadoDialogo>
+                          <form onSubmit={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const formData = new FormData(e.currentTarget);
+                            const newEmail = formData.get("newEmail");
+                            manejarCambioEmail(newEmail);
+                          }} className="space-y-4 pt-4">
+                            <div className="space-y-2">
+                              <label htmlFor="newEmail" className="text-sm font-medium">Nuevo Email</label>
+                              <Entrada id="newEmail" name="newEmail" type="email" required placeholder="nuevo@email.com" />
+                            </div>
+                            <Boton type="submit" className="w-full">Enviar Link de Confirmación</Boton>
+                          </form>
+                        </ContenidoDialogo>
+                      </Dialogo>
+                    </div>
                     <MensajeFormulario />
                   </ItemFormulario>
                 )}
