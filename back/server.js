@@ -18,12 +18,24 @@ dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
 
+// Aumentar límites de body parser al máximo posible y colocarlo AL PRINCIPIO
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
+// Debug middleware to check content-length
+app.use((req, res, next) => {
+  if (req.method === 'POST' || req.method === 'PUT') {
+    // console.log(`Request ${req.method} ${req.path} Content-Length: ${req.get('content-length')}`);
+  }
+  next();
+});
+
 const {
   URI_DB,
   PORT = 3000,
   CLIENT_URL = "http://localhost:8080",
-  MP_ACCESS_TOKEN,
   NODE_ENV,
+  MP_ACCESS_TOKEN,
 } = process.env;
 
 const normalizarURL = (url = "") => url.replace(/\/+$/, "");
@@ -38,15 +50,30 @@ origenesPermitidos = origenesPermitidos.filter(Boolean).map(normalizarURL);
 app.use(
   cors({
     origin: (origin, cb) => {
-      if (!origin || origenesPermitidos.includes(normalizarURL(origin)))
+      const originNormalizado = normalizarURL(origin);
+      if (
+        !origin ||
+        origenesPermitidos.includes(originNormalizado) ||
+        (origin && origin.endsWith(".vercel.app"))
+      ) {
         return cb(null, true);
+      }
+      console.error("CORS Bloqueado:", origin);
       return cb(new Error("CORS bloqueado para origen: " + origin));
     },
     credentials: true,
   })
 );
 app.use(cookieParser());
-app.use(express.json({ limit: "10mb" }));
+// Removed previous json/urlencoded lines from here
+
+// Error handler para payload too large
+app.use((err, req, res, next) => {
+  if (err.type === 'entity.too.large') {
+    return res.status(413).json({ message: "La imagen es demasiado pesada (Límite del servidor excedido)" });
+  }
+  next(err);
+});
 
 mongoose
   .connect(URI_DB, { dbName: "sobrazero" })
