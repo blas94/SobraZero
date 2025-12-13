@@ -81,6 +81,30 @@ mongoose
   .catch((e) => console.error("Error conectando a mongo:", e.message));
 
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
+app.get("/", (_req, res) => {
+  res.send(`
+    <h1>API SobraZero</h1>
+    <p>Web Service</p>
+
+    <h2>Endpoints disponibles</h2>
+    <ul>
+      <li>/api/ping</li>
+      <li>/api/auth</li>
+      <li>/api/reservas</li>
+      <li>/api/pagos</li>
+      <li>/api/ofertas</li>
+      <li>/api/comercios</li>
+      <li>/api/tarjetas</li>
+    </ul>
+
+    <footer style="margin-top:40px;font-size:14px;color:#555">
+      <p><strong>Alumno:</strong> Blas Occofer</p>
+      <p><strong>Materia:</strong> Aplicaciones Híbridas</p>
+      <p><strong>Docente:</strong> Jonathan Cruz</p>
+      <p><strong>Comisión:</strong> A-1331</p>
+    </footer>
+  `);
+});
 
 app.use("/api/auth", authRouter);
 app.use("/api/reservas", reservasRouter);

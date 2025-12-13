@@ -1,12 +1,13 @@
 {
+    "id": "/",
     "name": "SobraZero (Test PWA)",
     "short_name": "SobraZero",
     "start_url": "/",
     "scope": "/",
     "display": "standalone",
     "orientation": "portrait",
-    "background_color": "#0f172a",
-    "theme_color": "#0f172a",
+    "background_color": "#EDE8E3",
+    "theme_color": "#EDE8E3",
     "description": "Conectamos comercios con excedentes de alimentos con consumidores que buscan ahorrar y evitar el desperdicio.",
     "icons": [
         {
