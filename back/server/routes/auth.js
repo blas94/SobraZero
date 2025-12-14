@@ -336,7 +336,7 @@ router.post("/request-email-change", async (req, res) => {
     res.json({ message: "Se ha enviado un correo de confirmación a tu nueva dirección" });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: "Error en el servidor" });
+    res.status(500).json({ error: "Error en el servidor: " + e.message });
   }
 });
 
