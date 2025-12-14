@@ -15,10 +15,15 @@ export const ProveedorTema = ({ children }) => {
 
     // Aplicar la clase dark al document y guardar en localStorage
     useEffect(() => {
+        const root = document.documentElement;
+        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+
         if (esModoOscuro) {
-            document.documentElement.classList.add("dark");
+            root.classList.add("dark");
+            metaThemeColor?.setAttribute("content", "#3e4345");
         } else {
-            document.documentElement.classList.remove("dark");
+            root.classList.remove("dark");
+            metaThemeColor?.setAttribute("content", "#EDE8E3");
         }
         localStorage.setItem("darkMode", String(esModoOscuro));
     }, [esModoOscuro]);

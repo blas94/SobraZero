@@ -40,7 +40,7 @@ export default function InstalarAndroid() {
                 position: "fixed",
                 left: 16,
                 right: 16,
-                bottom: 16,
+                top: 16,
                 background: "#3D7B53",
                 color: "white",
                 padding: 14,
