@@ -7,7 +7,6 @@ const Avisador = ({ ...props }) => {
     <Sonner
       theme={theme}
       className="toaster group z-[99999]"
-      position="top-center"
       toastOptions={{
         classNames: {
           toast:
