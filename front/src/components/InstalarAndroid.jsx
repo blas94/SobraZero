@@ -30,7 +30,6 @@ export default function InstalarAndroid() {
 
     const instalar = async () => {
         await pedirInstalacion();
-
         localStorage.setItem(CLAVE_LOCALSTORAGE, "1");
         setMostrar(false);
     };
@@ -42,7 +41,7 @@ export default function InstalarAndroid() {
                 left: 16,
                 right: 16,
                 bottom: 16,
-                background: "rgba(15, 23, 42, 0.96)",
+                background: "#407b41",
                 color: "white",
                 padding: 14,
                 borderRadius: 14,
@@ -51,7 +50,7 @@ export default function InstalarAndroid() {
                 justifyContent: "space-between",
                 gap: 12,
                 zIndex: 9999,
-                boxShadow: "0 10px 25px rgba(0,0,0,0.35)",
+                boxShadow: "0 10px 25px rgba(64,123,65,0.35)",
             }}
         >
             <div style={{ fontSize: 14, lineHeight: 1.25 }}>
@@ -59,7 +58,7 @@ export default function InstalarAndroid() {
                     Instalá SobraZero
                 </strong>
                 <span style={{ opacity: 0.9 }}>
-                    Accedé más rápido desde tu pantalla de inicio.
+                    Instalá SobraZero.
                 </span>
             </div>
 
@@ -84,7 +83,7 @@ export default function InstalarAndroid() {
                     style={{
                         background: "white",
                         border: "none",
-                        color: "#0f172a",
+                        color: "#407b41",
                         padding: "8px 12px",
                         borderRadius: 10,
                         cursor: "pointer",

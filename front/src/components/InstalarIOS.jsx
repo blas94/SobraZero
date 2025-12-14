@@ -35,20 +35,20 @@ export default function InstalarIOS() {
                 left: 16,
                 right: 16,
                 bottom: 16,
-                background: "rgba(15, 23, 42, 0.96)",
+                background: "#407b41",
                 color: "white",
                 padding: 14,
                 borderRadius: 14,
                 zIndex: 9999,
-                boxShadow: "0 10px 25px rgba(0,0,0,0.35)",
+                boxShadow: "0 10px 25px rgba(64,123,65,0.35)",
             }}
         >
             <strong style={{ display: "block", marginBottom: 6 }}>
-                Instalá SobraZero en iPhone
+                ¿Cómo instalar SobraZero?
             </strong>
 
             <div style={{ fontSize: 14, lineHeight: 1.3, opacity: 0.9 }}>
-                Tocá el botón <b>Compartir</b> (⬆️) y elegí{" "}
+                Tocá el botón <b>Compartir</b> y elegí{" "}
                 <b>“Agregar a pantalla de inicio”</b>.
             </div>
 
@@ -58,7 +58,7 @@ export default function InstalarIOS() {
                     marginTop: 10,
                     background: "white",
                     border: "none",
-                    color: "#0f172a",
+                    color: "#407b41",
                     padding: "8px 12px",
                     borderRadius: 10,
                     cursor: "pointer",
