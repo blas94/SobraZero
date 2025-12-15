@@ -57,10 +57,18 @@ const SeccionReseñas = ({ reseñas, calificacionPromedio, totalReseñas }) => {
         {reseñas.map((reseña) => (
           <Tarjeta key={reseña.id} className="p-3">
             <div className="flex gap-3">
-              <Avatar className="w-10 h-10">
-                <RespaldoAvatar className="bg-primary/10 text-primary">
-                  <User className="w-5 h-5" />
-                </RespaldoAvatar>
+              <Avatar className="w-12 h-full flex-shrink-0">
+                {reseña.avatar ? (
+                  <img
+                    src={reseña.avatar}
+                    alt={reseña.nombreUsuario}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <RespaldoAvatar className="bg-primary/10 text-primary">
+                    <User className="w-6 h-6" />
+                  </RespaldoAvatar>
+                )}
               </Avatar>
 
               <div className="flex-1 min-w-0">

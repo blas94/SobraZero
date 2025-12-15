@@ -91,6 +91,7 @@ const ContenidoComercio = ({
   const [yaReseñó, setYaReseñó] = useState(false);
   const [motivoNoReseñar, setMotivoNoReseñar] = useState("");
   const [editandoReseñaId, setEditandoReseñaId] = useState(null);
+  const [reseñaOriginal, setReseñaOriginal] = useState({ calificacion: 5, comentario: "" });
   const [esFavorito, setEsFavorito] = useState(() => {
     const favoritos = localStorage.getItem("favoritos");
     if (favoritos) {
@@ -177,6 +178,11 @@ const ContenidoComercio = ({
           setNuevaReseñaCalificacion(reseñaExistente.calificacion);
           setNuevaReseñaComentario(reseñaExistente.comentario);
           setEditandoReseñaId(reseñaExistente.id);
+          // Guardar valores originales para comparar cambios
+          setReseñaOriginal({
+            calificacion: reseñaExistente.calificacion,
+            comentario: reseñaExistente.comentario
+          });
           // Permitir mostrar el formulario para edición
           setPuedeReseñar(true);
         }
@@ -410,6 +416,16 @@ const ContenidoComercio = ({
       let resultado;
 
       if (editandoReseñaId) {
+        // Validar si hubo cambios
+        const sinCambios =
+          nuevaReseñaCalificacion === reseñaOriginal.calificacion &&
+          nuevaReseñaComentario.trim() === reseñaOriginal.comentario.trim();
+
+        if (sinCambios) {
+          toast.error("No se detectaron cambios en la reseña");
+          return;
+        }
+
         // EDITAR reseña existente
         resultado = await editarReseña(editandoReseñaId, {
           calificacion: nuevaReseñaCalificacion,
@@ -423,7 +439,10 @@ const ContenidoComercio = ({
           r.id === editandoReseñaId ? resultado.reseña : r
         ));
 
+        // Limpiar estado de edición y ocultar formulario
         setEditandoReseñaId(null);
+        setPuedeReseñar(false);
+        setYaReseñó(true);
       } else {
         // CREAR nueva reseña
         resultado = await crearReseña(idComercio, {
@@ -681,7 +700,7 @@ const ContenidoComercio = ({
           )}
         </Tarjeta>
 
-        <Tarjeta className="p-4">
+        <Tarjeta className="p-4 mb-10">
           <h3 className="font-semibold mb-4">Reseñas</h3>
 
           <SeccionReseñas
@@ -691,24 +710,23 @@ const ContenidoComercio = ({
           />
 
           {puedeReseñar ? (
-            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-              <h3 className="font-medium mb-3">Dejá tu reseña</h3>
-
-              <div className="mb-3">
-                <Etiqueta className="mb-2 block text-sm">Calificación</Etiqueta>
+            <div className="mt-6">
+              <div className="mb-4">
+                <Etiqueta className="mb-2 block text-sm">
+                  Calificación
+                </Etiqueta>
                 <div className="flex gap-1">
-                  {[1, 2, 3, 4, 5].map((puntuacion) => (
+                  {[1, 2, 3, 4, 5].map((estrella) => (
                     <button
-                      key={puntuacion}
-                      onClick={() => setNuevaReseñaCalificacion(puntuacion)}
-                      className="focus:outline-none transition-transform hover:scale-110"
+                      key={estrella}
+                      type="button"
+                      onClick={() => setNuevaReseñaCalificacion(estrella)}
+                      className={`text-2xl transition-colors ${estrella <= nuevaReseñaCalificacion
+                        ? "text-yellow-400"
+                        : "text-gray-300 dark:text-gray-600"
+                        }`}
                     >
-                      <Star
-                        className={`w-5 h-5 ${puntuacion <= nuevaReseñaCalificacion
-                          ? "fill-yellow-400 text-yellow-400"
-                          : "text-gray-300"
-                          }`}
-                      />
+                      ★
                     </button>
                   ))}
                 </div>
@@ -734,13 +752,19 @@ const ContenidoComercio = ({
                 {editandoReseñaId ? "Actualizar reseña" : "Publicar reseña"}
               </Boton>
             </div>
-          ) : (
+          ) : yaReseñó && !editandoReseñaId ? (
+            <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
+              <p className="text-sm text-green-700 dark:text-green-400">
+                ¡Gracias por tu reseña! Podés editarla cuando quieras volviendo a esta página.
+              </p>
+            </div>
+          ) : !yaReseñó ? (
             <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
               <p className="text-sm text-muted-foreground">
                 {motivoNoReseñar || "Necesitás realizar una reserva para poder dejar una reseña"}
               </p>
             </div>
-          )}
+          ) : null}
         </Tarjeta>
       </div>
     </>
