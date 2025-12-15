@@ -96,13 +96,6 @@ app.get("/", (_req, res) => {
       <li>/api/comercios</li>
       <li>/api/tarjetas</li>
     </ul>
-
-    <footer style="margin-top:40px;font-size:14px;color:#555">
-      <p><strong>Alumno:</strong> Blas Occofer</p>
-      <p><strong>Materia:</strong> Aplicaciones Híbridas</p>
-      <p><strong>Docente:</strong> Jonathan Cruz</p>
-      <p><strong>Comisión:</strong> A-1331</p>
-    </footer>
   `);
 });
 

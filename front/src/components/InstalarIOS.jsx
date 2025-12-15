@@ -34,8 +34,8 @@ export default function InstalarIOS() {
                 position: "fixed",
                 left: 16,
                 right: 16,
-                bottom: 16,
-                background: "#407b41",
+                top: 16,
+                background: "#3D7B53",
                 color: "white",
                 padding: 14,
                 borderRadius: 14,
@@ -48,8 +48,7 @@ export default function InstalarIOS() {
             </strong>
 
             <div style={{ fontSize: 14, lineHeight: 1.3, opacity: 0.9 }}>
-                Tocá el botón <b>Compartir</b> y elegí{" "}
-                <b>“Agregar a pantalla de inicio”</b>.
+                Tocá el botón <b>Compartir</b> y elegí <b>“Agregar a pantalla de inicio”</b>.
             </div>
 
             <button
@@ -58,7 +57,7 @@ export default function InstalarIOS() {
                     marginTop: 10,
                     background: "white",
                     border: "none",
-                    color: "#407b41",
+                    color: "#3D7B53",
                     padding: "8px 12px",
                     borderRadius: 10,
                     cursor: "pointer",

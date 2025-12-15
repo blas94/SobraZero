@@ -19,9 +19,7 @@ const getTransporter = () => {
 export const enviarCorreo = async (destinatario, asunto, html) => {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
     console.error("Faltan credenciales de email en .env (EMAIL_USER, EMAIL_PASS)");
-    console.error("User:", process.env.EMAIL_USER ? "Presente" : "Falta");
-    console.error("Pass:", process.env.EMAIL_PASS ? "Presente" : "Falta");
-    return false;
+    throw new Error("Credenciales de email no configuradas en el servidor (EMAIL_USER/EMAIL_PASS faltantes).");
   }
 
   try {
@@ -35,7 +33,7 @@ export const enviarCorreo = async (destinatario, asunto, html) => {
     return true;
   } catch (error) {
     console.error("Error enviando correo:", error);
-    return false;
+    throw new Error(error.message || "Fallo al enviar el correo a través del proveedor.");
   }
 };
 

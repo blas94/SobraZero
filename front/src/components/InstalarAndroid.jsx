@@ -40,8 +40,8 @@ export default function InstalarAndroid() {
                 position: "fixed",
                 left: 16,
                 right: 16,
-                bottom: 16,
-                background: "#407b41",
+                top: 16,
+                background: "#3D7B53",
                 color: "white",
                 padding: 14,
                 borderRadius: 14,
@@ -57,9 +57,6 @@ export default function InstalarAndroid() {
                 <strong style={{ display: "block", marginBottom: 2 }}>
                     Instalá SobraZero
                 </strong>
-                <span style={{ opacity: 0.9 }}>
-                    Instalá SobraZero.
-                </span>
             </div>
 
             <div style={{ display: "flex", gap: 8 }}>
@@ -83,7 +80,7 @@ export default function InstalarAndroid() {
                     style={{
                         background: "white",
                         border: "none",
-                        color: "#407b41",
+                        color: "#3D7B53",
                         padding: "8px 12px",
                         borderRadius: 10,
                         cursor: "pointer",

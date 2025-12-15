@@ -298,7 +298,7 @@ const EditarPerfil = () => {
                               <label htmlFor="newEmail" className="text-sm font-medium">Nuevo Email</label>
                               <Entrada id="newEmail" name="newEmail" type="email" required placeholder="nuevo@email.com" />
                             </div>
-                            <Boton type="submit" className="w-full">Enviar Link de Confirmación</Boton>
+                            <Boton type="submit" className="w-full">Enviar link de confirmación</Boton>
                           </form>
                         </ContenidoDialogo>
                       </Dialogo>
