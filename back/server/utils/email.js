@@ -5,12 +5,24 @@ let transporter = null;
 
 const getTransporter = () => {
   if (!transporter) {
+    console.log("🔧 Creando transporter de email...");
+    console.log("📧 EMAIL_USER:", process.env.EMAIL_USER ? "✅ Configurado" : "❌ No configurado");
+    console.log("🔑 EMAIL_PASS:", process.env.EMAIL_PASS ? "✅ Configurado" : "❌ No configurado");
+
     transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false, // true para 465, false para otros puertos
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      tls: {
+        rejectUnauthorized: false // Permite certificados autofirmados en desarrollo
+      },
+      connectionTimeout: 10000, // 10 segundos
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
   }
   return transporter;
@@ -23,17 +35,28 @@ export const enviarCorreo = async (destinatario, asunto, html) => {
   }
 
   try {
+    console.log(`📤 Intentando enviar correo a: ${destinatario}`);
     const info = await getTransporter().sendMail({
       from: `"SobraZero" <${process.env.EMAIL_USER}>`,
       to: destinatario,
       subject: asunto,
       html: html,
     });
-    console.log("Correo enviado:", info.messageId);
+    console.log("✅ Correo enviado exitosamente:", info.messageId);
     return true;
   } catch (error) {
-    console.error("Error enviando correo:", error);
-    throw new Error(error.message || "Fallo al enviar el correo a través del proveedor.");
+    console.error("❌ Error enviando correo:", error.message);
+    console.error("❌ Código de error:", error.code);
+    console.error("❌ Comando:", error.command);
+
+    // Mensajes de error más específicos
+    if (error.code === 'ETIMEDOUT' || error.code === 'ESOCKET') {
+      throw new Error("Timeout de conexión con Gmail. Verifica las credenciales y que Gmail permita el acceso.");
+    } else if (error.code === 'EAUTH') {
+      throw new Error("Autenticación fallida. Verifica EMAIL_USER y EMAIL_PASS (debe ser App Password de Gmail).");
+    } else {
+      throw new Error(error.message || "Fallo al enviar el correo a través del proveedor.");
+    }
   }
 };
 

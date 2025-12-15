@@ -198,11 +198,16 @@ const EditarPerfil = () => {
 
   const manejarCambioEmail = async (newEmail) => {
     if (!newEmail) return;
+    console.log("🔍 Iniciando cambio de email a:", newEmail);
     try {
-      await solicitarCambioEmail(newEmail);
+      const response = await solicitarCambioEmail(newEmail);
+      console.log("✅ Respuesta del servidor:", response);
       toast.success(`Se envió un link de confirmación a ${newEmail}`);
     } catch (error) {
-      toast.error(error.response?.data?.error || "Error al solicitar cambio de email");
+      console.error("❌ Error en cambio de email:", error);
+      console.error("❌ Error response:", error.response);
+      const errorMsg = error.response?.data?.error || error.message || "Error al solicitar cambio de email";
+      toast.error(errorMsg);
     }
   };
 
