@@ -31,7 +31,6 @@ import NavegacionInferior from "@/components/NavegacionInferior";
 import { PermisoUbicacion } from "@/components/ui/PermisoUbicacion";
 import {
   comercios as comerciosMock,
-  resenasPorComercio,
 } from "@/data/datos-comercios";
 import { categorias } from "@/data/categorias-comercios";
 import mapboxgl from "mapbox-gl";
@@ -554,7 +553,6 @@ const Inicio = () => {
               <ContenidoComercio
                 idComercio={comercioSeleccionado}
                 comercios={comerciosLocales}
-                resenasGlobales={resenasPorComercio}
                 mostrarBotonVolver={false}
               />
             )}

@@ -4,7 +4,6 @@ import ContenidoComercio from "@/components/ContenidoComercio";
 import NavegacionInferior from "@/components/NavegacionInferior";
 import {
   comercios as comerciosBase,
-  resenasPorComercio,
 } from "@/data/datos-comercios";
 
 const DetalleComercio = () => {
@@ -66,7 +65,6 @@ const DetalleComercio = () => {
       <ContenidoComercio
         idComercio={id}
         comercios={comerciosLocales}
-        resenasGlobales={resenasPorComercio}
         mostrarBotonVolver={true}
       />
       <NavegacionInferior />

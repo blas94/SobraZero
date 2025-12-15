@@ -2,7 +2,7 @@ import { Star, User } from "lucide-react";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Avatar, RespaldoAvatar } from "@/components/ui/Avatar";
 
-const SeccionResenas = ({ resenas, calificacionPromedio, totalResenas }) => {
+const SeccionReseñas = ({ reseñas, calificacionPromedio, totalReseñas }) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4 pb-4 border-b border-border">
@@ -22,17 +22,17 @@ const SeccionResenas = ({ resenas, calificacionPromedio, totalResenas }) => {
             ))}
           </div>
           <p className="text-xs text-muted-foreground">
-            {totalResenas} reseñas
+            {totalReseñas} reseñas
           </p>
         </div>
 
         <div className="flex-1">
           {[5, 4, 3, 2, 1].map((rating) => {
-            const cantidad = resenas.filter(
-              (resena) => resena.calificacion === rating
+            const cantidad = reseñas.filter(
+              (reseña) => reseña.calificacion === rating
             ).length;
             const porcentaje =
-              totalResenas > 0 ? (cantidad / totalResenas) * 100 : 0;
+              totalReseñas > 0 ? (cantidad / totalReseñas) * 100 : 0;
 
             return (
               <div key={rating} className="flex items-center gap-2 mb-1">
@@ -54,8 +54,8 @@ const SeccionResenas = ({ resenas, calificacionPromedio, totalResenas }) => {
       </div>
 
       <div className="space-y-3">
-        {resenas.map((resena) => (
-          <Tarjeta key={resena.id} className="p-3">
+        {reseñas.map((reseña) => (
+          <Tarjeta key={reseña.id} className="p-3">
             <div className="flex gap-3">
               <Avatar className="w-10 h-10">
                 <RespaldoAvatar className="bg-primary/10 text-primary">
@@ -66,10 +66,10 @@ const SeccionResenas = ({ resenas, calificacionPromedio, totalResenas }) => {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <span className="font-medium text-sm">
-                    {resena.nombreUsuario}
+                    {reseña.nombreUsuario}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {resena.fecha}
+                    {reseña.fecha}
                   </span>
                 </div>
 
@@ -77,7 +77,7 @@ const SeccionResenas = ({ resenas, calificacionPromedio, totalResenas }) => {
                   {[1, 2, 3, 4, 5].map((star) => (
                     <Star
                       key={star}
-                      className={`w-3 h-3 ${star <= resena.calificacion
+                      className={`w-3 h-3 ${star <= reseña.calificacion
                         ? "fill-yellow-400 text-yellow-400"
                         : "text-muted"
                         }`}
@@ -86,7 +86,7 @@ const SeccionResenas = ({ resenas, calificacionPromedio, totalResenas }) => {
                 </div>
 
                 <p className="text-sm text-foreground leading-relaxed">
-                  {resena.comentario}
+                  {reseña.comentario}
                 </p>
               </div>
             </div>
@@ -97,4 +97,4 @@ const SeccionResenas = ({ resenas, calificacionPromedio, totalResenas }) => {
   );
 };
 
-export default SeccionResenas;
+export default SeccionReseñas;

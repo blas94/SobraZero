@@ -188,7 +188,10 @@ router.put("/me", async (req, res) => {
 
   if (typeof nombre === "string" && nombre.trim()) actualizacion.nombre = nombre.trim();
   if (typeof tel === "string") actualizacion.tel = tel.trim();
-  if (typeof avatar === "string") actualizacion.avatar = avatar;
+  // Permitir avatar null para eliminación de foto
+  if (avatar !== undefined) {
+    actualizacion.avatar = avatar === null ? null : avatar;
+  }
 
 
   if (typeof ubicacion !== "undefined") {

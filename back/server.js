@@ -11,6 +11,7 @@ import pagosRouter from "./server/routes/pagos.js";
 import ofertasRouter from "./server/routes/ofertas.js";
 import comerciosRouter from "./server/routes/comercios.js";
 import tarjetasRoutes from "./server/routes/tarjetas.js";
+import reseñasRouter from "./server/routes/reseñas.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -105,6 +106,7 @@ app.use("/api/pagos", pagosRouter);
 app.use("/api/ofertas", ofertasRouter);
 app.use("/api/comercios", comerciosRouter);
 app.use("/api/tarjetas", tarjetasRoutes);
+app.use("/api/resenas", reseñasRouter);
 
 app.listen(PORT, () => {
   const mpMasked = MP_ACCESS_TOKEN ? `${MP_ACCESS_TOKEN.slice(0, 10)}***` : "(no definido)";

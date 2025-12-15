@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, User, Mail, Phone, MapPin } from "lucide-react";
+import { ArrowLeft, Camera, User, Mail, Phone, MapPin, X } from "lucide-react";
 import {
   Formulario,
   ControlFormulario,
@@ -79,6 +79,7 @@ const EditarPerfil = () => {
   });
 
   const [urlAvatar, setUrlAvatar] = useState(null);
+  const [fotoEliminada, setFotoEliminada] = useState(false);
   const referenciaArchivo = useRef(null);
 
   const formulario = useForm({
@@ -133,10 +134,18 @@ const EditarPerfil = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setUrlAvatar(reader.result);
+        setFotoEliminada(false); // Se está cargando una nueva foto, no es eliminación
         toast.success("Foto cargada (guardá para aplicar cambios)");
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const manejarEliminarFoto = () => {
+    setUrlAvatar(null);
+    setFotoEliminada(true); // Marcar que se eliminó activamente
+    setUsuario(prev => ({ ...prev, avatar: null }));
+    toast.success("Foto eliminada (guardá para aplicar cambios)");
   };
 
   const manejarEnvio = async (data) => {
@@ -146,24 +155,36 @@ const EditarPerfil = () => {
         // email: data.email, // Email ya no se actualiza por aquí
         tel: data.phone,
         ubicacion: data.address,
-        avatar: urlAvatar,
       };
+
+      // Solo incluir avatar si hay cambios
+      if (fotoEliminada) {
+        payload.avatar = null; // Eliminación activa
+      } else if (urlAvatar) {
+        payload.avatar = urlAvatar; // Nueva foto
+      }
+      // Si no hay cambios (ni nueva foto ni eliminación), no se incluye avatar
 
       const respuesta = await actualizarPerfil(payload);
       const usuarioBackend = respuesta.user || respuesta.usuario || respuesta;
 
+      // Usar los datos del backend para actualizar el estado local
       const updated = {
-        name: data.name,
-        email: data.email,
-        phone: data.phone,
-        address: data.address,
-        avatar: urlAvatar,
+        name: usuarioBackend.nombre || usuarioBackend.name || data.name,
+        email: usuarioBackend.email || data.email,
+        phone: usuarioBackend.tel || usuarioBackend.phone || data.phone,
+        address: usuarioBackend.ubicacion || usuarioBackend.address || data.address,
+        avatar: usuarioBackend.avatar !== undefined ? usuarioBackend.avatar : null,
       };
       setUsuario(updated);
 
       if (usuarioBackend) {
         localStorage.setItem("user", JSON.stringify(usuarioBackend));
       }
+
+      // Limpiar urlAvatar temporal después de guardar exitosamente
+      setUrlAvatar(null);
+      setFotoEliminada(false);
 
       toast.success("Perfil actualizado correctamente");
     } catch (error) {
@@ -232,6 +253,17 @@ const EditarPerfil = () => {
                   >
                     <Camera className="w-4 h-4" />
                   </Boton>
+                  {(urlAvatar || usuario.avatar) && (
+                    <Boton
+                      type="button"
+                      size="icon"
+                      variant="destructive"
+                      className="absolute bottom-0 left-0 rounded-full w-8 h-8 shadow-md"
+                      onClick={manejarEliminarFoto}
+                    >
+                      <X className="w-4 h-4" />
+                    </Boton>
+                  )}
                   <input
                     ref={referenciaArchivo}
                     type="file"

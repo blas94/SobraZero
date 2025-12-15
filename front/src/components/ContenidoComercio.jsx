@@ -12,20 +12,18 @@ import { Boton } from "@/components/ui/Boton";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { AreaTexto } from "@/components/ui/AreaTexto";
 import { Etiqueta } from "@/components/ui/Etiqueta";
-import SeccionResenas from "@/components/SeccionResenas";
+import SeccionReseñas from "@/components/SeccionResenas";
 import { toast } from "sonner";
 import { crearReserva } from "@/services/reservas";
 import { obtenerTarjetaPrincipal } from "@/services/metodos-pago";
 import { obtenerOfertaPorComercio } from "@/services/ofertas";
+import { obtenerReseñas, verificarPuedeReseñar, crearReseña, editarReseña } from "@/services/reseñas";
 
 const ESTADO_COMERCIOS_KEY = "estadoComercios";
-
-const USUARIO_PRUEBA_ID = "68c637445ceb927c5a2fc14c";
 
 const ContenidoComercio = ({
   idComercio,
   comercios,
-  resenasGlobales,
   mostrarBotonVolver = false,
   alCerrar,
 }) => {
@@ -86,9 +84,13 @@ const ContenidoComercio = ({
   }, [idComercio, comercios]);
 
   const [productosSeleccionados, setProductosSeleccionados] = useState({});
-  const [nuevaResenaCalificacion, setNuevaResenaCalificacion] = useState(5);
-  const [nuevaResenaComentario, setNuevaResenaComentario] = useState("");
-  const [resenasLocales, setResenasLocales] = useState([]);
+  const [nuevaReseñaCalificacion, setNuevaReseñaCalificacion] = useState(5);
+  const [nuevaReseñaComentario, setNuevaReseñaComentario] = useState("");
+  const [reseñas, setReseñas] = useState([]);
+  const [puedeReseñar, setPuedeReseñar] = useState(false);
+  const [yaReseñó, setYaReseñó] = useState(false);
+  const [motivoNoReseñar, setMotivoNoReseñar] = useState("");
+  const [editandoReseñaId, setEditandoReseñaId] = useState(null);
   const [esFavorito, setEsFavorito] = useState(() => {
     const favoritos = localStorage.getItem("favoritos");
     if (favoritos) {
@@ -136,19 +138,56 @@ const ContenidoComercio = ({
     cargarOferta();
   }, [idComercio]);
 
-  const yaReservo = () => {
-    if (!comercio) return false;
-    const datosPedidos = localStorage.getItem("pedidos");
-    if (!datosPedidos) return false;
-    const pedidos = JSON.parse(datosPedidos);
-    return pedidos.some(
-      (pedido) =>
-        (pedido.nombreComercio || pedido.storeName) === comercio.nombre
-    );
-  };
+  // Cargar reseñas del comercio
+  useEffect(() => {
+    const cargarReseñas = async () => {
+      if (!idComercio) return;
 
-  const resenasBase = resenasGlobales[idComercio] || [];
-  const resenas = [...resenasLocales, ...resenasBase];
+      try {
+        const reseñasDelBackend = await obtenerReseñas(idComercio);
+        setReseñas(reseñasDelBackend);
+      } catch (error) {
+        console.error("Error cargando reseñas:", error);
+        setReseñas([]);
+      }
+    };
+
+    cargarReseñas();
+  }, [idComercio]);
+
+  // Verificar si puede reseñar
+  useEffect(() => {
+    const verificarPermisos = async () => {
+      console.log("🔍 [FRONTEND] Verificando permisos para comercio:", idComercio);
+      if (!idComercio) {
+        console.log("⚠️ [FRONTEND] No hay idComercio");
+        return;
+      }
+
+      try {
+        console.log("📞 [FRONTEND] Llamando a verificarPuedeReseñar...");
+        const { puedeReseñar, yaReseñó, motivo, reseñaExistente } = await verificarPuedeReseñar(idComercio);
+        console.log("✅ [FRONTEND] Respuesta recibida:", { puedeReseñar, yaReseñó, motivo, reseñaExistente });
+        setPuedeReseñar(puedeReseñar);
+        setYaReseñó(yaReseñó);
+        setMotivoNoReseñar(motivo || "");
+
+        // Si ya reseñó, pre-llenar el formulario para edición
+        if (yaReseñó && reseñaExistente) {
+          setNuevaReseñaCalificacion(reseñaExistente.calificacion);
+          setNuevaReseñaComentario(reseñaExistente.comentario);
+          setEditandoReseñaId(reseñaExistente.id);
+          // Permitir mostrar el formulario para edición
+          setPuedeReseñar(true);
+        }
+      } catch (error) {
+        console.error("❌ [FRONTEND] Error verificando permisos:", error);
+        setPuedeReseñar(false);
+      }
+    };
+
+    verificarPermisos();
+  }, [idComercio]);
 
   const actualizarCantidadProducto = (productoId, delta) => {
     if (!comercio) return;
@@ -230,6 +269,15 @@ const ContenidoComercio = ({
     try {
       const entradas = Object.entries(productosSeleccionados);
 
+      // Obtener usuario autenticado
+      const userStr = localStorage.getItem("user");
+      if (!userStr) {
+        toast.error("Necesitás estar autenticado para reservar");
+        return;
+      }
+      const user = JSON.parse(userStr);
+      const usuarioId = user.id || user._id;
+
       for (const [productoId, cant] of entradas) {
         const cantidad = Number(cant);
         if (!cantidad || cantidad <= 0) continue;
@@ -238,7 +286,7 @@ const ContenidoComercio = ({
         if (!producto) continue;
 
         await crearReserva({
-          usuarioId: USUARIO_PRUEBA_ID,
+          usuarioId,
           ofertaId,
           productoNombre: producto.nombre,
           cantidad,
@@ -330,6 +378,19 @@ const ContenidoComercio = ({
       });
 
       setProductosSeleccionados({});
+
+      // Actualizar permisos de reseña automáticamente
+      const verificarPermisos = async () => {
+        try {
+          const { puedeReseñar, yaReseñó, motivo } = await verificarPuedeReseñar(idComercio);
+          setPuedeReseñar(puedeReseñar);
+          setYaReseñó(yaReseñó);
+          setMotivoNoReseñar(motivo || "");
+        } catch (error) {
+          console.error("Error verificando permisos:", error);
+        }
+      };
+      verificarPermisos();
     } catch (error) {
       console.error("Error al reservar:", error);
       toast.error(
@@ -339,24 +400,55 @@ const ContenidoComercio = ({
     }
   };
 
-  const manejarAgregarResena = () => {
-    if (!nuevaResenaComentario.trim()) {
-      toast.error("Por favor escribi un comentario");
+  const manejarAgregarReseña = async () => {
+    if (!nuevaReseñaComentario.trim()) {
+      toast.error("Por favor escribí un comentario");
       return;
     }
 
-    const nueva = {
-      id: Date.now().toString(),
-      userName: "Usuario Actual",
-      rating: nuevaResenaCalificacion,
-      comment: nuevaResenaComentario,
-      date: "Ahora",
-    };
+    try {
+      let resultado;
 
-    setResenasLocales([nueva, ...resenasLocales]);
-    setNuevaResenaComentario("");
-    setNuevaResenaCalificacion(5);
-    toast.success("Reseña agregada con éxito");
+      if (editandoReseñaId) {
+        // EDITAR reseña existente
+        resultado = await editarReseña(editandoReseñaId, {
+          calificacion: nuevaReseñaCalificacion,
+          comentario: nuevaReseñaComentario,
+        });
+
+        toast.success("Reseña actualizada con éxito");
+
+        // Actualizar la reseña en el estado
+        setReseñas(reseñas.map(r =>
+          r.id === editandoReseñaId ? resultado.reseña : r
+        ));
+
+        setEditandoReseñaId(null);
+      } else {
+        // CREAR nueva reseña
+        resultado = await crearReseña(idComercio, {
+          calificacion: nuevaReseñaCalificacion,
+          comentario: nuevaReseñaComentario,
+        });
+
+        toast.success("Reseña publicada con éxito");
+
+        // Agregar la nueva reseña al estado
+        setReseñas([resultado.reseña, ...reseñas]);
+
+        // Actualizar permisos
+        setPuedeReseñar(false);
+        setYaReseñó(true);
+      }
+
+      // Limpiar formulario
+      setNuevaReseñaComentario("");
+      setNuevaReseñaCalificacion(5);
+
+    } catch (error) {
+      console.error("Error con reseña:", error);
+      toast.error(error.response?.data?.error || "No se pudo procesar la reseña");
+    }
   };
 
   const manejarFavorito = () => {
@@ -592,13 +684,13 @@ const ContenidoComercio = ({
         <Tarjeta className="p-4">
           <h3 className="font-semibold mb-4">Reseñas</h3>
 
-          <SeccionResenas
-            resenas={resenas}
+          <SeccionReseñas
+            reseñas={reseñas}
             calificacionPromedio={comercio.calificacion}
-            totalResenas={comercio.totalResenas + resenasLocales.length}
+            totalReseñas={reseñas.length}
           />
 
-          {yaReservo() ? (
+          {puedeReseñar ? (
             <div className="mt-6 p-4 bg-muted/50 rounded-lg">
               <h3 className="font-medium mb-3">Dejá tu reseña</h3>
 
@@ -608,11 +700,11 @@ const ContenidoComercio = ({
                   {[1, 2, 3, 4, 5].map((puntuacion) => (
                     <button
                       key={puntuacion}
-                      onClick={() => setNuevaResenaCalificacion(puntuacion)}
+                      onClick={() => setNuevaReseñaCalificacion(puntuacion)}
                       className="focus:outline-none transition-transform hover:scale-110"
                     >
                       <Star
-                        className={`w-5 h-5 ${puntuacion <= nuevaResenaCalificacion
+                        className={`w-5 h-5 ${puntuacion <= nuevaReseñaCalificacion
                           ? "fill-yellow-400 text-yellow-400"
                           : "text-gray-300"
                           }`}
@@ -632,20 +724,20 @@ const ContenidoComercio = ({
                 <AreaTexto
                   id="comentario-resena"
                   placeholder="Contanos tu experiencia..."
-                  value={nuevaResenaComentario}
-                  onChange={(e) => setNuevaResenaComentario(e.target.value)}
+                  value={nuevaReseñaComentario}
+                  onChange={(e) => setNuevaReseñaComentario(e.target.value)}
                   className="min-h-[100px]"
                 />
               </div>
 
-              <Boton onClick={manejarAgregarResena} className="w-full">
-                Publicar reseña
+              <Boton onClick={manejarAgregarReseña} className="w-full">
+                {editandoReseñaId ? "Actualizar reseña" : "Publicar reseña"}
               </Boton>
             </div>
           ) : (
             <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
               <p className="text-sm text-muted-foreground">
-                Necesitás reservar en este comercio para poder dejar una reseña
+                {motivoNoReseñar || "Necesitás realizar una reserva para poder dejar una reseña"}
               </p>
             </div>
           )}
