@@ -281,6 +281,9 @@ const EditarPerfil = () => {
                 <p className="text-sm text-muted-foreground">
                   Hacé clic en el ícono para cambiar la foto
                 </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Se recomienda subir una imagen cuadrada (mismo ancho y alto)
+                </p>
               </div>
 
               <CampoFormulario
