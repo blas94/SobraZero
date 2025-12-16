@@ -11,7 +11,7 @@ import pagosRouter from "./server/routes/pagos.js";
 import ofertasRouter from "./server/routes/ofertas.js";
 import comerciosRouter from "./server/routes/comercios.js";
 import reseñasRouter from "./server/routes/reseñas.js";
-import mercadopagoRouter from "./server/routes/mercadopago.js";
+import mercadopagoRouter from "./server/routes/mercado-pago.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
