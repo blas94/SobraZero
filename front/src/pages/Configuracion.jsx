@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Moon, Lock, CreditCard, Trash2 } from "lucide-react";
-import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Boton } from "@/components/ui/Boton";
+import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Interruptor } from "@/components/ui/Interruptor";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import FormasDecorativas from "@/components/FormasDecorativas";
@@ -17,78 +17,40 @@ import {
   EncabezadoDialogoAlerta,
   TituloDialogoAlerta,
 } from "@/components/ui/DialogoAlerta";
-import {
-  Dialogo,
-  ContenidoDialogo,
-  DescripcionDialogo,
-  PieDialogo,
-  EncabezadoDialogo,
-  TituloDialogo,
-} from "@/components/ui/Dialogo";
-import {
-  obtenerTarjetasGuardadas,
-  agregarTarjeta,
-  eliminarTarjeta,
-  establecerTarjetaPrincipal,
-} from "@/services/metodos-pago";
 import { usarTema } from "@/hooks/usar-tema";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 const Configuracion = () => {
   const navegar = useNavigate();
   const { esModoOscuro, alternarModoOscuro } = usarTema();
   const [mostrarDialogoEliminar, setMostrarDialogoEliminar] = useState(false);
 
-  const [tarjetas, setTarjetas] = useState([]);
-  const [mostrarListadoTarjetas, setMostrarListadoTarjetas] = useState(false);
-  const [dialogoTarjetaAbierto, setDialogoTarjetaAbierto] = useState(false);
-
-  const [alias, setAlias] = useState("");
-  const [numero, setNumero] = useState("");
-  const [marca, setMarca] = useState("");
-  const [vencimiento, setVencimiento] = useState("");
-  const [cvv, setCvv] = useState("");
-
-  const [usuario] = useState(() => {
+  const [usuario, setUsuario] = useState(() => {
     try {
-      const stored = localStorage.getItem("user");
-      return stored ? JSON.parse(stored) : null;
+      const userStr = localStorage.getItem("user");
+      return userStr ? JSON.parse(userStr) : null;
     } catch {
       return null;
     }
-  })
-
-  const normalizarTarjetas = (data) =>
-    Array.isArray(data) ? data : data?.tarjetas ?? [];
-
-  const cargarTarjetas = async () => {
-    try {
-      const userId = usuario?.id || usuario?._id;
-      if (!userId) return;
-
-      const data = await obtenerTarjetasGuardadas(userId);
-      setTarjetas(normalizarTarjetas(data));
-    } catch (error) {
-      console.error("Error obteniendo tarjetas:", error);
-      toast.error("No se pudieron cargar las tarjetas guardadas");
-      setTarjetas([]);
-    }
-  };
+  });
 
   useEffect(() => {
-    cargarTarjetas();
-  }, [usuario]);
+    try {
+      const userStr = localStorage.getItem("user");
+      setUsuario(userStr ? JSON.parse(userStr) : null);
+    } catch {
+      setUsuario(null);
+    }
+  }, []);
 
-  const limpiarFormularioTarjeta = () => {
-    setAlias("");
-    setNumero("");
-    setMarca("");
-    setVencimiento("");
-    setCvv("");
-  };
+  const userId = usuario?.id || usuario?._id;
 
   const manejarToggleModoOscuro = () => {
     alternarModoOscuro();
-    toast.success(!esModoOscuro ? "Modo oscuro activado" : "Modo claro activado");
+    toast.success(
+      !esModoOscuro ? "Modo oscuro activado" : "Modo claro activado"
+    );
   };
 
   const manejarEliminarCuenta = () => {
@@ -96,59 +58,35 @@ const Configuracion = () => {
     setMostrarDialogoEliminar(false);
   };
 
-  const manejarSubmitTarjeta = async (e) => {
-    e.preventDefault();
-
-    if (!alias.trim() || !numero.trim()) {
-      toast.error("Completá el alias y el número de tarjeta");
-      return;
-    }
-
-    const numeroLimpio = numero.replace(/\D/g, "");
-    if (numeroLimpio.length < 12) {
-      toast.error("Número de tarjeta inválido (usá uno de prueba)");
+  const conectarMercadoPago = async () => {
+    if (!userId) {
+      toast.error("Iniciá sesión para conectar Mercado Pago");
       return;
     }
 
     try {
-      await agregarTarjeta({
-        usuarioId: usuario?.id || usuario?._id,
-        alias: alias.trim(),
-        marca: marca.trim() || "Tarjeta",
-        ultimos4: numeroLimpio.slice(-4),
-        esPrincipal: tarjetas.length === 0,
-      });
+      const resp = await fetch(
+        `${API_URL}/api/mp/connect?usuarioId=${userId}`,
+        {
+          credentials: "include",
+        }
+      );
 
-      toast.success("Tarjeta guardada");
-      limpiarFormularioTarjeta();
-      setDialogoTarjetaAbierto(false);
-      cargarTarjetas();
-    } catch (error) {
-      console.error("Error guardando tarjeta:", error);
-      toast.error("No se pudo guardar la tarjeta");
-    }
-  };
+      if (!resp.ok) {
+        throw new Error("No se pudo iniciar la conexión con Mercado Pago");
+      }
 
-  const manejarEliminarTarjeta = async (tarjetaId) => {
-    if (!window.confirm("¿Eliminar esta tarjeta?")) return;
-    try {
-      await eliminarTarjeta(tarjetaId);
-      toast.success("Tarjeta eliminada");
-      cargarTarjetas();
-    } catch (error) {
-      console.error("Error eliminando tarjeta:", error);
-      toast.error("No se pudo eliminar la tarjeta");
-    }
-  };
+      const data = await resp.json();
 
-  const manejarMarcarPrincipal = async (tarjetaId) => {
-    try {
-      await establecerTarjetaPrincipal(tarjetaId);
-      toast.success("Tarjeta principal actualizada");
-      cargarTarjetas();
-    } catch (error) {
-      console.error("Error marcando tarjeta principal:", error);
-      toast.error("No se pudo marcar la tarjeta como principal");
+      if (data?.url) {
+        window.location.href = data.url;
+        return;
+      }
+
+      throw new Error("Respuesta inválida del servidor (falta url)");
+    } catch (e) {
+      console.error(e);
+      toast.error("No se pudo conectar Mercado Pago");
     }
   };
 
@@ -185,89 +123,24 @@ const Configuracion = () => {
           </div>
         </Tarjeta>
 
-        <Tarjeta className="p-4 space-y-2">
-          <h2 className="font-semibold mb-2 flex items-center gap-2">
+        <Tarjeta className="p-4 space-y-3">
+          <h2 className="font-semibold flex items-center gap-2">
             <CreditCard className="w-5 h-5" />
             Métodos de pago
           </h2>
 
-          <Boton
-            variant="outline"
-            className="w-full justify-between"
-            type="button"
-            onClick={() => setMostrarListadoTarjetas((prev) => !prev)}
-          >
-            Tarjetas guardadas
-            {tarjetas.length > 0 && (
-              <span className="text-xs text-muted-foreground">
-                {tarjetas.length}
-              </span>
-            )}
-          </Boton>
+          <p className="text-sm text-muted-foreground">
+            Para mayor seguridad, los pagos y tarjetas se gestionan directamente
+            con Mercado Pago.
+          </p>
 
           <Boton
             className="w-full justify-between"
             type="button"
-            onClick={() => setDialogoTarjetaAbierto(true)}
+            onClick={conectarMercadoPago}
           >
-            Agregar método de pago
+            Mercado Pago
           </Boton>
-
-          {mostrarListadoTarjetas && (
-            <div className="mt-3 space-y-2">
-              {tarjetas.length === 0 ? (
-                <p className="text-xs text-muted-foreground px-1">
-                  No tenés tarjetas guardadas.
-                </p>
-              ) : (
-                tarjetas.map((tarjeta) => (
-                  <div
-                    key={tarjeta._id ?? tarjeta.id}
-                    className="flex items-center justify-between border rounded-md px-3 py-2"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">
-                        {tarjeta.alias}{" "}
-                        {tarjeta.esPrincipal && (
-                          <span className="text-xs text-primary">
-                            (principal)
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {tarjeta.marca || "Tarjeta"} - terminada en{" "}
-                        {tarjeta.ultimos4}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      {!tarjeta.esPrincipal && (
-                        <Boton
-                          variant="outline"
-                          size="sm"
-                          type="button"
-                          onClick={() =>
-                            manejarMarcarPrincipal(tarjeta._id ?? tarjeta.id)
-                          }
-                        >
-                          Marcar principal
-                        </Boton>
-                      )}
-                      <Boton
-                        variant="destructive"
-                        size="sm"
-                        type="button"
-                        onClick={() =>
-                          manejarEliminarTarjeta(tarjeta._id ?? tarjeta.id)
-                        }
-                      >
-                        Eliminar
-                      </Boton>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
         </Tarjeta>
 
         <Tarjeta className="p-4">
@@ -306,84 +179,6 @@ const Configuracion = () => {
           </p>
         </Tarjeta>
       </main>
-
-      <Dialogo
-        open={dialogoTarjetaAbierto}
-        onOpenChange={setDialogoTarjetaAbierto}
-      >
-        <ContenidoDialogo>
-          <EncabezadoDialogo>
-            <TituloDialogo>Agregar método de pago</TituloDialogo>
-            <DescripcionDialogo>
-              Ingresá una tarjeta de prueba de Mercado Pago.
-            </DescripcionDialogo>
-          </EncabezadoDialogo>
-          <form onSubmit={manejarSubmitTarjeta} className="space-y-3 mt-2">
-            <div>
-              <Etiqueta className="text-sm">Alias</Etiqueta>
-              <input
-                className="mt-1 w-full border rounded-md px-2 py-1 text-sm bg-background"
-                placeholder="Ej: Visa personal"
-                value={alias}
-                onChange={(e) => setAlias(e.target.value)}
-                aria-label="Alias de la tarjeta"
-              />
-            </div>
-
-            <div>
-              <Etiqueta className="text-sm">Número de tarjeta</Etiqueta>
-              <input
-                className="mt-1 w-full border rounded-md px-2 py-1 text-sm bg-background"
-                placeholder="0000 0000 0000 0000"
-                value={numero}
-                onChange={(e) => setNumero(e.target.value)}
-                maxLength={19}
-                aria-label="Número de tarjeta"
-              />
-            </div>
-
-            <div className="flex gap-2">
-              <div className="w-full">
-                <Etiqueta className="text-sm">Marca</Etiqueta>
-                <input
-                  className="mt-1 w-full border rounded-md px-2 py-1 text-sm bg-background"
-                  placeholder="Visa, Master..."
-                  value={marca}
-                  onChange={(e) => setMarca(e.target.value)}
-                  aria-label="Marca de la tarjeta"
-                />
-              </div>
-              <div className="w-20">
-                <Etiqueta className="text-sm">CVV</Etiqueta>
-                <input
-                  className="mt-1 w-full border rounded-md px-2 py-1 text-sm bg-background"
-                  placeholder="123"
-                  value={cvv}
-                  onChange={(e) => setCvv(e.target.value)}
-                  aria-label="Código de seguridad"
-                />
-              </div>
-            </div>
-
-            <PieDialogo className="mt-2">
-              <Boton type="submit" className="flex-1">
-                Guardar tarjeta
-              </Boton>
-              <Boton
-                type="button"
-                variant="outline"
-                className="flex-1"
-                onClick={() => {
-                  setDialogoTarjetaAbierto(false);
-                  limpiarFormularioTarjeta();
-                }}
-              >
-                Cancelar
-              </Boton>
-            </PieDialogo>
-          </form>
-        </ContenidoDialogo>
-      </Dialogo>
 
       <DialogoAlerta
         open={mostrarDialogoEliminar}

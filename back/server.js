@@ -10,7 +10,6 @@ import authRouter from "./server/routes/auth.js";
 import pagosRouter from "./server/routes/pagos.js";
 import ofertasRouter from "./server/routes/ofertas.js";
 import comerciosRouter from "./server/routes/comercios.js";
-import tarjetasRoutes from "./server/routes/tarjetas.js";
 import reseñasRouter from "./server/routes/reseñas.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -19,14 +18,11 @@ dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
 
-// Aumentar límites de body parser al máximo posible y colocarlo AL PRINCIPIO
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
-// Debug middleware to check content-length
 app.use((req, res, next) => {
-  if (req.method === 'POST' || req.method === 'PUT') {
-    // console.log(`Request ${req.method} ${req.path} Content-Length: ${req.get('content-length')}`);
+  if (req.method === "POST" || req.method === "PUT") {
   }
   next();
 });
@@ -65,13 +61,14 @@ app.use(
     credentials: true,
   })
 );
-app.use(cookieParser());
-// Removed previous json/urlencoded lines from here
 
-// Error handler para payload too large
+app.use(cookieParser());
+
 app.use((err, req, res, next) => {
-  if (err.type === 'entity.too.large') {
-    return res.status(413).json({ message: "La imagen es demasiado pesada (Límite del servidor excedido)" });
+  if (err.type === "entity.too.large") {
+    return res.status(413).json({
+      message: "La imagen es demasiado pesada (Límite del servidor excedido)",
+    });
   }
   next(err);
 });
@@ -82,6 +79,7 @@ mongoose
   .catch((e) => console.error("Error conectando a mongo:", e.message));
 
 app.get("/api/ping", (_req, res) => res.json({ ok: true }));
+
 app.get("/", (_req, res) => {
   res.send(`
     <h1>API SobraZero</h1>
@@ -95,7 +93,7 @@ app.get("/", (_req, res) => {
       <li>/api/pagos</li>
       <li>/api/ofertas</li>
       <li>/api/comercios</li>
-      <li>/api/tarjetas</li>
+      <li>/api/resenas</li>
     </ul>
   `);
 });
@@ -105,11 +103,12 @@ app.use("/api/reservas", reservasRouter);
 app.use("/api/pagos", pagosRouter);
 app.use("/api/ofertas", ofertasRouter);
 app.use("/api/comercios", comerciosRouter);
-app.use("/api/tarjetas", tarjetasRoutes);
 app.use("/api/resenas", reseñasRouter);
 
 app.listen(PORT, () => {
-  const mpMasked = MP_ACCESS_TOKEN ? `${MP_ACCESS_TOKEN.slice(0, 10)}***` : "(no definido)";
+  const mpMasked = MP_ACCESS_TOKEN
+    ? `${MP_ACCESS_TOKEN.slice(0, 10)}***`
+    : "(no definido)";
   console.log(`Servidor andando en http://localhost:${PORT}`);
   console.log(`CLIENT_URL permitido: ${CLIENT_URL}`);
   console.log(`MP_ACCESS_TOKEN: ${mpMasked}`);

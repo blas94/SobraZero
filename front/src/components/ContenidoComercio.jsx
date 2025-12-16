@@ -1,13 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowLeft,
-  MapPin,
-  Clock,
-  Star,
-  ShoppingBag,
-  Heart,
-} from "lucide-react";
+import { ArrowLeft, MapPin, Clock, Star, ShoppingBag, Heart } from "lucide-react";
 import { Boton } from "@/components/ui/Boton";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { AreaTexto } from "@/components/ui/AreaTexto";
@@ -15,9 +8,14 @@ import { Etiqueta } from "@/components/ui/Etiqueta";
 import SeccionReseñas from "@/components/SeccionResenas";
 import { toast } from "sonner";
 import { crearReserva } from "@/services/reservas";
-import { obtenerTarjetaPrincipal } from "@/services/metodos-pago";
 import { obtenerOfertaPorComercio } from "@/services/ofertas";
-import { obtenerReseñas, verificarPuedeReseñar, crearReseña, editarReseña } from "@/services/reseñas";
+import {
+  obtenerReseñas,
+  verificarPuedeReseñar,
+  crearReseña,
+  editarReseña,
+} from "@/services/reseñas";
+import { crearPreferencia } from "@/services/pagos";
 
 const ESTADO_COMERCIOS_KEY = "estadoComercios";
 
@@ -34,8 +32,7 @@ const ContenidoComercio = ({
     if (estadoGuardado) {
       try {
         const listaEstado = JSON.parse(estadoGuardado);
-        const comercioPersistido =
-          listaEstado.find((s) => s.id === idComercio) || null;
+        const comercioPersistido = listaEstado.find((s) => s.id === idComercio) || null;
         if (comercioPersistido) {
           return {
             ...comercioPersistido,
@@ -58,8 +55,7 @@ const ContenidoComercio = ({
     if (estadoGuardado) {
       try {
         const listaEstado = JSON.parse(estadoGuardado);
-        const comercioPersistido =
-          listaEstado.find((s) => s.id === idComercio) || null;
+        const comercioPersistido = listaEstado.find((s) => s.id === idComercio) || null;
         if (comercioPersistido) {
           setComercio({
             ...comercioPersistido,
@@ -91,7 +87,11 @@ const ContenidoComercio = ({
   const [yaReseñó, setYaReseñó] = useState(false);
   const [motivoNoReseñar, setMotivoNoReseñar] = useState("");
   const [editandoReseñaId, setEditandoReseñaId] = useState(null);
-  const [reseñaOriginal, setReseñaOriginal] = useState({ calificacion: 5, comentario: "" });
+  const [reseñaOriginal, setReseñaOriginal] = useState({
+    calificacion: 5,
+    comentario: "",
+  });
+
   const [esFavorito, setEsFavorito] = useState(() => {
     const favoritos = localStorage.getItem("favoritos");
     if (favoritos) {
@@ -100,21 +100,9 @@ const ContenidoComercio = ({
     }
     return false;
   });
-  const [tarjetaPrincipal, setTarjetaPrincipal] = useState(null);
+
   const [ofertaId, setOfertaId] = useState(null);
   const [cargandoOferta, setCargandoOferta] = useState(false);
-
-  useEffect(() => {
-    const cargarTarjeta = async () => {
-      try {
-        const tarjeta = await obtenerTarjetaPrincipal();
-        setTarjetaPrincipal(tarjeta);
-      } catch (e) {
-        console.error("Error obteniendo tarjeta principal:", e);
-      }
-    };
-    cargarTarjeta();
-  }, []);
 
   // Cargar oferta del comercio desde el servicio
   useEffect(() => {
@@ -129,8 +117,6 @@ const ContenidoComercio = ({
         }
       } catch (error) {
         console.error("Error cargando oferta:", error);
-        // No mostramos toast aquí para no molestar al usuario
-        // El componente puede funcionar sin oferta (solo no podrá reservar)
       } finally {
         setCargandoOferta(false);
       }
@@ -159,35 +145,28 @@ const ContenidoComercio = ({
   // Verificar si puede reseñar
   useEffect(() => {
     const verificarPermisos = async () => {
-      console.log("🔍 [FRONTEND] Verificando permisos para comercio:", idComercio);
-      if (!idComercio) {
-        console.log("⚠️ [FRONTEND] No hay idComercio");
-        return;
-      }
+      if (!idComercio) return;
 
       try {
-        console.log("📞 [FRONTEND] Llamando a verificarPuedeReseñar...");
-        const { puedeReseñar, yaReseñó, motivo, reseñaExistente } = await verificarPuedeReseñar(idComercio);
-        console.log("✅ [FRONTEND] Respuesta recibida:", { puedeReseñar, yaReseñó, motivo, reseñaExistente });
+        const { puedeReseñar, yaReseñó, motivo, reseñaExistente } =
+          await verificarPuedeReseñar(idComercio);
+
         setPuedeReseñar(puedeReseñar);
         setYaReseñó(yaReseñó);
         setMotivoNoReseñar(motivo || "");
 
-        // Si ya reseñó, pre-llenar el formulario para edición
         if (yaReseñó && reseñaExistente) {
           setNuevaReseñaCalificacion(reseñaExistente.calificacion);
           setNuevaReseñaComentario(reseñaExistente.comentario);
           setEditandoReseñaId(reseñaExistente.id);
-          // Guardar valores originales para comparar cambios
           setReseñaOriginal({
             calificacion: reseñaExistente.calificacion,
-            comentario: reseñaExistente.comentario
+            comentario: reseñaExistente.comentario,
           });
-          // Permitir mostrar el formulario para edición
           setPuedeReseñar(true);
         }
       } catch (error) {
-        console.error("❌ [FRONTEND] Error verificando permisos:", error);
+        console.error("[FRONTEND] Error verificando permisos:", error);
         setPuedeReseñar(false);
       }
     };
@@ -201,10 +180,7 @@ const ContenidoComercio = ({
     if (!producto) return;
 
     const cantidadActual = productosSeleccionados[productoId] || 0;
-    const nuevaCantidad = Math.max(
-      0,
-      Math.min(producto.stock, cantidadActual + delta)
-    );
+    const nuevaCantidad = Math.max(0, Math.min(producto.stock, cantidadActual + delta));
 
     setProductosSeleccionados((prev) => {
       if (nuevaCantidad === 0) {
@@ -217,20 +193,14 @@ const ContenidoComercio = ({
 
   const calcularTotal = () => {
     if (!comercio) return 0;
-    return Object.entries(productosSeleccionados).reduce(
-      (total, [productoId, cantidad]) => {
-        const producto = comercio.productos.find((p) => p.id === productoId);
-        return total + (producto ? producto.precioDescuento * cantidad : 0);
-      },
-      0
-    );
+    return Object.entries(productosSeleccionados).reduce((total, [productoId, cantidad]) => {
+      const producto = comercio.productos.find((p) => p.id === productoId);
+      return total + (producto ? producto.precioDescuento * cantidad : 0);
+    }, 0);
   };
 
   const obtenerTotalItems = () => {
-    return Object.values(productosSeleccionados).reduce(
-      (suma, cantidad) => suma + cantidad,
-      0
-    );
+    return Object.values(productosSeleccionados).reduce((suma, cantidad) => suma + cantidad, 0);
   };
 
   const manejarReserva = async () => {
@@ -244,45 +214,32 @@ const ContenidoComercio = ({
       return;
     }
 
-    let tarjeta = tarjetaPrincipal;
-    if (!tarjeta) {
-      try {
-        tarjeta = await obtenerTarjetaPrincipal();
-        setTarjetaPrincipal(tarjeta);
-      } catch (e) {
-        console.error("Error obteniendo tarjeta principal:", e);
-      }
-    }
-
-    if (!tarjeta) {
-      toast.error(
-        "Primero agrega un metodo de pago en Configuracion (tarjetas guardadas)"
-      );
+    if (cargandoOferta) {
+      toast.error("Cargando oferta... intentá de nuevo en unos segundos");
       return;
     }
-
-    const confirmar = window.confirm(
-      `Vas a pagar con "${tarjeta.alias}" (${tarjeta.marca}, terminada en ${tarjeta.ultimos4}). Deseas continuar?`
-    );
-
-    if (!confirmar) return;
 
     if (!ofertaId) {
       toast.error("No se pudo obtener la oferta de este comercio. Intenta recargar la página.");
       return;
     }
 
-    try {
-      const entradas = Object.entries(productosSeleccionados);
+    // Usuario autenticado
+    const userStr = localStorage.getItem("user");
+    if (!userStr) {
+      toast.error("Necesitás estar autenticado para reservar");
+      return;
+    }
+    const user = JSON.parse(userStr);
+    const usuarioId = user.id || user._id;
 
-      // Obtener usuario autenticado
-      const userStr = localStorage.getItem("user");
-      if (!userStr) {
-        toast.error("Necesitás estar autenticado para reservar");
-        return;
-      }
-      const user = JSON.parse(userStr);
-      const usuarioId = user.id || user._id;
+    // Snapshot para que no se rompa si cambian estados
+    const seleccionSnapshot = { ...productosSeleccionados };
+    const entradas = Object.entries(seleccionSnapshot);
+
+    try {
+      // 1) Crear reserva(s) en backend
+      let reservaIdReal = null;
 
       for (const [productoId, cant] of entradas) {
         const cantidad = Number(cant);
@@ -291,29 +248,33 @@ const ContenidoComercio = ({
         const producto = comercio.productos.find((p) => p.id === productoId);
         if (!producto) continue;
 
-        await crearReserva({
+        const resReserva = await crearReserva({
           usuarioId,
           ofertaId,
           productoNombre: producto.nombre,
           cantidad,
         });
+
+        const idMongo = resReserva?.reserva?._id;
+        if (!reservaIdReal && idMongo) reservaIdReal = idMongo;
       }
 
-      const totalItemsReservados = totalItems;
+      if (!reservaIdReal) {
+        toast.error("No se pudo crear la reserva en el servidor");
+        return;
+      }
 
+      // 2) Actualizar stock local (UI)
       setComercio((prev) => {
         if (!prev) return prev;
 
         const productosActualizados = prev.productos.map((prod) => {
-          const reservada = productosSeleccionados[prod.id] || 0;
+          const reservada = seleccionSnapshot[prod.id] || 0;
           if (!reservada) return prod;
-          return {
-            ...prod,
-            stock: prod.stock - reservada,
-          };
+          return { ...prod, stock: prod.stock - reservada };
         });
 
-        let nuevoDisponible = prev.disponibles - totalItemsReservados;
+        let nuevoDisponible = prev.disponibles - totalItems;
         if (nuevoDisponible < 0) nuevoDisponible = 0;
 
         const comercioActualizado = {
@@ -323,44 +284,26 @@ const ContenidoComercio = ({
         };
 
         const estadoPrevio = localStorage.getItem(ESTADO_COMERCIOS_KEY);
-        let listaEstado;
-        if (estadoPrevio) {
-          try {
-            listaEstado = JSON.parse(estadoPrevio);
-          } catch {
-            listaEstado = comercios;
-          }
-        } else {
-          listaEstado = comercios;
-        }
+        const listaEstado = estadoPrevio ? JSON.parse(estadoPrevio) : comercios;
 
         const comerciosActualizados = listaEstado.map((s) =>
           s.id === idComercio
-            ? {
-              ...s,
-              productos: productosActualizados,
-              disponibles: nuevoDisponible,
-            }
+            ? { ...s, productos: productosActualizados, disponibles: nuevoDisponible }
             : s
         );
 
-        localStorage.setItem(
-          ESTADO_COMERCIOS_KEY,
-          JSON.stringify(comerciosActualizados)
-        );
-
+        localStorage.setItem(ESTADO_COMERCIOS_KEY, JSON.stringify(comerciosActualizados));
         return comercioActualizado;
       });
 
-      const productosDetalle = Object.entries(productosSeleccionados).map(
-        ([id, cantidad]) => {
-          const prod = comercio.productos.find((p) => p.id === id);
-          return {
-            nombre: prod ? prod.nombre : "Producto desconocido",
-            cantidad: `${cantidad} unidades`,
-          };
-        }
-      );
+      // 3) Guardar pedido en localStorage (tu lógica actual)
+      const productosDetalle = Object.entries(seleccionSnapshot).map(([id, cantidad]) => {
+        const prod = comercio.productos.find((p) => p.id === id);
+        return {
+          nombre: prod ? prod.nombre : "Producto desconocido",
+          cantidad: `${cantidad} unidades`,
+        };
+      });
 
       const nuevoPedido = {
         id: `pedido-${Date.now()}`,
@@ -385,24 +328,28 @@ const ContenidoComercio = ({
 
       setProductosSeleccionados({});
 
-      // Actualizar permisos de reseña automáticamente
-      const verificarPermisos = async () => {
-        try {
-          const { puedeReseñar, yaReseñó, motivo } = await verificarPuedeReseñar(idComercio);
-          setPuedeReseñar(puedeReseñar);
-          setYaReseñó(yaReseñó);
-          setMotivoNoReseñar(motivo || "");
-        } catch (error) {
-          console.error("Error verificando permisos:", error);
-        }
-      };
-      verificarPermisos();
+      // 4) Crear preferencia de Mercado Pago y redirigir
+      const pref = await crearPreferencia({
+        reservaId: reservaIdReal,
+        usuarioId,
+        precio_total: total,
+      });
+
+      const url =
+        pref?.sandbox_init_point ||
+        pref?.init_point ||
+        pref?.initPoint;
+
+      if (!url) {
+        toast.error("No se pudo iniciar el pago");
+        return;
+      }
+
+      window.location.href = url;
+
     } catch (error) {
       console.error("Error al reservar:", error);
-      toast.error(
-        error?.response?.data?.message ||
-        "Error al crear la reserva en el servidor"
-      );
+      toast.error(error?.response?.data?.message || "Error al crear la reserva o el pago");
     }
   };
 
@@ -416,7 +363,6 @@ const ContenidoComercio = ({
       let resultado;
 
       if (editandoReseñaId) {
-        // Validar si hubo cambios
         const sinCambios =
           nuevaReseñaCalificacion === reseñaOriginal.calificacion &&
           nuevaReseñaComentario.trim() === reseñaOriginal.comentario.trim();
@@ -426,7 +372,6 @@ const ContenidoComercio = ({
           return;
         }
 
-        // EDITAR reseña existente
         resultado = await editarReseña(editandoReseñaId, {
           calificacion: nuevaReseñaCalificacion,
           comentario: nuevaReseñaComentario,
@@ -434,36 +379,26 @@ const ContenidoComercio = ({
 
         toast.success("Reseña actualizada con éxito");
 
-        // Actualizar la reseña en el estado
-        setReseñas(reseñas.map(r =>
-          r.id === editandoReseñaId ? resultado.reseña : r
-        ));
+        setReseñas(reseñas.map((r) => (r.id === editandoReseñaId ? resultado.reseña : r)));
 
-        // Limpiar estado de edición y ocultar formulario
         setEditandoReseñaId(null);
         setPuedeReseñar(false);
         setYaReseñó(true);
       } else {
-        // CREAR nueva reseña
         resultado = await crearReseña(idComercio, {
           calificacion: nuevaReseñaCalificacion,
           comentario: nuevaReseñaComentario,
         });
 
         toast.success("Reseña publicada con éxito");
-
-        // Agregar la nueva reseña al estado
         setReseñas([resultado.reseña, ...reseñas]);
 
-        // Actualizar permisos
         setPuedeReseñar(false);
         setYaReseñó(true);
       }
 
-      // Limpiar formulario
       setNuevaReseñaComentario("");
       setNuevaReseñaCalificacion(5);
-
     } catch (error) {
       console.error("Error con reseña:", error);
       toast.error(error.response?.data?.error || "No se pudo procesar la reseña");
@@ -528,18 +463,14 @@ const ContenidoComercio = ({
           <div className="flex items-start justify_between gap-3 mb-3">
             <div className="flex-1">
               <h2 className="text-xl font-bold mb-1">{comercio.nombre}</h2>
-              <p className="text-sm text-muted-foreground capitalize">
-                {comercio.categoria}
-              </p>
+              <p className="text-sm text-muted-foreground capitalize">{comercio.categoria}</p>
             </div>
             <button
               onClick={manejarFavorito}
               className={`flex-shrink-0 transition-transform hover:scale-110 ${esFavorito ? "text-success" : "text-muted-foreground"
                 }`}
             >
-              <Heart
-                className={`w-6 h-6 ${esFavorito ? "fill-success" : ""}`}
-              />
+              <Heart className={`w-6 h-6 ${esFavorito ? "fill-success" : ""}`} />
             </button>
           </div>
 
@@ -573,7 +504,6 @@ const ContenidoComercio = ({
                 key={producto.id}
                 className="border border-border rounded-lg overflow-hidden flex h-40"
               >
-                {/* Div 1: Imagen (Ocupa el alto total) */}
                 <div className="w-32 bg-muted relative flex-shrink-0">
                   {producto.imageUrl ? (
                     <img
@@ -588,7 +518,6 @@ const ContenidoComercio = ({
                   )}
                 </div>
 
-                {/* Div 2: Información y Controles */}
                 <div className="flex-1 p-3 flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start">
@@ -610,7 +539,6 @@ const ContenidoComercio = ({
                     </p>
                   </div>
 
-                  {/* Controles integrados en Div 2 */}
                   <div className="flex items-center gap-3 mt-2 self-start">
                     <Boton
                       variant="outline"
@@ -629,10 +557,7 @@ const ContenidoComercio = ({
                       size="icon"
                       className="h-8 w-8 border-primary/20"
                       onClick={() => actualizarCantidadProducto(producto.id, 1)}
-                      disabled={
-                        (productosSeleccionados[producto.id] || 0) >=
-                        producto.stock
-                      }
+                      disabled={(productosSeleccionados[producto.id] || 0) >= producto.stock}
                     >
                       +
                     </Boton>
@@ -649,30 +574,20 @@ const ContenidoComercio = ({
           {obtenerTotalItems() > 0 ? (
             <>
               <div className="space-y-2 mb-4">
-                {Object.entries(productosSeleccionados).map(
-                  ([productoId, cantidad]) => {
-                    const producto = comercio.productos.find(
-                      (p) => p.id === productoId
-                    );
-                    if (!producto) return null;
-                    return (
-                      <div
-                        key={productoId}
-                        className="flex justify-between text-sm"
-                      >
-                        <span className="text-muted-foreground">
-                          {producto.nombre} x {cantidad}
-                        </span>
-                        <span className="font-medium">
-                          $
-                          {(
-                            producto.precioDescuento * cantidad
-                          ).toLocaleString()}
-                        </span>
-                      </div>
-                    );
-                  }
-                )}
+                {Object.entries(productosSeleccionados).map(([productoId, cantidad]) => {
+                  const producto = comercio.productos.find((p) => p.id === productoId);
+                  if (!producto) return null;
+                  return (
+                    <div key={productoId} className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">
+                        {producto.nombre} x {cantidad}
+                      </span>
+                      <span className="font-medium">
+                        ${(producto.precioDescuento * cantidad).toLocaleString()}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="border-t border-border pt-3 mb-4">
@@ -683,8 +598,7 @@ const ContenidoComercio = ({
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground text-center mt-1">
-                  {obtenerTotalItems()} producto
-                  {obtenerTotalItems() > 1 ? "s" : ""} seleccionado
+                  {obtenerTotalItems()} producto{obtenerTotalItems() > 1 ? "s" : ""} seleccionado
                   {obtenerTotalItems() > 1 ? "s" : ""}
                 </p>
               </div>
@@ -712,9 +626,7 @@ const ContenidoComercio = ({
           {puedeReseñar ? (
             <div className="mt-6">
               <div className="mb-4">
-                <Etiqueta className="mb-2 block text-sm">
-                  Calificación
-                </Etiqueta>
+                <Etiqueta className="mb-2 block text-sm">Calificación</Etiqueta>
                 <div className="flex gap-1">
                   {[1, 2, 3, 4, 5].map((estrella) => (
                     <button
@@ -722,8 +634,8 @@ const ContenidoComercio = ({
                       type="button"
                       onClick={() => setNuevaReseñaCalificacion(estrella)}
                       className={`text-2xl transition-colors ${estrella <= nuevaReseñaCalificacion
-                        ? "text-yellow-400"
-                        : "text-gray-300 dark:text-gray-600"
+                          ? "text-yellow-400"
+                          : "text-gray-300 dark:text-gray-600"
                         }`}
                     >
                       ★
@@ -733,10 +645,7 @@ const ContenidoComercio = ({
               </div>
 
               <div className="mb-3">
-                <Etiqueta
-                  htmlFor="comentario-reseña"
-                  className="mb-2 block text-sm"
-                >
+                <Etiqueta htmlFor="comentario-reseña" className="mb-2 block text-sm">
                   Comentario
                 </Etiqueta>
                 <AreaTexto

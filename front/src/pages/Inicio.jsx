@@ -146,9 +146,7 @@ const Inicio = () => {
     return coincideCategoria && coincideBusqueda;
   });
 
-  const [ubicacionUsuario, setUbicacionUsuario] = useState(() => {
-    return localStorage.getItem("ultimaDireccion") || "Balvanera, CABA";
-  });
+
 
   const [mapaCentro] = useState(() => {
     const coordsGuardadas = localStorage.getItem("ultimasCoordenadas");
@@ -215,49 +213,6 @@ const Inicio = () => {
 
     geolocateControlRef.current = geolocate;
     mapaRef.current.addControl(geolocate, "top-right");
-
-    // Escuchar evento de geolocalización exitosa para Reverse Geocoding
-    geolocate.on('geolocate', async (e) => {
-      // En algunos casos e.coords no existe directamente, o es e.position.coords
-      // Mapbox GL JS v2/v3 event structure: e.coords should be there.
-      // Defensiva: chequeamos e.coords
-      if (!e || !e.coords) return;
-
-      const { longitude, latitude } = e.coords;
-
-      try {
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${longitude},${latitude}.json?types=place,neighborhood&access_token=${tokenMapbox}`
-        );
-        const data = await response.json();
-
-        if (data.features && data.features.length > 0) {
-          const lugar = data.features.find((f) =>
-            f.place_type.includes("neighborhood")
-          );
-          const ciudad = data.features.find((f) =>
-            f.place_type.includes("place")
-          );
-
-          const nombreLugar = lugar ? lugar.text : "";
-          const nombreCiudad = ciudad ? ciudad.text : "";
-
-          let nuevaUbicacion = "";
-          if (nombreLugar && nombreCiudad) {
-            nuevaUbicacion = `${nombreLugar}, ${nombreCiudad}`;
-          } else if (nombreCiudad) {
-            nuevaUbicacion = nombreCiudad;
-          }
-
-          if (nuevaUbicacion) {
-            setUbicacionUsuario(nuevaUbicacion);
-            localStorage.setItem("ultimaDireccion", nuevaUbicacion);
-          }
-        }
-      } catch (error) {
-        console.error("Error obteniendo ubicación:", error);
-      }
-    });
 
     // Activar el control visual de Mapbox en cuanto cargue
     mapaRef.current.on('load', () => {
@@ -538,10 +493,7 @@ const Inicio = () => {
         />
       </div>
 
-      <div className="absolute top-28 left-4 z-10 bg-white/95 dark:bg-card/95 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg inline-flex items-center gap-2 text-sm">
-        <MapPin className="w-4 h-4 text-primary" />
-        <span className="font-medium">{ubicacionUsuario}</span>
-      </div>
+
 
 
       <NavegacionInferior />

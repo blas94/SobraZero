@@ -31,46 +31,15 @@ function getAuthPayload(req) {
   }
 }
 
-function convertirAGeoJSON(latitud, longitud) {
-  if (!Number.isFinite(latitud) || !Number.isFinite(longitud)) return undefined;
-  return { type: "Point", coordinates: [longitud, latitud] };
-}
 
-
-async function construirUbicacion(entrada) {
-  if (entrada && typeof entrada === "object" && ("latitud" in entrada || "longitud" in entrada)) {
-    const lat = Number(entrada.latitud);
-    const lng = Number(entrada.longitud);
-    const direccion = (entrada.direccion || "").toString().trim();
-
-    return {
-      ubicacionTexto: direccion,
-      ubicacionGeo: convertirAGeoJSON(lat, lng),
-    };
-  }
-
-  if (typeof entrada === "string") {
-    const datos = await obtenerCoordenadas(entrada.trim());
-    if (datos) {
-      return {
-        ubicacionTexto: datos.direccion,
-        ubicacionGeo: convertirAGeoJSON(datos.latitud, datos.longitud),
-      };
-    }
-
-    return { ubicacionTexto: entrada.trim(), ubicacionGeo: undefined };
-  }
-
-  return { ubicacionTexto: "", ubicacionGeo: undefined };
-}
 
 
 router.post("/register", async (req, res) => {
   try {
-    const { nombre, email, clave, tel, ubicacion } = req.body || {};
+    const { nombre, email, clave, tel } = req.body || {};
 
-    if (!nombre?.trim() || !email?.trim() || !clave?.trim() || !tel?.trim() || typeof ubicacion === "undefined") {
-      return res.status(400).json({ error: "Completá nombre, email, clave, teléfono y ubicación." });
+    if (!nombre?.trim() || !email?.trim() || !clave?.trim() || !tel?.trim()) {
+      return res.status(400).json({ error: "Completá nombre, email, clave y teléfono." });
     }
 
     const existente = await Usuario.findOne({ email: email.trim() });
@@ -78,15 +47,11 @@ router.post("/register", async (req, res) => {
 
     const claveHash = await bcrypt.hash(clave, 10);
 
-    const { ubicacionTexto, ubicacionGeo } = await construirUbicacion(ubicacion);
-
     const user = await Usuario.create({
       nombre: nombre.trim(),
       email: email.trim(),
       clave: claveHash,
       tel: tel.trim(),
-      ubicacionTexto,
-      ...(ubicacionGeo ? { ubicacionGeo } : {}),
     });
 
     const token = jwt.sign({ uid: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
@@ -106,10 +71,8 @@ router.post("/register", async (req, res) => {
         nombre: user.nombre,
         email: user.email,
         tel: user.tel,
-        ubicacion: user.ubicacionTexto,
         avatar: user.avatar,
         vioTutorial: user.vioTutorial,
-        ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
       },
     });
   } catch (e) {
@@ -149,10 +112,8 @@ router.post("/login", async (req, res) => {
         nombre: user.nombre,
         email: user.email,
         tel: user.tel,
-        ubicacion: user.ubicacionTexto,
         avatar: user.avatar,
         vioTutorial: user.vioTutorial,
-        ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
       },
     });
   } catch (e) {
@@ -166,7 +127,7 @@ router.get("/me", async (req, res) => {
   if (!payload) return res.status(401).json({ error: "No autorizado" });
 
   const user = await Usuario.findById(payload.uid).select(
-    "_id nombre email tel ubicacionTexto ubicacionGeo avatar vioTutorial"
+    "_id nombre email tel avatar vioTutorial"
   );
   if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
 
@@ -175,10 +136,8 @@ router.get("/me", async (req, res) => {
     nombre: user.nombre,
     email: user.email,
     tel: user.tel,
-    ubicacion: user.ubicacionTexto,
     avatar: user.avatar,
     vioTutorial: user.vioTutorial,
-    ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
   });
 });
 
@@ -186,7 +145,7 @@ router.put("/me", async (req, res) => {
   const payload = getAuthPayload(req);
   if (!payload) return res.status(401).json({ error: "No autorizado" });
 
-  const { nombre, tel, ubicacion, avatar } = req.body || {};
+  const { nombre, tel, avatar } = req.body || {};
   const actualizacion = {};
 
   if (typeof nombre === "string" && nombre.trim()) actualizacion.nombre = nombre.trim();
@@ -197,17 +156,12 @@ router.put("/me", async (req, res) => {
   }
 
 
-  if (typeof ubicacion !== "undefined") {
-    const { ubicacionTexto, ubicacionGeo } = await construirUbicacion(ubicacion);
-    actualizacion.ubicacion = ubicacionTexto;
-    actualizacion.ubicacionTexto = ubicacionTexto;
-    actualizacion.ubicacionGeo = ubicacionGeo;
-  }
+
 
   const user = await Usuario.findByIdAndUpdate(
     payload.uid,
     { $set: actualizacion },
-    { new: true, runValidators: true, fields: "_id nombre email tel ubicacionTexto ubicacionGeo avatar vioTutorial" }
+    { new: true, runValidators: true, fields: "_id nombre email tel avatar vioTutorial" }
   );
 
   if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
@@ -217,10 +171,8 @@ router.put("/me", async (req, res) => {
     nombre: user.nombre,
     email: user.email,
     tel: user.tel,
-    ubicacion: user.ubicacionTexto,
     avatar: user.avatar,
     vioTutorial: user.vioTutorial,
-    ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
   });
 });
 
@@ -259,10 +211,8 @@ router.get("/verificar", async (req, res) => {
       nombre: user.nombre,
       email: user.email,
       tel: user.tel,
-      ubicacion: user.ubicacionTexto,
       avatar: user.avatar,
       vioTutorial: user.vioTutorial,
-      ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
     },
   });
 });

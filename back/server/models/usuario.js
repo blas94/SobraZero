@@ -7,22 +7,9 @@ const UserSchema = new mongoose.Schema(
     clave: { type: String, required: true },
     tel: { type: String, trim: true, maxlength: 20 },
 
-    ubicacion: { type: String, trim: true, maxlength: 255 },
     avatar: { type: String }, // Base64 string
 
-    ubicacionTexto: { type: String, default: "" },
     vioTutorial: { type: Boolean, default: false },
-    ubicacionGeo: {
-      type: {
-        type: String,
-        enum: ["Point"],
-        default: undefined,
-      },
-      coordinates: {
-        type: [Number],
-        default: undefined,
-      },
-    },
 
     // Recuperación de contraseña
     resetPasswordToken: { type: String, select: false },
@@ -39,6 +26,6 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
-UserSchema.index({ ubicacionGeo: "2dsphere" });
+
 
 export default mongoose.model("Usuario", UserSchema);

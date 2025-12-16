@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Camera, User, Mail, Phone, MapPin, X } from "lucide-react";
+import { ArrowLeft, Camera, User, Mail, Phone, X } from "lucide-react";
 import {
   Formulario,
   ControlFormulario,
@@ -45,11 +45,6 @@ const esquemaPerfil = z.object({
     .trim()
     .min(1, "El teléfono es requerido")
     .max(20, "Máximo 20 caracteres"),
-  address: z
-    .string()
-    .trim()
-    .min(1, "La dirección es requerida")
-    .max(200, "Máximo 200 caracteres"),
 });
 
 const EditarPerfil = () => {
@@ -64,7 +59,6 @@ const EditarPerfil = () => {
           name: parseado.nombre || parseado.name || "",
           email: parseado.email || "",
           phone: parseado.tel || parseado.phone || "",
-          address: parseado.ubicacion || parseado.address || "",
           avatar: parseado.avatar || null,
         };
       } catch { }
@@ -73,7 +67,6 @@ const EditarPerfil = () => {
       name: "",
       email: "",
       phone: "",
-      address: "",
       avatar: null,
     };
   });
@@ -88,7 +81,6 @@ const EditarPerfil = () => {
       name: usuario.name,
       email: usuario.email,
       phone: usuario.phone,
-      address: usuario.address,
     },
   });
 
@@ -104,7 +96,6 @@ const EditarPerfil = () => {
           name: usuarioBackend.nombre || usuarioBackend.name || "",
           email: usuarioBackend.email || "",
           phone: usuarioBackend.tel || usuarioBackend.phone || "",
-          address: usuarioBackend.ubicacion || usuarioBackend.address || "",
           avatar: usuarioBackend.avatar || null,
         };
 
@@ -154,7 +145,6 @@ const EditarPerfil = () => {
         nombre: data.name,
         // email: data.email, // Email ya no se actualiza por aquí
         tel: data.phone,
-        ubicacion: data.address,
       };
 
       // Solo incluir avatar si hay cambios
@@ -173,7 +163,6 @@ const EditarPerfil = () => {
         name: usuarioBackend.nombre || usuarioBackend.name || data.name,
         email: usuarioBackend.email || data.email,
         phone: usuarioBackend.tel || usuarioBackend.phone || data.phone,
-        address: usuarioBackend.ubicacion || usuarioBackend.address || data.address,
         avatar: usuarioBackend.avatar !== undefined ? usuarioBackend.avatar : null,
       };
       setUsuario(updated);
@@ -365,22 +354,7 @@ const EditarPerfil = () => {
                 )}
               />
 
-              <CampoFormulario
-                control={formulario.control}
-                name="address"
-                render={({ field }) => (
-                  <ItemFormulario>
-                    <EtiquetaFormulario className="flex items-center gap-2 text-sm">
-                      <MapPin className="w-4 h-4 text-muted-foreground" />
-                      Dirección
-                    </EtiquetaFormulario>
-                    <ControlFormulario>
-                      <Entrada {...field} />
-                    </ControlFormulario>
-                    <MensajeFormulario />
-                  </ItemFormulario>
-                )}
-              />
+
 
               <Boton type="submit" className="w-full">
                 Guardar cambios
