@@ -1,16 +1,24 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// Inicialización perezosa para esperar a que dotenv cargue las variables
+let resend = null;
+
+const getResend = () => {
+  if (!resend) {
+    if (!process.env.RESEND_API_KEY) {
+      console.error("❌ RESEND_API_KEY no configurada en .env");
+      throw new Error("RESEND_API_KEY no configurada en el servidor.");
+    }
+    console.log("🔧 Inicializando Resend con API Key...");
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+};
 
 export const enviarCorreo = async (destinatario, asunto, html) => {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("Falta RESEND_API_KEY en .env");
-    throw new Error("RESEND_API_KEY no configurada en el servidor.");
-  }
-
   try {
     console.log(`📤 Intentando enviar correo a: ${destinatario}`);
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: 'SobraZero <onboarding@resend.dev>',
       to: [destinatario],
       subject: asunto,
