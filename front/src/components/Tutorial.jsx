@@ -2,7 +2,10 @@ import React from "react";
 import {
     Dialogo,
     ContenidoDialogo,
+    TituloDialogo,
+    DescripcionDialogo
 } from "@/components/ui/Dialogo";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Boton } from "@/components/ui/Boton";
 import { Check } from "lucide-react";
 import logo from "@/assets/logo.png";
@@ -16,6 +19,11 @@ export function Tutorial({ abierto, paso, alCompletar, alSaltar, textoBoton = "S
                 overlayClassName="bg-black/30"
                 className="sm:max-w-[500px] w-[90vw] max-h-[85vh] p-0 overflow-hidden bg-white/95 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl flex flex-col"
             >
+                <VisuallyHidden>
+                    <TituloDialogo>{paso.titulo}</TituloDialogo>
+                    <DescripcionDialogo>{paso.descripcion}</DescripcionDialogo>
+                </VisuallyHidden>
+
                 <div className="relative w-full flex-1 flex flex-col min-h-0">
                     <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
 

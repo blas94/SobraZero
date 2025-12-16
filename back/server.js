@@ -11,6 +11,7 @@ import pagosRouter from "./server/routes/pagos.js";
 import ofertasRouter from "./server/routes/ofertas.js";
 import comerciosRouter from "./server/routes/comercios.js";
 import reseñasRouter from "./server/routes/reseñas.js";
+import mercadopagoRouter from "./server/routes/mercadopago.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -104,6 +105,7 @@ app.use("/api/pagos", pagosRouter);
 app.use("/api/ofertas", ofertasRouter);
 app.use("/api/comercios", comerciosRouter);
 app.use("/api/resenas", reseñasRouter);
+app.use("/api/mercadopago", mercadopagoRouter);
 
 app.listen(PORT, () => {
   const mpMasked = MP_ACCESS_TOKEN
