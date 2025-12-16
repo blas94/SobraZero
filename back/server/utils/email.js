@@ -1,39 +1,41 @@
-import { Resend } from 'resend';
+import sgMail from '@sendgrid/mail';
 
 // Inicialización perezosa para esperar a que dotenv cargue las variables
-let resend = null;
+let initialized = false;
 
-const getResend = () => {
-  if (!resend) {
-    if (!process.env.RESEND_API_KEY) {
-      console.error("❌ RESEND_API_KEY no configurada en .env");
-      throw new Error("RESEND_API_KEY no configurada en el servidor.");
+const initSendGrid = () => {
+  if (!initialized) {
+    if (!process.env.SENDGRID_API_KEY) {
+      console.error("❌ SENDGRID_API_KEY no configurada en .env");
+      throw new Error("SENDGRID_API_KEY no configurada en el servidor.");
     }
-    console.log("🔧 Inicializando Resend con API Key...");
-    resend = new Resend(process.env.RESEND_API_KEY);
+    console.log("🔧 Inicializando SendGrid con API Key...");
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    initialized = true;
   }
-  return resend;
 };
 
 export const enviarCorreo = async (destinatario, asunto, html) => {
   try {
+    initSendGrid();
+
     console.log(`📤 Intentando enviar correo a: ${destinatario}`);
-    const { data, error } = await getResend().emails.send({
-      from: 'SobraZero <onboarding@resend.dev>',
-      to: [destinatario],
+
+    const msg = {
+      to: destinatario,
+      from: process.env.SENDGRID_FROM_EMAIL || 'noreply@example.com', // Usar el email verificado en SendGrid
       subject: asunto,
       html: html,
-    });
+    };
 
-    if (error) {
-      console.error("❌ Error de Resend:", error);
-      throw new Error(error.message || "Error al enviar email con Resend");
-    }
-
-    console.log("✅ Correo enviado exitosamente:", data.id);
+    await sgMail.send(msg);
+    console.log("✅ Correo enviado exitosamente");
     return true;
   } catch (error) {
     console.error("❌ Error enviando correo:", error.message);
+    if (error.response) {
+      console.error("❌ Detalles del error:", error.response.body);
+    }
     throw new Error(error.message || "Fallo al enviar el correo a través del proveedor.");
   }
 };
