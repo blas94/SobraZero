@@ -108,6 +108,7 @@ router.post("/register", async (req, res) => {
         tel: user.tel,
         ubicacion: user.ubicacionTexto,
         avatar: user.avatar,
+        vioTutorial: user.vioTutorial,
         ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
       },
     });
@@ -150,6 +151,7 @@ router.post("/login", async (req, res) => {
         tel: user.tel,
         ubicacion: user.ubicacionTexto,
         avatar: user.avatar,
+        vioTutorial: user.vioTutorial,
         ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
       },
     });
@@ -164,7 +166,7 @@ router.get("/me", async (req, res) => {
   if (!payload) return res.status(401).json({ error: "No autorizado" });
 
   const user = await Usuario.findById(payload.uid).select(
-    "_id nombre email tel ubicacionTexto ubicacionGeo avatar"
+    "_id nombre email tel ubicacionTexto ubicacionGeo avatar vioTutorial"
   );
   if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
 
@@ -175,6 +177,7 @@ router.get("/me", async (req, res) => {
     tel: user.tel,
     ubicacion: user.ubicacionTexto,
     avatar: user.avatar,
+    vioTutorial: user.vioTutorial,
     ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
   });
 });
@@ -204,7 +207,7 @@ router.put("/me", async (req, res) => {
   const user = await Usuario.findByIdAndUpdate(
     payload.uid,
     { $set: actualizacion },
-    { new: true, runValidators: true, fields: "_id nombre email tel ubicacionTexto ubicacionGeo avatar" }
+    { new: true, runValidators: true, fields: "_id nombre email tel ubicacionTexto ubicacionGeo avatar vioTutorial" }
   );
 
   if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
@@ -216,6 +219,7 @@ router.put("/me", async (req, res) => {
     tel: user.tel,
     ubicacion: user.ubicacionTexto,
     avatar: user.avatar,
+    vioTutorial: user.vioTutorial,
     ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
   });
 });
@@ -244,7 +248,7 @@ router.get("/verificar", async (req, res) => {
   if (!payload) return res.status(401).json({ autenticado: false });
 
   const user = await Usuario.findById(payload.uid).select(
-    "_id nombre email tel ubicacionTexto ubicacionGeo avatar"
+    "_id nombre email tel ubicacionTexto ubicacionGeo avatar vioTutorial"
   );
   if (!user) return res.status(404).json({ autenticado: false });
 
@@ -257,9 +261,28 @@ router.get("/verificar", async (req, res) => {
       tel: user.tel,
       ubicacion: user.ubicacionTexto,
       avatar: user.avatar,
+      vioTutorial: user.vioTutorial,
       ubicacionCoords: user.ubicacionGeo?.coordinates ?? null,
     },
   });
+});
+
+// Actualizar estado de Tutorial (visto)
+router.post("/tutorial", async (req, res) => {
+  const payload = getAuthPayload(req);
+  if (!payload) return res.status(401).json({ error: "No autorizado" });
+  try {
+    const user = await Usuario.findByIdAndUpdate(
+      payload.uid,
+      { vioTutorial: true },
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+    return res.json({ success: true, vioTutorial: user.vioTutorial });
+  } catch (e) {
+    console.error("Error updating tutorial:", e);
+    return res.status(500).json({ error: "Error al actualizar estado" });
+  }
 });
 
 // --- RECUPERACIÓN DE CONTRASEÑA ---

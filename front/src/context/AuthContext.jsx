@@ -20,6 +20,7 @@ export const AuthProvider = ({ children }) => {
             try {
                 // 1. Intentar validar la cookie/token con el backend
                 const { user, token } = await verificarSesion();
+                if (user.vioTutorial === undefined) user.vioTutorial = false;
                 console.log("Sesión verificada:", user);
                 setUsuario(user);
                 // Persistencia local
@@ -46,7 +47,10 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem("token", data.token); // Guardar token para próximas requests
         }
     };
-
+    const updateUser = (user) => {
+        setUsuario(user);
+        localStorage.setItem("user", JSON.stringify(user));
+    };
     const logout = async () => {
         try {
             await cerrarSesion();
@@ -59,7 +63,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ usuario, cargando, login, logout }}>
+        <AuthContext.Provider value={{ usuario, cargando, login, logout, updateUser }}>
             {children}
         </AuthContext.Provider>
     );

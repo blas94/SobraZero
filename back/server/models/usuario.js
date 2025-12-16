@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema(
     avatar: { type: String }, // Base64 string
 
     ubicacionTexto: { type: String, default: "" },
-
+    vioTutorial: { type: Boolean, default: false },
     ubicacionGeo: {
       type: {
         type: String,

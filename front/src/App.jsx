@@ -15,7 +15,7 @@ import {
 import { useEffect } from "react";
 import { ProveedorTema } from "@/hooks/usar-tema";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
-
+import { ControladorTutorial } from "@/components/ControladorTutorial";
 import Inicio from "./pages/Inicio";
 import DetalleComercio from "./pages/DetalleComercio";
 import Pedidos from "./pages/Pedidos";
@@ -106,6 +106,7 @@ const App = () => {
               <InstalarAndroid />
               <InstalarIOS />
               <BrowserRouter>
+                <ControladorTutorial />
                 <ScrollToTop />
                 <Routes>
                   <Route path="/autenticacion" element={<Autenticacion />} />

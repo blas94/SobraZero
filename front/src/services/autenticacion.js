@@ -5,6 +5,11 @@ export async function iniciarSesion(datos) {
   return data;
 }
 
+export async function marcarTutorialVisto() {
+  const { data } = await authHttp.post("/auth/tutorial");
+  return data;
+}
+
 export async function registrarCuenta(datos) {
   const { data } = await authHttp.post("/auth/register", datos);
   return data;
