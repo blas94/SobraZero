@@ -13,10 +13,8 @@ import {
 } from "@/components/ui/Plegable";
 
 const ESTADOS_FILTRO = [
-  { id: "todos", etiqueta: "Todos" },
-  { id: "pendiente", etiqueta: "Pendiente" },
-  { id: "retirado", etiqueta: "Retirado" },
-  { id: "cancelado", etiqueta: "Cancelado" },
+  { id: "en-curso", etiqueta: "En curso" },
+  { id: "historial", etiqueta: "Historial" },
 ];
 
 const normalizarEstado = (valor = "") => {
@@ -33,7 +31,7 @@ const obtenerNombreComercio = (pedido) =>
 const obtenerEtiquetaEstado = (estado) => {
   switch (normalizarEstado(estado)) {
     case "pendiente":
-      return "Pendiente";
+      return "En curso";
     case "cancelado":
       return "Cancelado";
     case "retirado":
@@ -139,7 +137,7 @@ const ItemPedido = ({ pedido, manejarReorden }) => {
 };
 
 const Pedidos = () => {
-  const [filtroEstado, setFiltroEstado] = useState("todos");
+  const [filtroEstado, setFiltroEstado] = useState("en-curso");
   const ultimoValorRef = useRef(localStorage.getItem("pedidos"));
 
   const [pedidos, setPedidos] = useState(() => {
@@ -244,7 +242,7 @@ const Pedidos = () => {
   const obtenerEtiquetaEstado = (estado) => {
     switch (normalizarEstado(estado)) {
       case "pendiente":
-        return "Pendiente";
+        return "En curso";
       case "cancelado":
         return "Cancelado";
       case "retirado":
@@ -295,11 +293,15 @@ const Pedidos = () => {
   };
 
   const pedidosFiltrados =
-    filtroEstado === "todos"
-      ? pedidos
+    filtroEstado === "en-curso"
+      ? pedidos.filter(
+        (pedido) => normalizarEstado(pedido.estado || pedido.status) === "pendiente"
+      )
       : pedidos.filter(
-        (pedido) =>
-          normalizarEstado(pedido.estado || pedido.status) === filtroEstado
+        (pedido) => {
+          const estado = normalizarEstado(pedido.estado || pedido.status);
+          return estado === "retirado" || estado === "cancelado";
+        }
       );
 
   return (

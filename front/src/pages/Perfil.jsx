@@ -214,10 +214,10 @@ const Perfil = () => {
         <Boton
           variant="outline"
           size="lg"
-          className="w-full bg-background text-destructive border-destructive/30 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
+          className="w-full group bg-background text-red-600 dark:text-red-500 border-red-500/50 hover:bg-red-600 hover:!text-white hover:border-red-600"
           onClick={() => setMostrarDialogoSalir(true)}
         >
-          <LogOut className="w-5 h-5 mr-2" />
+          <LogOut className="w-5 h-5 mr-2 group-hover:text-white" />
           Cerrar sesión
         </Boton>
       </main>

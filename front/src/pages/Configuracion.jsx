@@ -66,7 +66,7 @@ const Configuracion = () => {
 
     try {
       const resp = await fetch(
-        `${API_URL}/api/mp/connect?usuarioId=${userId}`,
+        `${API_URL}/mp/connect?usuarioId=${userId}`,
         {
           credentials: "include",
         }
@@ -162,16 +162,17 @@ const Configuracion = () => {
         </Tarjeta>
 
         <Tarjeta className="p-4 border-destructive/50">
-          <h2 className="font-semibold mb-4 flex items-center gap-2 text-destructive">
+          <h2 className="font-semibold mb-4 flex items-center gap-2 text-red-600 dark:text-red-500">
             <Trash2 className="w-5 h-5" />
             Zona de peligro
           </h2>
           <Boton
             variant="outline"
-            className="w-full bg-background text-destructive border-destructive/30 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
+            className="w-full group bg-background text-red-600 dark:text-red-500 border-red-500/50 hover:bg-red-600 hover:!text-white hover:border-red-600"
             type="button"
             onClick={() => setMostrarDialogoEliminar(true)}
           >
+            <Trash2 className="w-5 h-5 mr-2 group-hover:text-white" />
             Eliminar cuenta
           </Boton>
           <p className="text-xs text-muted-foreground text-center mt-2">
