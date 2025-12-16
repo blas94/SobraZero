@@ -547,7 +547,7 @@ const ContenidoComercio = ({
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
             <span className="font-medium">{comercio.calificacion}</span>
             <span className="text-sm text-muted-foreground">
-              ({comercio.totalResenas} reseñas)
+              ({comercio.totalReseñas} reseñas)
             </span>
           </div>
 
@@ -734,13 +734,13 @@ const ContenidoComercio = ({
 
               <div className="mb-3">
                 <Etiqueta
-                  htmlFor="comentario-resena"
+                  htmlFor="comentario-reseña"
                   className="mb-2 block text-sm"
                 >
                   Comentario
                 </Etiqueta>
                 <AreaTexto
-                  id="comentario-resena"
+                  id="comentario-reseña"
                   placeholder="Contanos tu experiencia..."
                   value={nuevaReseñaComentario}
                   onChange={(e) => setNuevaReseñaComentario(e.target.value)}

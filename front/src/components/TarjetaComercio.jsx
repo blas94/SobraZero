@@ -7,7 +7,7 @@ const TarjetaComercio = ({
   categoria,
   distancia,
   calificacion,
-  totalResenas,
+  totalReseñas,
   descuento,
   horarioRetiro,
   disponibles,
@@ -77,7 +77,7 @@ const TarjetaComercio = ({
             </span>
             <span className="flex items-center gap-1">
               <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-              {calificacion} ({totalResenas})
+              {calificacion} ({totalReseñas})
             </span>
             <span className="flex items-center gap-1">
               <Clock className="w-3 h-3" />

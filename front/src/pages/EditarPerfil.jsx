@@ -282,7 +282,7 @@ const EditarPerfil = () => {
                   Hacé clic en el ícono para cambiar la foto
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  (Se recomienda subir una imagen cuadrada de mismo ancho y alto)
+                  (Se recomienda subir una imagen cuadrada de mismo ancho por alto)
                 </p>
               </div>
 
