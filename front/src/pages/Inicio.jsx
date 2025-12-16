@@ -12,6 +12,7 @@ import {
 import { Entrada } from "@/components/ui/Entrada";
 import { Boton } from "@/components/ui/Boton";
 import { Insignia } from "@/components/ui/Insignia";
+import { toast } from "sonner";
 import {
   Hoja,
   ContenidoHoja,
@@ -49,6 +50,7 @@ const Inicio = () => {
   const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
   const [comercioSeleccionado, setComercioSeleccionado] = useState(null);
   const [mostrarPermisoUbicacion, setMostrarPermisoUbicacion] = useState(false);
+  const [debeCentrarMapa, setDebeCentrarMapa] = useState(false);
   const [tokenMapbox] = useState(
     "pk.eyJ1IjoidG9tYXNtaXNyYWhpIiwiYSI6ImNtaDJwZDkwaDJ1eW0yd3B5eDZ6b3Y1djMifQ.44qXpnbdv09ro4NME7QxJQ"
   );
@@ -122,7 +124,7 @@ const Inicio = () => {
       .filter((palabra) => palabra.length > 0);
     const coincideBusqueda =
       palabrasBusqueda.length === 0 ||
-      palabrasBusqueda.some((palabra) => nombreNormalizado.includes(palabra));
+      palabrasBusqueda.every((palabra) => nombreNormalizado.includes(palabra));
 
     return coincideCategoria && coincideBusqueda;
   });
@@ -139,7 +141,7 @@ const Inicio = () => {
       .filter((palabra) => palabra.length > 0);
     const coincideBusqueda =
       palabrasBusqueda.length === 0 ||
-      palabrasBusqueda.some((palabra) => nombreNormalizado.includes(palabra));
+      palabrasBusqueda.every((palabra) => nombreNormalizado.includes(palabra));
 
     return coincideCategoria && coincideBusqueda;
   });
@@ -289,7 +291,6 @@ const Inicio = () => {
   }, [tokenMapbox]);
 
   // Efecto para ajustar el mapa a los comercios filtrados
-  // Efecto para ajustar el mapa a los comercios filtrados
   useEffect(() => {
     // Evitar que el mapa se centre automáticamente en el primer render,
     // para respetar la geolocalización del usuario o la posición guardada
@@ -298,12 +299,20 @@ const Inicio = () => {
       return;
     }
 
-    if (
-      !mapaRef.current ||
-      !mapaRef.current.loaded() ||
-      comerciosMapaFiltrados.length === 0
-    )
+    // Solo centrar si se activó explícitamente
+    if (!debeCentrarMapa) return;
+
+    if (!mapaRef.current || !mapaRef.current.loaded()) {
+      setDebeCentrarMapa(false);
       return;
+    }
+
+    // Si no hay comercios filtrados, mostrar notificación
+    if (comerciosMapaFiltrados.length === 0) {
+      toast.info("No se encontraron comercios");
+      setDebeCentrarMapa(false);
+      return;
+    }
 
     const bounds = new mapboxgl.LngLatBounds();
 
@@ -311,7 +320,7 @@ const Inicio = () => {
       bounds.extend([comercio.longitud, comercio.latitud]);
     });
 
-    // Solo ajustar si el bounds no está vacío (paranoia check)
+    // Solo ajustar si el bounds no está vacío
     if (!bounds.isEmpty()) {
       mapaRef.current.fitBounds(bounds, {
         padding: 50,
@@ -320,7 +329,10 @@ const Inicio = () => {
       });
     }
 
-  }, [comerciosMapaFiltrados, busquedaMapa, categoriaSeleccionada]);
+    // Resetear la bandera
+    setDebeCentrarMapa(false);
+
+  }, [debeCentrarMapa, comerciosMapaFiltrados]);
 
   useEffect(() => {
     // Función para limpiar todos los marcadores actuales
@@ -476,6 +488,7 @@ const Inicio = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 setBusquedaMapa(busquedaTexto);
+                setDebeCentrarMapa(true);
                 e.currentTarget.blur();
               }
             }}
@@ -520,6 +533,7 @@ const Inicio = () => {
             setCategoriaSeleccionada(categoria);
             setBusquedaTexto("");
             setBusquedaMapa("");
+            setDebeCentrarMapa(true);
           }}
         />
       </div>
