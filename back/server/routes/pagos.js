@@ -6,25 +6,37 @@ import Reserva from "../models/reserva.js";
 const router = express.Router();
 
 const normalizarURL = (url = "") => String(url || "").replace(/\/+$/, "");
-const accessToken = process.env.MP_ACCESS_TOKEN;
 
-if (!accessToken) {
-  console.warn("[Pagos] MP_ACCESS_TOKEN no definido en .env");
-}
+// Config MP
+const accessToken = process.env.MP_ACCESS_TOKEN;
+if (!accessToken) console.warn("[Pagos] MP_ACCESS_TOKEN no definido en .env");
 
 const mp = new MercadoPagoConfig({ accessToken });
 
-const esTokenTest = () => {
-  const t = String(process.env.MP_ACCESS_TOKEN || "");
-  return t.startsWith("TEST-");
+// Modo explícito (opcional)
+// En Render podés setear:
+// MP_MODE=prod   o   MP_MODE=sandbox
+const MP_MODE = String(process.env.MP_MODE || "").toLowerCase().trim();
+
+// Heurística si NO seteás MP_MODE:
+const esTokenTest = () => String(process.env.MP_ACCESS_TOKEN || "").startsWith("TEST-");
+
+// Definir sandbox/prod de forma robusta:
+const esSandbox = () => {
+  if (MP_MODE === "sandbox") return true;
+  if (MP_MODE === "prod" || MP_MODE === "production") return false;
+  // fallback:
+  return esTokenTest();
 };
 
 router.get("/version", (_req, res) => {
   return res.json({
     ok: true,
-    version: "pagos-router-v4-webhook-sandbox-first",
+    version: "pagos-router-v5-checkout_url",
     date: "2025-12-17",
-    token: esTokenTest() ? "TEST" : "PROD/UNKNOWN",
+    mode: esSandbox() ? "sandbox" : "prod",
+    token_hint: esTokenTest() ? "TEST-" : "APP_USR-/OTHER",
+    mp_mode_env: MP_MODE || "(no definido)",
   });
 });
 
@@ -55,9 +67,7 @@ router.post("/crear-preferencia", async (req, res) => {
       });
     }
 
-    const backUrl = `${clientUrl}/pagos/estado?reserva=${encodeURIComponent(
-      String(reservaId)
-    )}`;
+    const backUrl = `${clientUrl}/pagos/estado?reserva=${encodeURIComponent(String(reservaId))}`;
 
     const body = {
       items: [
@@ -80,18 +90,18 @@ router.post("/crear-preferencia", async (req, res) => {
       },
 
       auto_return: "approved",
-
       notification_url: `${serverPublicUrl}/api/pagos/webhook`,
     };
 
     const pref = await new Preference(mp).create({ body });
 
-    const initPointFinal =
-      esTokenTest() && pref?.sandbox_init_point
-        ? pref.sandbox_init_point
-        : pref.init_point;
+    const sandbox = esSandbox();
 
-    if (!initPointFinal) {
+    // URL final única (esto evita que el FRONT “elija mal”)
+    const checkout_url =
+      sandbox && pref?.sandbox_init_point ? pref.sandbox_init_point : pref?.init_point;
+
+    if (!checkout_url) {
       return res.status(500).json({
         ok: false,
         message: "Mercado Pago no devolvió init_point",
@@ -101,9 +111,13 @@ router.post("/crear-preferencia", async (req, res) => {
     return res.json({
       ok: true,
       preference_id: pref.id,
-      init_point: initPointFinal,
-      sandbox_init_point: pref.sandbox_init_point,
-      mode: esTokenTest() ? "sandbox" : "prod",
+
+      checkout_url,
+
+      init_point: pref?.init_point,
+      sandbox_init_point: pref?.sandbox_init_point,
+
+      mode: sandbox ? "sandbox" : "prod",
     });
   } catch (e) {
     const status = e?.status ?? e?.response?.status;
@@ -199,10 +213,7 @@ router.post("/webhook", async (req, res) => {
         );
 
         if (updated) {
-          console.log(
-            "[MP WEBHOOK] Reserva marcada pagada:",
-            updated._id.toString()
-          );
+          console.log("[MP WEBHOOK] Reserva marcada pagada:", updated._id.toString());
         } else {
           console.warn("[MP WEBHOOK] No encontré reserva:", reservaId);
         }

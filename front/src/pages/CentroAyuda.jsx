@@ -241,7 +241,7 @@ const CentroAyuda = () => {
                 className="mt-1 min-h-[100px]"
               />
               {errorComentario && (
-                <p className="text-sm text-destructive mt-1">
+                <p className="text-sm text-red-600 dark:text-red-500 mt-1">
                   {errorComentario}
                 </p>
               )}

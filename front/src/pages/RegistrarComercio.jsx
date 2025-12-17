@@ -127,7 +127,7 @@ const RegistrarComercio = () => {
                 {...register("nombreComercio")}
               />
               {errors.nombreComercio && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm text-red-600 dark:text-red-500">
                   {errors.nombreComercio.message}
                 </p>
               )}
@@ -155,7 +155,7 @@ const RegistrarComercio = () => {
                 ))}
               </div>
               {errors.tipoComercio && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm text-red-600 dark:text-red-500">
                   {errors.tipoComercio.message}
                 </p>
               )}
@@ -169,7 +169,7 @@ const RegistrarComercio = () => {
                 alSeleccionarLugar={(direccion) => {
                   setValue("direccion", direccion, { shouldValidate: true });
                 }}
-                placeholder="Ej: Av. Corrientes 1234, CABA"
+                placeholder="Ej: Av. Corrientes 1234"
                 ariaLabel="Dirección exacta del comercio"
                 error={errors.direccion?.message}
               />
@@ -178,7 +178,7 @@ const RegistrarComercio = () => {
                 Argentina
               </p>
               {errors.direccion && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm text-red-600 dark:text-red-500">
                   {errors.direccion.message}
                 </p>
               )}
@@ -194,7 +194,7 @@ const RegistrarComercio = () => {
                 {...register("telefono")}
               />
               {errors.telefono && (
-                <p className="text-sm text-destructive">
+                <p className="text-sm text-red-600 dark:text-red-500">
                   {errors.telefono.message}
                 </p>
               )}
@@ -220,7 +220,7 @@ const RegistrarComercio = () => {
                   </label>
                 </div>
                 {errors.registroLocalVigente && (
-                  <p className="text-sm text-destructive ml-7">
+                  <p className="text-sm text-red-600 dark:text-red-500 ml-7">
                     {errors.registroLocalVigente.message}
                   </p>
                 )}
@@ -243,7 +243,7 @@ const RegistrarComercio = () => {
                   </label>
                 </div>
                 {errors.localFisico && (
-                  <p className="text-sm text-destructive ml-7">
+                  <p className="text-sm text-red-600 dark:text-red-500 ml-7">
                     {errors.localFisico.message}
                   </p>
                 )}

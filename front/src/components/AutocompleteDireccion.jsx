@@ -154,7 +154,6 @@ const AutocompleteDireccion = ({
     return (
         <div ref={contenedorRef} className="relative">
             <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
                 <Entrada
                     value={valor}
                     onChange={(e) => alCambiar(e.target.value)}
@@ -166,7 +165,7 @@ const AutocompleteDireccion = ({
                     }}
                     placeholder={placeholder}
                     aria-label={ariaLabel}
-                    className={`pl-10 pr-10 ${error ? "border-destructive" : ""}`}
+                    className={`pr-10 ${error ? "border-destructive" : ""}`}
                 />
                 {cargando && (
                     <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground animate-spin" />
@@ -187,7 +186,6 @@ const AutocompleteDireccion = ({
                                 className={`w-full text-left px-4 py-3 hover:bg-muted transition-colors flex items-start gap-3 ${indice === indiceSeleccionado ? "bg-muted" : ""
                                     } ${indice !== sugerencias.length - 1 ? "border-b border-border" : ""}`}
                             >
-                                <MapPin className={`w-4 h-4 mt-0.5 flex-shrink-0 ${sinNumero ? "text-amber-500" : "text-muted-foreground"}`} />
                                 <div className="flex-1 min-w-0">
                                     <p className={`text-sm font-medium truncate ${sinNumero ? "text-amber-600 dark:text-amber-500" : ""}`}>
                                         {sugerencia.text}
@@ -197,7 +195,7 @@ const AutocompleteDireccion = ({
                                     </p>
                                     {sinNumero && (
                                         <p className="text-xs text-amber-600 dark:text-amber-500 mt-1">
-                                            ⚠️ Esta dirección no incluye número de calle
+                                            Esta dirección no incluye número de calle
                                         </p>
                                     )}
                                 </div>

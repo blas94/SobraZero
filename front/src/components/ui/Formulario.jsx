@@ -58,7 +58,7 @@ const EtiquetaFormulario = React.forwardRef(({ className, ...props }, ref) => {
     return (
         <Etiqueta
             ref={ref}
-            className={cn(error && "text-destructive", className)}
+            className={cn(error && "text-red-600 dark:text-red-500", className)}
             htmlFor={formItemId}
             {...props}
         />
@@ -112,7 +112,7 @@ const MensajeFormulario = React.forwardRef(({ className, children, ...props }, r
         <p
             ref={ref}
             id={formMessageId}
-            className={cn("text-sm font-medium text-destructive", className)}
+            className={cn("text-sm font-medium text-red-600 dark:text-red-500", className)}
             {...props}
         >
             {body}

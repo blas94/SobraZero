@@ -5,28 +5,22 @@ import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
+
 import reservasRouter from "./server/routes/reservas.js";
 import authRouter from "./server/routes/auth.js";
 import pagosRouter from "./server/routes/pagos.js";
 import ofertasRouter from "./server/routes/ofertas.js";
 import comerciosRouter from "./server/routes/comercios.js";
 import reseñasRouter from "./server/routes/reseñas.js";
-import mercadopagoRouter from "./server/routes/mercado-pago.js";
+import mercadopagoRouter from "./server/routes/mercadopago.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 
 const app = express();
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
-
-app.use((req, res, next) => {
-  if (req.method === "POST" || req.method === "PUT") {
-  }
-  next();
-});
 
 const {
   URI_DB,
@@ -36,13 +30,14 @@ const {
   MP_ACCESS_TOKEN,
 } = process.env;
 
-const normalizarURL = (url = "") => url.replace(/\/+$/, "");
+const normalizarURL = (url = "") => String(url || "").replace(/\/+$/, "");
 
 let origenesPermitidos = [CLIENT_URL];
 
 if (NODE_ENV !== "production") {
   origenesPermitidos.push("http://localhost:8080");
 }
+
 origenesPermitidos = origenesPermitidos.filter(Boolean).map(normalizarURL);
 
 app.use(
@@ -66,7 +61,7 @@ app.use(
 app.use(cookieParser());
 
 app.use((err, req, res, next) => {
-  if (err.type === "entity.too.large") {
+  if (err?.type === "entity.too.large") {
     return res.status(413).json({
       message: "La imagen es demasiado pesada (Límite del servidor excedido)",
     });
@@ -95,6 +90,7 @@ app.get("/", (_req, res) => {
       <li>/api/ofertas</li>
       <li>/api/comercios</li>
       <li>/api/resenas</li>
+      <li>/api/mercadopago</li>
     </ul>
   `);
 });

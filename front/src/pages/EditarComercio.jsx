@@ -577,7 +577,7 @@ const EditarComercio = () => {
                             className="h-8"
                           />
                           {erroresProductos[producto.id]?.name && (
-                            <p className="text-xs text-destructive mt-1">
+                            <p className="text-xs text-red-600 dark:text-red-500 mt-1">
                               {erroresProductos[producto.id].name}
                             </p>
                           )}
@@ -600,7 +600,7 @@ const EditarComercio = () => {
                               className="h-8"
                             />
                             {erroresProductos[producto.id]?.stock && (
-                              <p className="text-xs text-destructive mt-1">
+                              <p className="text-xs text-red-600 dark:text-red-500 mt-1">
                                 {erroresProductos[producto.id].stock}
                               </p>
                             )}
@@ -651,7 +651,7 @@ const EditarComercio = () => {
                               className="h-8"
                             />
                             {erroresProductos[producto.id]?.originalPrice && (
-                              <p className="text-xs text-destructive mt-1">
+                              <p className="text-xs text-red-600 dark:text-red-500 mt-1">
                                 {erroresProductos[producto.id].originalPrice}
                               </p>
                             )}
@@ -678,7 +678,7 @@ const EditarComercio = () => {
                               Este es el precio que se cobrara al publico
                             </p>
                             {erroresProductos[producto.id]?.discountedPrice && (
-                              <p className="text-xs text-destructive mt-1">
+                              <p className="text-xs text-red-600 dark:text-red-500 mt-1">
                                 {erroresProductos[producto.id].discountedPrice}
                               </p>
                             )}

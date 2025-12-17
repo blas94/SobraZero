@@ -62,8 +62,7 @@ const ContenidoComercio = ({
 
     if (estadoGuardado) {
       const listaEstado = safeParse(estadoGuardado, []);
-      const comercioPersistido =
-        listaEstado.find((s) => s.id === idComercio) || null;
+      const comercioPersistido = listaEstado.find((s) => s.id === idComercio) || null;
 
       if (comercioPersistido) {
         return {
@@ -82,14 +81,12 @@ const ContenidoComercio = ({
     };
   });
 
-  // Re-hidratar comercio al cambiar idComercio/comercios
   useEffect(() => {
     const estadoGuardado = localStorage.getItem(ESTADO_COMERCIOS_KEY);
 
     if (estadoGuardado) {
       const listaEstado = safeParse(estadoGuardado, []);
-      const comercioPersistido =
-        listaEstado.find((s) => s.id === idComercio) || null;
+      const comercioPersistido = listaEstado.find((s) => s.id === idComercio) || null;
 
       if (comercioPersistido) {
         setComercio({
@@ -114,7 +111,6 @@ const ContenidoComercio = ({
     setProductosSeleccionados({});
   }, [idComercio, comercios]);
 
-  // Cargar oferta del comercio
   useEffect(() => {
     const cargarOferta = async () => {
       if (!idComercio) return;
@@ -133,7 +129,6 @@ const ContenidoComercio = ({
     cargarOferta();
   }, [idComercio]);
 
-  // Cargar reseñas
   useEffect(() => {
     const cargarReseñas = async () => {
       if (!idComercio) return;
@@ -149,7 +144,6 @@ const ContenidoComercio = ({
     cargarReseñas();
   }, [idComercio]);
 
-  // Verificar permisos para reseñar
   useEffect(() => {
     const verificarPermisos = async () => {
       if (!idComercio) return;
@@ -170,7 +164,7 @@ const ContenidoComercio = ({
             calificacion: reseñaExistente.calificacion,
             comentario: reseñaExistente.comentario,
           });
-          setPuedeReseñar(true); // para permitir editar
+          setPuedeReseñar(true);
         }
       } catch (error) {
         console.error("Error verificando permisos:", error);
@@ -188,10 +182,7 @@ const ContenidoComercio = ({
     if (!producto) return;
 
     const cantidadActual = productosSeleccionados[productoId] || 0;
-    const nuevaCantidad = Math.max(
-      0,
-      Math.min(producto.stock, cantidadActual + delta)
-    );
+    const nuevaCantidad = Math.max(0, Math.min(producto.stock, cantidadActual + delta));
 
     setProductosSeleccionados((prev) => {
       if (nuevaCantidad === 0) {
@@ -204,20 +195,14 @@ const ContenidoComercio = ({
 
   const calcularTotal = () => {
     if (!comercio) return 0;
-    return Object.entries(productosSeleccionados).reduce(
-      (total, [productoId, cantidad]) => {
-        const producto = comercio.productos.find((p) => p.id === productoId);
-        return total + (producto ? producto.precioDescuento * cantidad : 0);
-      },
-      0
-    );
+    return Object.entries(productosSeleccionados).reduce((total, [productoId, cantidad]) => {
+      const producto = comercio.productos.find((p) => p.id === productoId);
+      return total + (producto ? producto.precioDescuento * cantidad : 0);
+    }, 0);
   };
 
   const obtenerTotalItems = () =>
-    Object.values(productosSeleccionados).reduce(
-      (suma, cantidad) => suma + cantidad,
-      0
-    );
+    Object.values(productosSeleccionados).reduce((suma, cantidad) => suma + cantidad, 0);
 
   const manejarReserva = async () => {
     if (!comercio) return;
@@ -236,9 +221,7 @@ const ContenidoComercio = ({
     }
 
     if (!ofertaId) {
-      toast.error(
-        "No se pudo obtener la oferta de este comercio. Intentá recargar la página."
-      );
+      toast.error("No se pudo obtener la oferta de este comercio. Intentá recargar la página.");
       return;
     }
 
@@ -259,7 +242,7 @@ const ContenidoComercio = ({
         return;
       }
 
-      // 1) Crear reserva(s) en backend
+      // 1) Crear reserva(s)
       let reservaIdReal = null;
 
       for (const [productoId, cant] of Object.entries(seleccionSnapshot)) {
@@ -313,10 +296,7 @@ const ContenidoComercio = ({
             : s
         );
 
-        localStorage.setItem(
-          ESTADO_COMERCIOS_KEY,
-          JSON.stringify(comerciosActualizados)
-        );
+        localStorage.setItem(ESTADO_COMERCIOS_KEY, JSON.stringify(comerciosActualizados));
 
         return comercioActualizado;
       });
@@ -326,31 +306,26 @@ const ContenidoComercio = ({
       // Limpio selección antes de ir a MP
       setProductosSeleccionados({});
 
-      // 3) Crear preferencia MP y redirigir (prioridad: sandbox)
+      // 3) Crear preferencia y redirigir (✅ ya NO forzamos sandbox acá)
       const pref = await crearPreferencia({
         reservaId: reservaIdReal,
         usuarioId,
         precio_total: total,
       });
 
-      const initPoint =
-        pref?.sandbox_init_point ||
-        pref?.sandboxInitPoint ||
-        pref?.sandbox_initpoint || // por si alguien lo devuelve distinto
-        pref?.init_point ||
-        pref?.initPoint;
+      console.log("PREF BACK:", pref);
 
-      if (!initPoint) {
-        toast.error("No se pudo iniciar el pago");
+      const checkoutUrl = pref?.checkout_url;
+
+      if (!checkoutUrl) {
+        toast.error("No se pudo iniciar el pago (checkout_url vacío)");
         return;
       }
 
-      window.location.href = initPoint;
+      window.location.href = checkoutUrl;
     } catch (error) {
       console.error("Error al reservar:", error);
-      toast.error(
-        error?.response?.data?.message || "Error al crear la reserva o el pago"
-      );
+      toast.error(error?.response?.data?.message || "Error al crear la reserva o el pago");
     }
   };
 
@@ -380,9 +355,7 @@ const ContenidoComercio = ({
 
         toast.success("Reseña actualizada con éxito");
 
-        setReseñas(
-          reseñas.map((r) => (r.id === editandoReseñaId ? resultado.reseña : r))
-        );
+        setReseñas(reseñas.map((r) => (r.id === editandoReseñaId ? resultado.reseña : r)));
 
         setEditandoReseñaId(null);
         setPuedeReseñar(false);
@@ -458,13 +431,10 @@ const ContenidoComercio = ({
 
       <div className="px-4">
         <Tarjeta className="p-4 mb-4 shadow-card-hover -mt-24 relative z-10">
-          {/* OJO: tu clase tenía "justify_between" => la correcta es "justify-between" */}
           <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex-1">
               <h2 className="text-xl font-bold mb-1">{comercio.nombre}</h2>
-              <p className="text-sm text-muted-foreground capitalize">
-                {comercio.categoria}
-              </p>
+              <p className="text-sm text-muted-foreground capitalize">{comercio.categoria}</p>
             </div>
             <button
               onClick={manejarFavorito}
@@ -478,9 +448,7 @@ const ContenidoComercio = ({
           <div className="flex items-center gap-2 mb-3">
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
             <span className="font-medium">{comercio.calificacion}</span>
-            <span className="text-sm text-muted-foreground">
-              ({comercio.totalResenas} reseñas)
-            </span>
+            <span className="text-sm text-muted-foreground">({comercio.totalResenas} reseñas)</span>
           </div>
 
           <div className="space-y-2 text-sm">

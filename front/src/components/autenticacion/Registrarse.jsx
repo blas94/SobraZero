@@ -89,7 +89,7 @@ const Registrarse = ({ onCambiarPestana }) => {
                                 <EtiquetaFormulario>Nombre completo</EtiquetaFormulario>
                                 <ControlFormulario>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Entrada
                                             placeholder="Juan Pérez"
                                             className="pl-9"
@@ -110,7 +110,7 @@ const Registrarse = ({ onCambiarPestana }) => {
                                 <EtiquetaFormulario>Email</EtiquetaFormulario>
                                 <ControlFormulario>
                                     <div className="relative">
-                                        <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Entrada
                                             placeholder="tu@email.com"
                                             className="pl-9"
@@ -131,7 +131,7 @@ const Registrarse = ({ onCambiarPestana }) => {
                                 <EtiquetaFormulario>Teléfono</EtiquetaFormulario>
                                 <ControlFormulario>
                                     <div className="relative">
-                                        <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Entrada
                                             placeholder="11 1234 5678"
                                             className="pl-9"
@@ -154,7 +154,7 @@ const Registrarse = ({ onCambiarPestana }) => {
                                 <EtiquetaFormulario>Contraseña</EtiquetaFormulario>
                                 <ControlFormulario>
                                     <div className="relative">
-                                        <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Entrada
                                             type="password"
                                             placeholder="••••••"
@@ -176,7 +176,7 @@ const Registrarse = ({ onCambiarPestana }) => {
                                 <EtiquetaFormulario>Confirmar contraseña</EtiquetaFormulario>
                                 <ControlFormulario>
                                     <div className="relative">
-                                        <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Entrada
                                             type="password"
                                             placeholder="••••••"
