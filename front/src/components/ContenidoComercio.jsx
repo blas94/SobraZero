@@ -8,7 +8,6 @@ import { Etiqueta } from "@/components/ui/Etiqueta";
 import SeccionReseñas from "@/components/SeccionResenas";
 import { toast } from "sonner";
 import { crearReserva } from "@/services/reservas";
-import { obtenerOfertaPorComercio } from "@/services/ofertas";
 import {
   obtenerReseñas,
   verificarPuedeReseñar,
@@ -54,8 +53,7 @@ const ContenidoComercio = ({
     return arr.includes(idComercio);
   });
 
-  const [ofertaId, setOfertaId] = useState(null);
-  const [cargandoOferta, setCargandoOferta] = useState(false);
+
 
   const [comercio, setComercio] = useState(() => {
     const estadoGuardado = localStorage.getItem(ESTADO_COMERCIOS_KEY);
@@ -111,23 +109,7 @@ const ContenidoComercio = ({
     setProductosSeleccionados({});
   }, [idComercio, comercios]);
 
-  useEffect(() => {
-    const cargarOferta = async () => {
-      if (!idComercio) return;
 
-      setCargandoOferta(true);
-      try {
-        const oferta = await obtenerOfertaPorComercio(idComercio);
-        if (oferta && oferta._id) setOfertaId(oferta._id);
-      } catch (error) {
-        console.error("Error cargando oferta:", error);
-      } finally {
-        setCargandoOferta(false);
-      }
-    };
-
-    cargarOferta();
-  }, [idComercio]);
 
   useEffect(() => {
     const cargarReseñas = async () => {
@@ -215,15 +197,7 @@ const ContenidoComercio = ({
       return;
     }
 
-    if (cargandoOferta) {
-      toast.error("Cargando oferta... intentá de nuevo en unos segundos");
-      return;
-    }
 
-    if (!ofertaId) {
-      toast.error("No se pudo obtener la oferta de este comercio. Intentá recargar la página.");
-      return;
-    }
 
     const seleccionSnapshot = { ...productosSeleccionados };
 
@@ -254,7 +228,7 @@ const ContenidoComercio = ({
 
         const resReserva = await crearReserva({
           usuarioId,
-          ofertaId,
+          comercioId: idComercio,
           productoNombre: producto.nombre,
           cantidad,
         });
@@ -585,11 +559,9 @@ const ContenidoComercio = ({
                 className="w-full"
                 size="lg"
                 onClick={manejarReserva}
-                disabled={cargandoOferta}
+
               >
-                {cargandoOferta
-                  ? "Cargando..."
-                  : `Reservar por $${calcularTotal().toLocaleString()}`}
+                Reservar por ${calcularTotal().toLocaleString()}
               </Boton>
             </>
           ) : (
@@ -619,8 +591,8 @@ const ContenidoComercio = ({
                       type="button"
                       onClick={() => setNuevaReseñaCalificacion(estrella)}
                       className={`text-2xl transition-colors ${estrella <= nuevaReseñaCalificacion
-                          ? "text-yellow-400"
-                          : "text-gray-300 dark:text-gray-600"
+                        ? "text-yellow-400"
+                        : "text-gray-300 dark:text-gray-600"
                         }`}
                     >
                       ★

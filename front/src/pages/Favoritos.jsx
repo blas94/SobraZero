@@ -5,7 +5,6 @@ import NavegacionInferior from "@/components/NavegacionInferior";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { comercios as comerciosMock } from "@/data/datos-comercios";
 
 import {
   DialogoAlerta,
@@ -26,14 +25,34 @@ const Favoritos = () => {
   const [mostrarAlerta, setMostrarAlerta] = useState(false);
   const [comercioAEliminar, setComercioAEliminar] = useState(null);
 
-  const cargarFavoritos = () => {
+  const cargarFavoritos = async () => {
     const favoritos = localStorage.getItem("favoritos");
     if (!favoritos) return;
+
     const idsFavoritos = JSON.parse(favoritos);
-    const comercios = comerciosMock.filter((comercio) =>
-      idsFavoritos.includes(comercio.id)
-    );
-    setComerciosFavoritos(comercios);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/comercios`);
+      if (!response.ok) throw new Error("Error al cargar comercios");
+
+      const data = await response.json();
+
+      // Transformar y filtrar favoritos
+      const comercios = data
+        .filter((c) => idsFavoritos.includes(c._id))
+        .map((c) => ({
+          ...c,
+          id: c._id,
+          categoria: c.rubro,
+          latitud: c.coordenadas.lat,
+          longitud: c.coordenadas.lng,
+          calificacion: c.calificacionPromedio,
+        }));
+
+      setComerciosFavoritos(comercios);
+    } catch (error) {
+      console.error("Error cargando favoritos:", error);
+    }
   };
 
   useEffect(() => {

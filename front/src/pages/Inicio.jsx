@@ -31,9 +31,6 @@ import FiltrosComercio from "@/components/FiltrosComercio";
 import ContenidoComercio from "@/components/ContenidoComercio";
 import NavegacionInferior from "@/components/NavegacionInferior";
 import { PermisoUbicacion } from "@/components/ui/PermisoUbicacion";
-import {
-  comercios as comerciosMock,
-} from "@/data/datos-comercios";
 import { categorias } from "@/data/categorias-comercios";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -58,7 +55,8 @@ const Inicio = () => {
   const [tokenMapbox] = useState(
     "pk.eyJ1IjoidG9tYXNtaXNyYWhpIiwiYSI6ImNtaDJwZDkwaDJ1eW0yd3B5eDZ6b3Y1djMifQ.44qXpnbdv09ro4NME7QxJQ"
   );
-  const [comerciosLocales, setComerciosLocales] = useState(comerciosMock);
+  const [comerciosLocales, setComerciosLocales] = useState([]);
+  const [cargandoComercios, setCargandoComercios] = useState(true);
   const [notificaciones, setNotificaciones] = useState([
     {
       id: "1",
@@ -168,6 +166,41 @@ const Inicio = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Cargar comercios desde la API
+  useEffect(() => {
+    const cargarComercios = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/comercios`);
+
+        if (!response.ok) {
+          throw new Error("Error al cargar comercios");
+        }
+
+        const data = await response.json();
+
+        // Transformar datos para compatibilidad con UI existente
+        const comerciosTransformados = data.map((c) => ({
+          ...c,
+          id: c._id,
+          categoria: c.rubro,
+          latitud: c.coordenadas.lat,
+          longitud: c.coordenadas.lng,
+          calificacion: c.calificacionPromedio,
+        }));
+
+        setComerciosLocales(comerciosTransformados);
+      } catch (error) {
+        console.error("Error cargando comercios:", error);
+        toast.error("Error al cargar comercios");
+      } finally {
+        setCargandoComercios(false);
+      }
+    };
+
+    cargarComercios();
+  }, []);
+
   const [mapaCentro] = useState(() => {
     const coordsGuardadas = localStorage.getItem("ultimasCoordenadas");
     return coordsGuardadas

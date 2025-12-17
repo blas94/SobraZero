@@ -1,126 +1,121 @@
 import { Router } from "express";
 import Reserva from "../models/reserva.js";
-import Oferta from "../models/oferta.js";
+import Comercio from "../models/comercio.js";
 
 const router = Router();
 
 
 router.post("/", async (req, res) => {
   try {
-    console.log(" Body recibido EN /api/reservas:", req.body);
+    console.log("📦 Body recibido EN /api/reservas:", req.body);
 
     const {
       usuarioId,
-      ofertaId,
+      comercioId,
       productoNombre,
-      producto,
       cantidad,
     } = req.body;
 
-    if (!usuarioId || !ofertaId) {
-      console.log("Falta usuarioId u ofertaId");
+    if (!usuarioId || !comercioId) {
+      console.log("❌ Falta usuarioId o comercioId");
       return res.status(400).json({
-        message: "usuarioId y ofertaId son obligatorios",
+        message: "usuarioId y comercioId son obligatorios",
       });
     }
 
     const cantidadNum = Number(cantidad);
     if (!cantidadNum || cantidadNum <= 0) {
-      console.log("Cantidad inválida:", cantidad);
+      console.log("❌ Cantidad inválida:", cantidad);
       return res.status(400).json({
         message: "La cantidad debe ser un número mayor a 0",
       });
     }
 
-    const nombreBuscado =
-      productoNombre ||
-      producto?.nombre ||
-      producto?.titulo ||
-      producto?.name;
-
-    if (!nombreBuscado) {
-      console.log("No se envió nombre de producto");
+    if (!productoNombre) {
+      console.log("❌ No se envió nombre de producto");
       return res.status(400).json({
-        message:
-          "Falta el nombre del producto. Enviar productoNombre o producto.nombre",
+        message: "Falta el nombre del producto (productoNombre)",
       });
     }
 
-    console.log(" Buscando oferta", ofertaId, "y producto", nombreBuscado);
+    console.log("🔍 Buscando comercio", comercioId, "y producto", productoNombre);
 
-    const oferta = await Oferta.findById(ofertaId);
-    if (!oferta) {
-      console.log("Oferta no encontrada:", ofertaId);
-      return res.status(404).json({ message: "Oferta no encontrada" });
+    const comercio = await Comercio.findById(comercioId);
+    if (!comercio) {
+      console.log("❌ Comercio no encontrado:", comercioId);
+      return res.status(404).json({ message: "Comercio no encontrado" });
     }
 
-    console.log("Oferta encontrada. Productos:", oferta.productos.length);
+    console.log("✅ Comercio encontrado. Productos:", comercio.productos.length);
 
     const normalizar = (txt) =>
       String(txt).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-    const nombreNormalizado = normalizar(nombreBuscado);
+    const nombreNormalizado = normalizar(productoNombre);
 
-    const productoEncontrado = oferta.productos.find(
+    const productoEncontrado = comercio.productos.find(
       (p) => p.nombre && normalizar(p.nombre) === nombreNormalizado
     );
 
     if (!productoEncontrado) {
-      console.log("Producto no encontrado dentro de la oferta");
+      console.log("❌ Producto no encontrado dentro del comercio");
       return res.status(404).json({
-        message: `El producto "${nombreBuscado}" no existe en esta oferta`,
+        message: `El producto "${productoNombre}" no existe en este comercio`,
       });
     }
 
     console.log(
-      ` Producto encontrado: ${productoEncontrado.nombre}. ` +
-        `Stock actual: ${productoEncontrado.unidadesDisponibles}`
+      `✅ Producto encontrado: ${productoEncontrado.nombre}. ` +
+      `Stock actual: ${productoEncontrado.stock}`
     );
 
-    if (productoEncontrado.unidadesDisponibles < cantidadNum) {
+    if (productoEncontrado.stock < cantidadNum) {
       console.log(
-        `Stock insuficiente. Piden ${cantidadNum}, hay ${productoEncontrado.unidadesDisponibles}`
+        `❌ Stock insuficiente. Piden ${cantidadNum}, hay ${productoEncontrado.stock}`
       );
       return res.status(400).json({
-        message: `Stock insuficiente. Solo quedan ${productoEncontrado.unidadesDisponibles}`,
+        message: `Stock insuficiente. Solo quedan ${productoEncontrado.stock}`,
       });
     }
 
-    productoEncontrado.unidadesDisponibles -= cantidadNum;
+    // Actualizar stock del producto
+    productoEncontrado.stock -= cantidadNum;
 
-    if (typeof oferta.unidadesDisponibles === "number") {
-      oferta.unidadesDisponibles -= cantidadNum;
-      if (oferta.unidadesDisponibles < 0) oferta.unidadesDisponibles = 0;
+    // Actualizar disponibles totales del comercio
+    if (typeof comercio.disponibles === "number") {
+      comercio.disponibles -= cantidadNum;
+      if (comercio.disponibles < 0) comercio.disponibles = 0;
     }
 
     console.log(
-      `Nuevo stock producto ${productoEncontrado.nombre}: ${productoEncontrado.unidadesDisponibles}`
+      `📊 Nuevo stock producto ${productoEncontrado.nombre}: ${productoEncontrado.stock}`
     );
     console.log(
-      `Nuevo stock TOTAL oferta: ${oferta.unidadesDisponibles}`
+      `📊 Nuevo stock TOTAL comercio: ${comercio.disponibles}`
     );
 
-    oferta.markModified("productos");
-    await oferta.save();
-    console.log(" Oferta actualizada en MongoDB");
+    comercio.markModified("productos");
+    await comercio.save();
+    console.log("💾 Comercio actualizado en MongoDB");
 
     const nuevaReserva = await Reserva.create({
       usuarioId,
-      ofertaId,
+      comercioId,
+      productoNombre,
       cantidad: cantidadNum,
       estado: "pendiente",
     });
 
-    console.log("Reserva creada:", nuevaReserva._id.toString());
+    console.log("✅ Reserva creada:", nuevaReserva._id.toString());
 
     res.status(201).json({
       ok: true,
       message: "Reserva creada con éxito",
       reserva: nuevaReserva,
-      ofertaActualizada: oferta,
+      comercioActualizado: comercio,
     });
   } catch (error) {
-    console.error("Error al crear reserva:", error);
+    console.error("❌ Error al crear reserva:", error);
     res.status(500).json({ message: "Error interno del servidor" });
   }
 });

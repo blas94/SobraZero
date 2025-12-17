@@ -77,25 +77,43 @@ const RegistrarComercio = () => {
     { id: "restaurante", label: "Restaurante" },
   ];
 
-  const manejarEnvio = (datos) => {
-    const datosComercio = {
-      nombreComercio: datos.nombreComercio,
-      tipoComercio: datos.tipoComercio,
-      direccion: datos.direccion,
-      telefono: datos.telefono,
-      registroLocalVigente: datos.registroLocalVigente,
-      localFisico: datos.localFisico,
-      descripcion: "Bolsa sorpresa con productos variados del comercio",
-      horarioRetiro: "18:00 - 20:00",
-      precioOriginal: 3000,
-      precioDescuento: 1000,
-      disponibles: 5,
-    };
+  const manejarEnvio = async (datos) => {
+    setCargando(true);
 
-    localStorage.setItem("comercioRegistrado", JSON.stringify(datosComercio));
+    try {
+      const datosComercio = {
+        nombre: datos.nombreComercio,
+        rubro: datos.tipoComercio,
+        direccion: datos.direccion,
+        telefono: datos.telefono,
+      };
 
-    toast.success("Solicitud enviada exitosamente. Te contactaremos pronto.");
-    navegar("/perfil");
+      // POST al backend
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/comercios`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(datosComercio),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Error al registrar comercio");
+      }
+
+      const comercioCreado = await response.json();
+
+      toast.success("Comercio registrado exitosamente");
+
+      // Redirigir a editar para agregar productos
+      navegar(`/comercios/editar/${comercioCreado._id}`);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error(error.message || "Error al registrar el comercio");
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (

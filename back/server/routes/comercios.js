@@ -3,6 +3,29 @@ import Comercio from "../models/comercio.js";
 
 const router = Router();
 
+// Función para geocodificar dirección usando Mapbox
+const geocodificarDireccion = async (direccion) => {
+  const token = process.env.MAPBOX_TOKEN || "pk.eyJ1IjoidG9tYXNtaXNyYWhpIiwiYSI6ImNtaDJwZDkwaDJ1eW0yd3B5eDZ6b3Y1djMifQ.44qXpnbdv09ro4NME7QxJQ";
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+    direccion
+  )}.json?access_token=${token}&country=ar&limit=1`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (data.features && data.features.length > 0) {
+      const [lng, lat] = data.features[0].center;
+      return { lat, lng };
+    }
+
+    throw new Error("No se pudo geocodificar la dirección");
+  } catch (error) {
+    console.error("Error geocodificando:", error);
+    throw new Error("Error al obtener coordenadas de la dirección");
+  }
+};
+
 router.get("/", async (_req, res) => {
   try {
     const comercios = await Comercio.find();
@@ -28,11 +51,29 @@ router.get("/:id", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    const nuevo = await Comercio.create(req.body);
+    const { direccion, ...restoData } = req.body;
+
+    // Geocodificar dirección para obtener coordenadas
+    const coordenadas = await geocodificarDireccion(direccion);
+
+    // Crear comercio con coordenadas
+    const nuevo = await Comercio.create({
+      ...restoData,
+      direccion,
+      coordenadas,
+      activo: true,
+      calificacionPromedio: 0,
+      totalReseñas: 0,
+      productos: [],
+    });
+
     res.status(201).json(nuevo);
   } catch (e) {
     console.error("Error al crear comercio:", e);
-    res.status(400).json({ message: "Error al crear comercio", error: e });
+    res.status(400).json({
+      message: "Error al crear comercio",
+      error: e.message,
+    });
   }
 });
 

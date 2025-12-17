@@ -30,8 +30,13 @@ router.get("/comercio/:idComercio", async (req, res) => {
   try {
     const { idComercio } = req.params;
 
-    // Buscar el comercio por su idExterno (ej: "1", "2", "3")
-    const comercio = await Comercio.findOne({ idExterno: idComercio });
+    // Buscar el comercio por idExterno O por _id
+    let comercio = await Comercio.findOne({ idExterno: idComercio });
+
+    // Si no se encuentra por idExterno, intentar por _id
+    if (!comercio) {
+      comercio = await Comercio.findById(idComercio);
+    }
 
     if (!comercio) {
       return res.status(404).json({ message: "Comercio no encontrado" });
