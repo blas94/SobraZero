@@ -177,14 +177,10 @@ router.post("/webhook", async (req, res) => {
         info?.metadata?.reservaId ||
         info?.metadata?.reserva_id;
 
-      console.log(
-        "[MP WEBHOOK] payment:",
-        paymentId,
-        "status:",
-        status,
-        "ref:",
-        reservaRef
-      );
+      console.log("[MP WEBHOOK] status:", info?.status);
+      console.log("[MP WEBHOOK] status_detail:", info?.status_detail);
+      console.log("[MP WEBHOOK] payment_method_id:", info?.payment_method_id);
+      console.log("[MP WEBHOOK] rejection_reason:", info?.status_detail);
 
       if (!reservaRef) return;
 
