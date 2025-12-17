@@ -1,37 +1,40 @@
 // Script para verificar reservas del usuario
 import mongoose from "mongoose";
 import Reserva from "../server/models/reserva.js";
-import Oferta from "../server/models/oferta.js";
+import Comercio from "../server/models/comercio.js";
 import dotenv from "dotenv";
 
 dotenv.config({ path: "./back/.env" });
 
 const USUARIO_ID = "68c637445ceb927c5a2fc14c"; // ID del usuario de prueba
-const COMERCIO_ID_EXTERNO_3 = "68c63b3f5ceb927c5a2fc14e"; // Carnicería El Bife (idExterno: 3)
+const COMERCIO_ID = "694321cea682763f78c95e61"; // ID del comercio a verificar
 
 async function verificarReservas() {
     try {
         await mongoose.connect(process.env.URI_DB);
         console.log("✅ Conectado a MongoDB");
 
-        // Buscar ofertas del comercio 3 (Carnicería El Bife)
-        const ofertas = await Oferta.find({ comercio: COMERCIO_ID_EXTERNO_3 });
-        console.log(`\n📋 Ofertas del comercio 3 (Carnicería El Bife): ${ofertas.length}`);
+        // Buscar el comercio
+        const comercio = await Comercio.findById(COMERCIO_ID);
+        if (!comercio) {
+            console.log("❌ Comercio no encontrado");
+            return;
+        }
 
-        const ofertaIds = ofertas.map(o => o._id);
-        console.log(`Oferta IDs:`, ofertaIds.map(id => id.toString()));
+        console.log(`\n📋 Comercio: ${comercio.nombre}`);
 
-        // Buscar reservas del usuario en esas ofertas
+        // Buscar reservas del usuario en este comercio
         const reservas = await Reserva.find({
             usuarioId: USUARIO_ID,
-            ofertaId: { $in: ofertaIds }
+            comercioId: COMERCIO_ID
         });
 
-        console.log(`\n🎫 Reservas del usuario en comercio 3: ${reservas.length}\n`);
+        console.log(`\n🎫 Reservas del usuario en este comercio: ${reservas.length}\n`);
 
         reservas.forEach(r => {
             console.log(`Reserva ${r._id}:`);
-            console.log(`  - ofertaId: ${r.ofertaId}`);
+            console.log(`  - comercioId: ${r.comercioId}`);
+            console.log(`  - productoNombre: ${r.productoNombre}`);
             console.log(`  - cantidad: ${r.cantidad}`);
             console.log(`  - estado: ${r.estado}`);
             console.log(`  - createdAt: ${r.createdAt}`);
@@ -41,7 +44,7 @@ async function verificarReservas() {
         // Verificar si hay alguna reserva con estados válidos
         const reservasValidas = await Reserva.find({
             usuarioId: USUARIO_ID,
-            ofertaId: { $in: ofertaIds },
+            comercioId: COMERCIO_ID,
             estado: { $in: ["pendiente", "pagada", "retirada"] }
         });
 

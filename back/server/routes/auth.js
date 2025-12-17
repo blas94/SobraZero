@@ -94,7 +94,11 @@ router.post("/login", async (req, res) => {
     const ok = await bcrypt.compare(clave, user.clave);
     if (!ok) return res.status(401).json({ error: "Credenciales inválidas" });
 
-    const token = jwt.sign({ uid: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign(
+      { uid: user._id, email: user.email, rol: user.rol },
+      JWT_SECRET,
+      { expiresIn: "7d" }
+    );
 
     // Enviar token como cookie HttpOnly (Compatibilidad)
     res.cookie("token", token, {
@@ -105,12 +109,14 @@ router.post("/login", async (req, res) => {
     });
 
     return res.json({
+      debug: "LOGIN CON ROL ACTIVO",
       token, // Devolvemos el token para uso en localStorage (Bearer)
       user: {
         id: user._id.toString(),
         nombre: user.nombre,
         email: user.email,
         tel: user.tel,
+        rol: user.rol,
         avatar: user.avatar,
         vioTutorial: user.vioTutorial,
         tutorialPasos: user.tutorialPasos || [], // <--- NUEVO
