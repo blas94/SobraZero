@@ -391,6 +391,7 @@ const EditarComercio = () => {
                   value={nombreEditado}
                   onChange={(e) => setNombreEditado(e.target.value)}
                   placeholder="Nombre del comercio"
+                  aria-label="Nombre del comercio"
                 />
               </div>
               <div>
@@ -412,11 +413,12 @@ const EditarComercio = () => {
                 </div>
               </div>
               <div>
-                <Etiqueta>Dirección</Etiqueta>
+                <Etiqueta>Dirección exacta del comercio</Etiqueta>
                 <Entrada
                   value={direccionEditada}
                   onChange={(e) => setDireccionEditada(e.target.value)}
-                  placeholder="Dirección del comercio"
+                  placeholder="Ej: Av. Corrientes 1234, CABA"
+                  aria-label="Dirección exacta del comercio"
                 />
               </div>
               <div>
@@ -425,6 +427,7 @@ const EditarComercio = () => {
                   type="time"
                   value={horaRetiroInicio}
                   onChange={(e) => setHoraRetiroInicio(e.target.value)}
+                  aria-label="Horario de retiro - Inicio"
                 />
               </div>
               <div>
@@ -433,6 +436,7 @@ const EditarComercio = () => {
                   type="time"
                   value={horaRetiroFin}
                   onChange={(e) => setHoraRetiroFin(e.target.value)}
+                  aria-label="Horario de retiro - Fin"
                 />
               </div>
               <div className="flex gap-2 pt-2">
@@ -551,6 +555,7 @@ const EditarComercio = () => {
                                 manejarCambioImagenProducto(producto.id, e)
                               }
                               className="h-8"
+                              aria-label="Imagen del producto"
                             />
                           </div>
                         </div>
@@ -566,6 +571,7 @@ const EditarComercio = () => {
                               )
                             }
                             placeholder="Nombre del producto"
+                            aria-label="Nombre del producto"
                             className="h-8"
                           />
                           {erroresProductos[producto.id]?.name && (
@@ -588,6 +594,7 @@ const EditarComercio = () => {
                                 )
                               }
                               placeholder=""
+                              aria-label="Stock del producto"
                               className="h-8"
                             />
                             {erroresProductos[producto.id]?.stock && (
@@ -619,6 +626,7 @@ const EditarComercio = () => {
                                 )
                               }
                               placeholder=""
+                              aria-label="Peso en kilos del producto"
                               className="h-8"
                             />
                           </div>
@@ -637,6 +645,7 @@ const EditarComercio = () => {
                                 )
                               }
                               placeholder=""
+                              aria-label="Precio original del producto"
                               className="h-8"
                             />
                             {erroresProductos[producto.id]?.originalPrice && (
@@ -660,6 +669,7 @@ const EditarComercio = () => {
                                 )
                               }
                               placeholder=""
+                              aria-label="Precio con descuento del producto"
                               className="h-8"
                             />
                             <p className="text-xs text-muted-foreground mt-1">
@@ -766,11 +776,12 @@ const EditarComercio = () => {
           {campoEditando === "contacto" ? (
             <div className="space-y-3">
               <div>
-                <Etiqueta>Teléfono</Etiqueta>
+                <Etiqueta>Teléfono de contacto del comercio</Etiqueta>
                 <Entrada
                   value={telefonoEditado}
                   onChange={(e) => setTelefonoEditado(e.target.value)}
-                  placeholder="Número de teléfono"
+                  placeholder="Ej: +54 11 1234-5678"
+                  aria-label="Teléfono de contacto del comercio"
                 />
               </div>
               <div>
@@ -780,6 +791,7 @@ const EditarComercio = () => {
                   value={correoEditado}
                   onChange={(e) => setCorreoEditado(e.target.value)}
                   placeholder="Correo electrónico"
+                  aria-label="Email del comercio"
                 />
               </div>
               <div className="flex gap-2">

@@ -29,7 +29,8 @@ import Autenticacion from "./pages/Autenticacion";
 import NotFound from "./pages/NotFound";
 import EstadoPago from "./pages/EstadoPago";
 import EditarPerfil from "./pages/EditarPerfil";
-import RegistrarTienda from "./pages/RegistrarTienda";
+import RegistrarComercio from "./pages/RegistrarComercio";
+import EditarComercio from "./pages/EditarComercio";
 import RecuperarPassword from "./pages/RecuperarPassword";
 import RestablecerPassword from "./pages/RestablecerPassword";
 import VerificarCambioEmail from "./pages/VerificarCambioEmail";
@@ -171,7 +172,15 @@ const App = () => {
                     path="/perfil/registrar-comercio"
                     element={
                       <RutaProtegida>
-                        <RegistrarTienda />
+                        <RegistrarComercio />
+                      </RutaProtegida>
+                    }
+                  />
+                  <Route
+                    path="/perfil/editar-comercio"
+                    element={
+                      <RutaProtegida>
+                        <EditarComercio />
                       </RutaProtegida>
                     }
                   />

@@ -18,8 +18,7 @@ const esquemaComercio = z.object({
     .max(100),
   tipoComercio: z.string().min(1, "Debés seleccionar un tipo de comercio"),
   direccion: z.string().min(1, "La dirección es requerida").max(200),
-  telefono: z.string().min(1, "El celular es requerido").max(20),
-  correo: z.string().email("Email inválido"),
+  telefono: z.string().min(1, "El teléfono es requerido").max(20),
   registroLocalVigente: z.boolean().refine((valor) => valor === true, {
     message: "Debés marcar esta opción para continuar",
   }),
@@ -28,7 +27,7 @@ const esquemaComercio = z.object({
   }),
 });
 
-const RegistrarTienda = () => {
+const RegistrarComercio = () => {
   const navegar = useNavigate();
 
   const {
@@ -44,7 +43,6 @@ const RegistrarTienda = () => {
       tipoComercio: "",
       direccion: "",
       telefono: "",
-      correo: "",
       registroLocalVigente: false,
       localFisico: false,
     },
@@ -67,7 +65,6 @@ const RegistrarTienda = () => {
       tipoComercio: datos.tipoComercio,
       direccion: datos.direccion,
       telefono: datos.telefono,
-      correo: datos.correo,
       registroLocalVigente: datos.registroLocalVigente,
       localFisico: datos.localFisico,
       descripcion: "Bolsa sorpresa con productos variados del comercio",
@@ -108,6 +105,7 @@ const RegistrarTienda = () => {
                 id="nombreComercio"
                 type="text"
                 placeholder="Ingresá el nombre de tu comercio"
+                aria-label="Nombre del comercio"
                 {...register("nombreComercio")}
               />
               {errors.nombreComercio && (
@@ -146,11 +144,12 @@ const RegistrarTienda = () => {
             </div>
 
             <div className="space-y-2">
-              <Etiqueta htmlFor="direccion">Dirección y número del comercio</Etiqueta>
+              <Etiqueta htmlFor="direccion">Dirección exacta del comercio</Etiqueta>
               <Entrada
                 id="direccion"
                 type="text"
-                placeholder="Ingresá la dirección y el número de tu comercio"
+                placeholder="Ej: Av. Corrientes 1234, CABA"
+                aria-label="Dirección exacta del comercio"
                 {...register("direccion")}
               />
               <p className="text-xs text-muted-foreground">
@@ -165,33 +164,17 @@ const RegistrarTienda = () => {
             </div>
 
             <div className="space-y-2">
-              <Etiqueta htmlFor="telefono">Número de celular</Etiqueta>
+              <Etiqueta htmlFor="telefono">Teléfono de contacto del comercio</Etiqueta>
               <Entrada
                 id="telefono"
                 type="tel"
-                placeholder="Ingresá tu número de celular"
+                placeholder="Ej: +54 11 1234-5678"
+                aria-label="Teléfono de contacto del comercio"
                 {...register("telefono")}
               />
               {errors.telefono && (
                 <p className="text-sm text-destructive">
                   {errors.telefono.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Etiqueta htmlFor="correo">
-                Email con el que accedés a SobraZero
-              </Etiqueta>
-              <Entrada
-                id="correo"
-                type="email"
-                placeholder="Ingresá tu email"
-                {...register("correo")}
-              />
-              {errors.correo && (
-                <p className="text-sm text-destructive">
-                  {errors.correo.message}
                 </p>
               )}
             </div>
@@ -256,4 +239,4 @@ const RegistrarTienda = () => {
   );
 };
 
-export default RegistrarTienda;
+export default RegistrarComercio;

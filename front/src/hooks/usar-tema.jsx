@@ -20,7 +20,7 @@ export const ProveedorTema = ({ children }) => {
 
         if (esModoOscuro) {
             root.classList.add("dark");
-            metaThemeColor?.setAttribute("content", "#3e4345");
+            metaThemeColor?.setAttribute("content", "#1b1f21");
         } else {
             root.classList.remove("dark");
             metaThemeColor?.setAttribute("content", "#EDE8E3");
