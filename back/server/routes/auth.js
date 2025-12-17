@@ -51,7 +51,7 @@ router.post("/register", async (req, res) => {
       tel: tel.trim(),
     });
 
-    const token = jwt.sign({ uid: user._id, email: user.email }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ uid: user._id, email: user.email, rol: user.rol }, JWT_SECRET, { expiresIn: "7d" });
 
     // Enviar token como cookie HttpOnly (Compatibilidad)
     res.cookie("token", token, {
@@ -68,6 +68,7 @@ router.post("/register", async (req, res) => {
         nombre: user.nombre,
         email: user.email,
         tel: user.tel,
+        rol: user.rol,
         avatar: user.avatar,
         vioTutorial: user.vioTutorial,
         tutorialPasos: user.tutorialPasos || [], // <--- NUEVO

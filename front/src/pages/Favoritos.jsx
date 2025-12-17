@@ -30,12 +30,14 @@ const Favoritos = () => {
     if (!favoritos) return;
 
     const idsFavoritos = JSON.parse(favoritos);
+    console.log("📋 IDs en favoritos:", idsFavoritos);
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/comercios`);
       if (!response.ok) throw new Error("Error al cargar comercios");
 
       const data = await response.json();
+      console.log("🏪 Comercios desde API:", data.length);
 
       // Transformar y filtrar favoritos
       const comercios = data
@@ -44,11 +46,12 @@ const Favoritos = () => {
           ...c,
           id: c._id,
           categoria: c.rubro,
-          latitud: c.coordenadas.lat,
-          longitud: c.coordenadas.lng,
-          calificacion: c.calificacionPromedio,
+          latitud: c.coordenadas?.lat || 0,
+          longitud: c.coordenadas?.lng || 0,
+          calificacion: c.calificacionPromedio || 0,
         }));
 
+      console.log("⭐ Favoritos encontrados:", comercios.length, comercios);
       setComerciosFavoritos(comercios);
     } catch (error) {
       console.error("Error cargando favoritos:", error);
