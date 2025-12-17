@@ -1,7 +1,6 @@
 import { Router } from "express";
 import Reseña from "../models/reseña.js";
 import Reserva from "../models/reserva.js";
-import Oferta from "../models/oferta.js";
 import Comercio from "../models/comercio.js";
 import jwt from "jsonwebtoken";
 
@@ -117,20 +116,13 @@ router.get("/comercio/:comercioId/puede-resenar", async (req, res) => {
             });
         }
 
-        // Verificar si tiene al menos una reserva en alguna oferta de este comercio
-        const ofertas = await Oferta.find({ comercio: comercio._id }).select("_id");
-        console.log("  - ofertas del comercio:", ofertas.length);
-        console.log("  - IDs de ofertas:", ofertas.map(o => o._id.toString()));
-        if (!ofertas || ofertas.length === 0) {
-            return res.json({ puedeReseñar: false, yaReseñó: false, motivo: "Este comercio no tiene ofertas" });
-        }
-
-        const ofertaIds = ofertas.map((o) => o._id);
+        // Verificar si tiene al menos una reserva en este comercio
         const reservaCompletada = await Reserva.findOne({
             usuarioId,
-            ofertaId: { $in: ofertaIds },
+            comercioId: comercio._id,
             estado: { $in: ["pendiente", "pagada", "retirada"] },
         });
+        console.log("  - reserva encontrada:", reservaCompletada ? "SÍ" : "NO");
 
         if (!reservaCompletada) {
             return res.json({
@@ -185,15 +177,9 @@ router.post("/comercio/:comercioId", async (req, res) => {
         }
 
         // Verificar si compró en el comercio
-        const ofertas = await Oferta.find({ comercio: comercio._id }).select("_id");
-        if (!ofertas || ofertas.length === 0) {
-            return res.status(400).json({ error: "Este comercio no tiene ofertas" });
-        }
-
-        const ofertaIds = ofertas.map((o) => o._id);
         const reservaCompletada = await Reserva.findOne({
             usuarioId,
-            ofertaId: { $in: ofertaIds },
+            comercioId: comercio._id,
             estado: { $in: ["pendiente", "pagada", "retirada"] },
         });
 

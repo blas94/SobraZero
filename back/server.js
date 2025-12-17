@@ -9,7 +9,6 @@ import cookieParser from "cookie-parser";
 import reservasRouter from "./server/routes/reservas.js";
 import authRouter from "./server/routes/auth.js";
 import pagosRouter from "./server/routes/pagos.js";
-import ofertasRouter from "./server/routes/ofertas.js";
 import comerciosRouter from "./server/routes/comercios.js";
 import reseñasRouter from "./server/routes/reseñas.js";
 import mercadopagoRouter from "./server/routes/mercadopago.js";
@@ -87,7 +86,6 @@ app.get("/", (_req, res) => {
       <li>/api/auth</li>
       <li>/api/reservas</li>
       <li>/api/pagos</li>
-      <li>/api/ofertas</li>
       <li>/api/comercios</li>
       <li>/api/resenas</li>
       <li>/api/mercadopago</li>
@@ -98,7 +96,6 @@ app.get("/", (_req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/reservas", reservasRouter);
 app.use("/api/pagos", pagosRouter);
-app.use("/api/ofertas", ofertasRouter);
 app.use("/api/comercios", comerciosRouter);
 app.use("/api/resenas", reseñasRouter);
 app.use("/api/mercadopago", mercadopagoRouter);
