@@ -13,6 +13,7 @@ import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Entrada } from "@/components/ui/Entrada";
 import { AreaTexto } from "@/components/ui/AreaTexto";
 import { Etiqueta } from "@/components/ui/Etiqueta";
+import AutocompleteDireccion from "@/components/AutocompleteDireccion";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { toast } from "sonner";
 import {
@@ -413,12 +414,13 @@ const EditarComercio = () => {
                 </div>
               </div>
               <div>
-                <Etiqueta>Dirección exacta del comercio</Etiqueta>
-                <Entrada
-                  value={direccionEditada}
-                  onChange={(e) => setDireccionEditada(e.target.value)}
+                <Etiqueta>Calle y número del comercio</Etiqueta>
+                <AutocompleteDireccion
+                  valor={direccionEditada}
+                  alCambiar={setDireccionEditada}
+                  alSeleccionarLugar={setDireccionEditada}
                   placeholder="Ej: Av. Corrientes 1234, CABA"
-                  aria-label="Dirección exacta del comercio"
+                  ariaLabel="Calle y número del comercio"
                 />
               </div>
               <div>

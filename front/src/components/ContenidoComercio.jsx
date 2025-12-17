@@ -19,6 +19,14 @@ import { crearPreferencia } from "@/services/pagos";
 
 const ESTADO_COMERCIOS_KEY = "estadoComercios";
 
+const safeParse = (str, fallback) => {
+  try {
+    return JSON.parse(str);
+  } catch {
+    return fallback;
+  }
+};
+
 const ContenidoComercio = ({
   idComercio,
   comercios,
@@ -26,58 +34,6 @@ const ContenidoComercio = ({
   alCerrar,
 }) => {
   const navegar = useNavigate();
-
-  const [comercio, setComercio] = useState(() => {
-    const estadoGuardado = localStorage.getItem(ESTADO_COMERCIOS_KEY);
-    if (estadoGuardado) {
-      try {
-        const listaEstado = JSON.parse(estadoGuardado);
-        const comercioPersistido = listaEstado.find((s) => s.id === idComercio) || null;
-        if (comercioPersistido) {
-          return {
-            ...comercioPersistido,
-            productos: comercioPersistido.productos.map((p) => ({ ...p })),
-          };
-        }
-      } catch { }
-    }
-
-    const comercioBase = comercios.find((s) => s.id === idComercio) || null;
-    if (!comercioBase) return null;
-    return {
-      ...comercioBase,
-      productos: comercioBase.productos.map((p) => ({ ...p })),
-    };
-  });
-
-  useEffect(() => {
-    const estadoGuardado = localStorage.getItem(ESTADO_COMERCIOS_KEY);
-    if (estadoGuardado) {
-      try {
-        const listaEstado = JSON.parse(estadoGuardado);
-        const comercioPersistido = listaEstado.find((s) => s.id === idComercio) || null;
-        if (comercioPersistido) {
-          setComercio({
-            ...comercioPersistido,
-            productos: comercioPersistido.productos.map((p) => ({ ...p })),
-          });
-          return;
-        }
-      } catch { }
-    }
-
-    const comercioBase = comercios.find((s) => s.id === idComercio) || null;
-    if (!comercioBase) {
-      setComercio(null);
-    } else {
-      setComercio({
-        ...comercioBase,
-        productos: comercioBase.productos.map((p) => ({ ...p })),
-      });
-    }
-
-    setProductosSeleccionados({});
-  }, [idComercio, comercios]);
 
   const [productosSeleccionados, setProductosSeleccionados] = useState({});
   const [nuevaReseñaCalificacion, setNuevaReseñaCalificacion] = useState(5);
@@ -94,17 +50,71 @@ const ContenidoComercio = ({
 
   const [esFavorito, setEsFavorito] = useState(() => {
     const favoritos = localStorage.getItem("favoritos");
-    if (favoritos) {
-      const arr = JSON.parse(favoritos);
-      return arr.includes(idComercio);
-    }
-    return false;
+    const arr = favoritos ? safeParse(favoritos, []) : [];
+    return arr.includes(idComercio);
   });
 
   const [ofertaId, setOfertaId] = useState(null);
   const [cargandoOferta, setCargandoOferta] = useState(false);
 
-  // Cargar oferta del comercio desde el servicio
+  const [comercio, setComercio] = useState(() => {
+    const estadoGuardado = localStorage.getItem(ESTADO_COMERCIOS_KEY);
+
+    if (estadoGuardado) {
+      const listaEstado = safeParse(estadoGuardado, []);
+      const comercioPersistido =
+        listaEstado.find((s) => s.id === idComercio) || null;
+
+      if (comercioPersistido) {
+        return {
+          ...comercioPersistido,
+          productos: (comercioPersistido.productos || []).map((p) => ({ ...p })),
+        };
+      }
+    }
+
+    const comercioBase = comercios.find((s) => s.id === idComercio) || null;
+    if (!comercioBase) return null;
+
+    return {
+      ...comercioBase,
+      productos: (comercioBase.productos || []).map((p) => ({ ...p })),
+    };
+  });
+
+  // Re-hidratar comercio al cambiar idComercio/comercios
+  useEffect(() => {
+    const estadoGuardado = localStorage.getItem(ESTADO_COMERCIOS_KEY);
+
+    if (estadoGuardado) {
+      const listaEstado = safeParse(estadoGuardado, []);
+      const comercioPersistido =
+        listaEstado.find((s) => s.id === idComercio) || null;
+
+      if (comercioPersistido) {
+        setComercio({
+          ...comercioPersistido,
+          productos: (comercioPersistido.productos || []).map((p) => ({ ...p })),
+        });
+        setProductosSeleccionados({});
+        return;
+      }
+    }
+
+    const comercioBase = comercios.find((s) => s.id === idComercio) || null;
+    if (!comercioBase) {
+      setComercio(null);
+    } else {
+      setComercio({
+        ...comercioBase,
+        productos: (comercioBase.productos || []).map((p) => ({ ...p })),
+      });
+    }
+
+    setProductosSeleccionados({});
+  }, [idComercio, comercios]);
+
+  // Cargar oferta del comercio
   useEffect(() => {
     const cargarOferta = async () => {
       if (!idComercio) return;
@@ -112,9 +122,7 @@ const ContenidoComercio = ({
       setCargandoOferta(true);
       try {
         const oferta = await obtenerOfertaPorComercio(idComercio);
-        if (oferta && oferta._id) {
-          setOfertaId(oferta._id);
-        }
+        if (oferta && oferta._id) setOfertaId(oferta._id);
       } catch (error) {
         console.error("Error cargando oferta:", error);
       } finally {
@@ -125,11 +133,10 @@ const ContenidoComercio = ({
     cargarOferta();
   }, [idComercio]);
 
-  // Cargar reseñas del comercio
+  // Cargar reseñas
   useEffect(() => {
     const cargarReseñas = async () => {
       if (!idComercio) return;
-
       try {
         const reseñasDelBackend = await obtenerReseñas(idComercio);
         setReseñas(reseñasDelBackend);
@@ -142,7 +149,7 @@ const ContenidoComercio = ({
     cargarReseñas();
   }, [idComercio]);
 
-  // Verificar si puede reseñar
+  // Verificar permisos para reseñar
   useEffect(() => {
     const verificarPermisos = async () => {
       if (!idComercio) return;
@@ -163,10 +170,10 @@ const ContenidoComercio = ({
             calificacion: reseñaExistente.calificacion,
             comentario: reseñaExistente.comentario,
           });
-          setPuedeReseñar(true);
+          setPuedeReseñar(true); // para permitir editar
         }
       } catch (error) {
-        console.error("[FRONTEND] Error verificando permisos:", error);
+        console.error("Error verificando permisos:", error);
         setPuedeReseñar(false);
       }
     };
@@ -176,11 +183,15 @@ const ContenidoComercio = ({
 
   const actualizarCantidadProducto = (productoId, delta) => {
     if (!comercio) return;
+
     const producto = comercio.productos.find((p) => p.id === productoId);
     if (!producto) return;
 
     const cantidadActual = productosSeleccionados[productoId] || 0;
-    const nuevaCantidad = Math.max(0, Math.min(producto.stock, cantidadActual + delta));
+    const nuevaCantidad = Math.max(
+      0,
+      Math.min(producto.stock, cantidadActual + delta)
+    );
 
     setProductosSeleccionados((prev) => {
       if (nuevaCantidad === 0) {
@@ -193,15 +204,20 @@ const ContenidoComercio = ({
 
   const calcularTotal = () => {
     if (!comercio) return 0;
-    return Object.entries(productosSeleccionados).reduce((total, [productoId, cantidad]) => {
-      const producto = comercio.productos.find((p) => p.id === productoId);
-      return total + (producto ? producto.precioDescuento * cantidad : 0);
-    }, 0);
+    return Object.entries(productosSeleccionados).reduce(
+      (total, [productoId, cantidad]) => {
+        const producto = comercio.productos.find((p) => p.id === productoId);
+        return total + (producto ? producto.precioDescuento * cantidad : 0);
+      },
+      0
+    );
   };
 
-  const obtenerTotalItems = () => {
-    return Object.values(productosSeleccionados).reduce((suma, cantidad) => suma + cantidad, 0);
-  };
+  const obtenerTotalItems = () =>
+    Object.values(productosSeleccionados).reduce(
+      (suma, cantidad) => suma + cantidad,
+      0
+    );
 
   const manejarReserva = async () => {
     if (!comercio) return;
@@ -210,7 +226,7 @@ const ContenidoComercio = ({
     const totalItems = obtenerTotalItems();
 
     if (totalItems === 0) {
-      toast.error("Selecciona al menos un producto");
+      toast.error("Seleccioná al menos un producto");
       return;
     }
 
@@ -220,28 +236,33 @@ const ContenidoComercio = ({
     }
 
     if (!ofertaId) {
-      toast.error("No se pudo obtener la oferta de este comercio. Intenta recargar la página.");
+      toast.error(
+        "No se pudo obtener la oferta de este comercio. Intentá recargar la página."
+      );
       return;
     }
 
-    // Usuario autenticado
-    const userStr = localStorage.getItem("user");
-    if (!userStr) {
-      toast.error("Necesitás estar autenticado para reservar");
-      return;
-    }
-    const user = JSON.parse(userStr);
-    const usuarioId = user.id || user._id;
-
-    // Snapshot para que no se rompa si cambian estados
     const seleccionSnapshot = { ...productosSeleccionados };
-    const entradas = Object.entries(seleccionSnapshot);
 
     try {
+      const userStr = localStorage.getItem("user");
+      if (!userStr) {
+        toast.error("Necesitás iniciar sesión para reservar");
+        return;
+      }
+
+      const user = safeParse(userStr, null);
+      const usuarioId = user?.id || user?._id;
+
+      if (!usuarioId) {
+        toast.error("No se pudo identificar al usuario");
+        return;
+      }
+
       // 1) Crear reserva(s) en backend
       let reservaIdReal = null;
 
-      for (const [productoId, cant] of entradas) {
+      for (const [productoId, cant] of Object.entries(seleccionSnapshot)) {
         const cantidad = Number(cant);
         if (!cantidad || cantidad <= 0) continue;
 
@@ -264,7 +285,7 @@ const ContenidoComercio = ({
         return;
       }
 
-      // 2) Actualizar stock local (UI)
+      // 2) Actualizar stock local (UI + localStorage)
       setComercio((prev) => {
         if (!prev) return prev;
 
@@ -284,72 +305,52 @@ const ContenidoComercio = ({
         };
 
         const estadoPrevio = localStorage.getItem(ESTADO_COMERCIOS_KEY);
-        const listaEstado = estadoPrevio ? JSON.parse(estadoPrevio) : comercios;
+        const listaEstado = estadoPrevio ? safeParse(estadoPrevio, comercios) : comercios;
 
-        const comerciosActualizados = listaEstado.map((s) =>
+        const comerciosActualizados = (listaEstado || []).map((s) =>
           s.id === idComercio
             ? { ...s, productos: productosActualizados, disponibles: nuevoDisponible }
             : s
         );
 
-        localStorage.setItem(ESTADO_COMERCIOS_KEY, JSON.stringify(comerciosActualizados));
+        localStorage.setItem(
+          ESTADO_COMERCIOS_KEY,
+          JSON.stringify(comerciosActualizados)
+        );
+
         return comercioActualizado;
       });
 
-      // 3) Guardar pedido en localStorage (tu lógica actual)
-      const productosDetalle = Object.entries(seleccionSnapshot).map(([id, cantidad]) => {
-        const prod = comercio.productos.find((p) => p.id === id);
-        return {
-          nombre: prod ? prod.nombre : "Producto desconocido",
-          cantidad: `${cantidad} unidades`,
-        };
-      });
+      toast.success("Reserva creada. Redirigiendo a Mercado Pago...");
 
-      const nuevoPedido = {
-        id: `pedido-${Date.now()}`,
-        nombreComercio: comercio.nombre,
-        estado: "pendiente",
-        horarioRetiro: comercio.horarioRetiro,
-        direccion: comercio.direccion,
-        total,
-        articulos: totalItems,
-        fecha: "Hoy",
-        productos: productosDetalle,
-      };
-
-      const pedidosExistentes = localStorage.getItem("pedidos");
-      const pedidos = pedidosExistentes ? JSON.parse(pedidosExistentes) : [];
-      pedidos.unshift(nuevoPedido);
-      localStorage.setItem("pedidos", JSON.stringify(pedidos));
-
-      toast.success("Reserva confirmada", {
-        description: `Retira tu pedido hoy entre ${comercio.horarioRetiro}`,
-      });
-
+      // Limpio selección antes de ir a MP
       setProductosSeleccionados({});
 
-      // 4) Crear preferencia de Mercado Pago y redirigir
+      // 3) Crear preferencia MP y redirigir (prioridad: sandbox)
       const pref = await crearPreferencia({
         reservaId: reservaIdReal,
         usuarioId,
         precio_total: total,
       });
 
-      const url =
+      const initPoint =
         pref?.sandbox_init_point ||
+        pref?.sandboxInitPoint ||
+        pref?.sandbox_initpoint || // por si alguien lo devuelve distinto
         pref?.init_point ||
         pref?.initPoint;
 
-      if (!url) {
+      if (!initPoint) {
         toast.error("No se pudo iniciar el pago");
         return;
       }
 
-      window.location.href = url;
-
+      window.location.href = initPoint;
     } catch (error) {
       console.error("Error al reservar:", error);
-      toast.error(error?.response?.data?.message || "Error al crear la reserva o el pago");
+      toast.error(
+        error?.response?.data?.message || "Error al crear la reserva o el pago"
+      );
     }
   };
 
@@ -379,7 +380,9 @@ const ContenidoComercio = ({
 
         toast.success("Reseña actualizada con éxito");
 
-        setReseñas(reseñas.map((r) => (r.id === editandoReseñaId ? resultado.reseña : r)));
+        setReseñas(
+          reseñas.map((r) => (r.id === editandoReseñaId ? resultado.reseña : r))
+        );
 
         setEditandoReseñaId(null);
         setPuedeReseñar(false);
@@ -392,7 +395,6 @@ const ContenidoComercio = ({
 
         toast.success("Reseña publicada con éxito");
         setReseñas([resultado.reseña, ...reseñas]);
-
         setPuedeReseñar(false);
         setYaReseñó(true);
       }
@@ -401,13 +403,13 @@ const ContenidoComercio = ({
       setNuevaReseñaCalificacion(5);
     } catch (error) {
       console.error("Error con reseña:", error);
-      toast.error(error.response?.data?.error || "No se pudo procesar la reseña");
+      toast.error(error?.response?.data?.error || "No se pudo procesar la reseña");
     }
   };
 
   const manejarFavorito = () => {
     const favoritos = localStorage.getItem("favoritos");
-    let arr = favoritos ? JSON.parse(favoritos) : [];
+    let arr = favoritos ? safeParse(favoritos, []) : [];
 
     if (esFavorito) {
       arr = arr.filter((id) => id !== idComercio);
@@ -423,12 +425,8 @@ const ContenidoComercio = ({
 
   useEffect(() => {
     const favoritos = localStorage.getItem("favoritos");
-    if (favoritos) {
-      const arr = JSON.parse(favoritos);
-      setEsFavorito(arr.includes(idComercio));
-    } else {
-      setEsFavorito(false);
-    }
+    const arr = favoritos ? safeParse(favoritos, []) : [];
+    setEsFavorito(arr.includes(idComercio));
   }, [idComercio, comercios]);
 
   if (!comercio) {
@@ -460,10 +458,13 @@ const ContenidoComercio = ({
 
       <div className="px-4">
         <Tarjeta className="p-4 mb-4 shadow-card-hover -mt-24 relative z-10">
-          <div className="flex items-start justify_between gap-3 mb-3">
+          {/* OJO: tu clase tenía "justify_between" => la correcta es "justify-between" */}
+          <div className="flex items-start justify-between gap-3 mb-3">
             <div className="flex-1">
               <h2 className="text-xl font-bold mb-1">{comercio.nombre}</h2>
-              <p className="text-sm text-muted-foreground capitalize">{comercio.categoria}</p>
+              <p className="text-sm text-muted-foreground capitalize">
+                {comercio.categoria}
+              </p>
             </div>
             <button
               onClick={manejarFavorito}
@@ -478,7 +479,7 @@ const ContenidoComercio = ({
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
             <span className="font-medium">{comercio.calificacion}</span>
             <span className="text-sm text-muted-foreground">
-              ({comercio.totalReseñas} reseñas)
+              ({comercio.totalResenas} reseñas)
             </span>
           </div>
 
@@ -521,7 +522,9 @@ const ContenidoComercio = ({
                 <div className="flex-1 p-3 flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start">
-                      <p className="font-medium text-sm line-clamp-2">{producto.nombre}</p>
+                      <p className="font-medium text-sm line-clamp-2">
+                        {producto.nombre}
+                      </p>
                     </div>
 
                     <div className="flex items-center gap-2 mt-1">
@@ -557,7 +560,9 @@ const ContenidoComercio = ({
                       size="icon"
                       className="h-8 w-8 border-primary/20"
                       onClick={() => actualizarCantidadProducto(producto.id, 1)}
-                      disabled={(productosSeleccionados[producto.id] || 0) >= producto.stock}
+                      disabled={
+                        (productosSeleccionados[producto.id] || 0) >= producto.stock
+                      }
                     >
                       +
                     </Boton>
@@ -574,20 +579,25 @@ const ContenidoComercio = ({
           {obtenerTotalItems() > 0 ? (
             <>
               <div className="space-y-2 mb-4">
-                {Object.entries(productosSeleccionados).map(([productoId, cantidad]) => {
-                  const producto = comercio.productos.find((p) => p.id === productoId);
-                  if (!producto) return null;
-                  return (
-                    <div key={productoId} className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {producto.nombre} x {cantidad}
-                      </span>
-                      <span className="font-medium">
-                        ${(producto.precioDescuento * cantidad).toLocaleString()}
-                      </span>
-                    </div>
-                  );
-                })}
+                {Object.entries(productosSeleccionados).map(
+                  ([productoId, cantidad]) => {
+                    const producto = comercio.productos.find(
+                      (p) => p.id === productoId
+                    );
+                    if (!producto) return null;
+
+                    return (
+                      <div key={productoId} className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          {producto.nombre} x {cantidad}
+                        </span>
+                        <span className="font-medium">
+                          ${(producto.precioDescuento * cantidad).toLocaleString()}
+                        </span>
+                      </div>
+                    );
+                  }
+                )}
               </div>
 
               <div className="border-t border-border pt-3 mb-4">
@@ -603,13 +613,20 @@ const ContenidoComercio = ({
                 </p>
               </div>
 
-              <Boton className="w-full" size="lg" onClick={manejarReserva}>
-                Reservar por ${calcularTotal().toLocaleString()}
+              <Boton
+                className="w-full"
+                size="lg"
+                onClick={manejarReserva}
+                disabled={cargandoOferta}
+              >
+                {cargandoOferta
+                  ? "Cargando..."
+                  : `Reservar por $${calcularTotal().toLocaleString()}`}
               </Boton>
             </>
           ) : (
             <p className="text-sm text-muted-foreground text-center py-4">
-              Selecciona productos para continuar
+              Seleccioná productos para continuar
             </p>
           )}
         </Tarjeta>
@@ -670,7 +687,8 @@ const ContenidoComercio = ({
           ) : !yaReseñó ? (
             <div className="mt-6 p-4 bg-muted/50 rounded-lg text-center">
               <p className="text-sm text-muted-foreground">
-                {motivoNoReseñar || "Necesitás realizar una reserva para poder dejar una reseña"}
+                {motivoNoReseñar ||
+                  "Necesitás realizar una reserva para poder dejar una reseña"}
               </p>
             </div>
           ) : null}

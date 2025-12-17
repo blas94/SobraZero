@@ -3,6 +3,7 @@ import { Entrada } from "@/components/ui/Entrada";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { CasillaVerificacion } from "@/components/ui/CasillaVerificacion";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+import AutocompleteDireccion from "@/components/AutocompleteDireccion";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -11,13 +12,28 @@ import { z } from "zod";
 import { toast } from "sonner";
 import FormasDecorativas from "@/components/FormasDecorativas";
 
+
 const esquemaComercio = z.object({
   nombreComercio: z
     .string()
     .min(1, "El nombre del comercio es requerido")
     .max(100),
   tipoComercio: z.string().min(1, "Debés seleccionar un tipo de comercio"),
-  direccion: z.string().min(1, "La dirección es requerida").max(200),
+  direccion: z
+    .string()
+    .min(1, "La dirección es requerida")
+    .max(200)
+    .refine(
+      (valor) => {
+        // Verificar que tenga al menos un número en la primera parte (antes de la primera coma)
+        // Esto evita que el código postal sea detectado como número de calle
+        const primeraParteConNumero = /^[^,]*\d/.test(valor);
+        return primeraParteConNumero;
+      },
+      {
+        message: "La dirección debe incluir el número de la calle",
+      }
+    ),
   telefono: z.string().min(1, "El teléfono es requerido").max(20),
   registroLocalVigente: z.boolean().refine((valor) => valor === true, {
     message: "Debés marcar esta opción para continuar",
@@ -26,6 +42,8 @@ const esquemaComercio = z.object({
     message: "Debés marcar esta opción para continuar",
   }),
 });
+
+
 
 const RegistrarComercio = () => {
   const navegar = useNavigate();
@@ -145,12 +163,15 @@ const RegistrarComercio = () => {
 
             <div className="space-y-2">
               <Etiqueta htmlFor="direccion">Dirección exacta del comercio</Etiqueta>
-              <Entrada
-                id="direccion"
-                type="text"
+              <AutocompleteDireccion
+                valor={watch("direccion")}
+                alCambiar={(valor) => setValue("direccion", valor, { shouldValidate: true })}
+                alSeleccionarLugar={(direccion) => {
+                  setValue("direccion", direccion, { shouldValidate: true });
+                }}
                 placeholder="Ej: Av. Corrientes 1234, CABA"
-                aria-label="Dirección exacta del comercio"
-                {...register("direccion")}
+                ariaLabel="Dirección exacta del comercio"
+                error={errors.direccion?.message}
               />
               <p className="text-xs text-muted-foreground">
                 Solo direcciones dentro de Capital Federal, Buenos Aires,
