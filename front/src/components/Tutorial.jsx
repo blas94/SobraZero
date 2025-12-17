@@ -9,10 +9,8 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Boton } from "@/components/ui/Boton";
 import { Check } from "lucide-react";
 import logo from "@/assets/logo.png";
-
 export function Tutorial({ abierto, paso, alCompletar, alSaltar, textoBoton = "Siguiente" }) {
     if (!paso) return null;
-
     return (
         <Dialogo open={abierto} onOpenChange={(val) => !val && alSaltar()}>
             <ContenidoDialogo
@@ -23,13 +21,10 @@ export function Tutorial({ abierto, paso, alCompletar, alSaltar, textoBoton = "S
                     <TituloDialogo>{paso.titulo}</TituloDialogo>
                     <DescripcionDialogo>{paso.descripcion}</DescripcionDialogo>
                 </VisuallyHidden>
-
                 <div className="relative w-full flex-1 flex flex-col min-h-0">
                     <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-
                     <div className="h-full flex flex-col items-center justify-center p-6 sm:p-8 text-center pt-8 sm:pt-10 overflow-y-auto">
                         <div className="flex-1 flex flex-col items-center justify-center min-h-[250px] w-full">
-
                             {/* Renderizado condicional para pantalla de bienvenida (tiene logo) vs pasos normales */}
                             {paso.esBienvenida ? (
                                 <div className="flex flex-col items-center animate-in fade-in zoom-in duration-700">
@@ -42,7 +37,6 @@ export function Tutorial({ abierto, paso, alCompletar, alSaltar, textoBoton = "S
                                     {paso.icono}
                                 </div>
                             )}
-
                             <h3 className="text-2xl sm:text-3xl font-bold tracking-tight mb-3 sm:mb-4 text-gray-900 px-2">
                                 {paso.titulo}
                             </h3>
@@ -51,12 +45,10 @@ export function Tutorial({ abierto, paso, alCompletar, alSaltar, textoBoton = "S
                             </p>
                         </div>
                     </div>
-
                     <div className="p-4 sm:p-8 bg-white/50 backdrop-blur-sm border-t border-gray-100 shrink-0 relative z-10 w-full">
                         <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-4 w-full">
                             {/* Espaciador para centrar en mobile o alinear en desktop */}
                             <div className="hidden sm:block sm:w-1/3"></div>
-
                             <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto text-sm sm:text-base sm:w-2/3 justify-end">
                                 <Boton
                                     onClick={alCompletar}
@@ -65,7 +57,6 @@ export function Tutorial({ abierto, paso, alCompletar, alSaltar, textoBoton = "S
                                     {textoBoton}
                                     {paso.esUltimo && <Check className="w-4 h-4 ml-2" />}
                                 </Boton>
-
                                 {!paso.esUltimo && (
                                     <Boton
                                         variant="ghost"

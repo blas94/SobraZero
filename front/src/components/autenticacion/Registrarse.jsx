@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Boton } from "@/components/ui/Boton";
 import { Entrada } from "@/components/ui/Entrada";
-import { Mail, Lock, User, Phone, MapPin } from "lucide-react";
+import { Mail, Lock, User, Phone } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -23,7 +23,7 @@ const esquemaRegistro = z
         nombre: z.string().trim().min(1, "El nombre es requerido").max(100),
         email: z.string().trim().email("Email inválido").max(255),
         tel: z.string().trim().min(6, "Teléfono inválido").max(30),
-        ubicacion: z.string().trim().min(2, "Ubicación requerida").max(120),
+
         clave: z.string().trim().min(6, "Mínimo 6 caracteres").max(100),
         confirmarClave: z.string().trim().min(6, "Mínimo 6 caracteres").max(100),
     })
@@ -43,7 +43,7 @@ const Registrarse = ({ onCambiarPestana }) => {
             nombre: "",
             email: "",
             tel: "",
-            ubicacion: "",
+
             clave: "",
             confirmarClave: "",
         },
@@ -56,7 +56,7 @@ const Registrarse = ({ onCambiarPestana }) => {
                 nombre: datos.nombre,
                 email: datos.email,
                 tel: datos.tel,
-                ubicacion: datos.ubicacion,
+
                 clave: datos.clave,
             });
 
@@ -144,26 +144,7 @@ const Registrarse = ({ onCambiarPestana }) => {
                         )}
                     />
 
-                    <CampoFormulario
-                        control={formularioRegistro.control}
-                        name="ubicacion"
-                        render={({ field }) => (
-                            <ItemFormulario>
-                                <EtiquetaFormulario>Ubicación</EtiquetaFormulario>
-                                <ControlFormulario>
-                                    <div className="relative">
-                                        <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Entrada
-                                            placeholder="Calle 123, Ciudad"
-                                            className="pl-9"
-                                            {...field}
-                                        />
-                                    </div>
-                                </ControlFormulario>
-                                <MensajeFormulario />
-                            </ItemFormulario>
-                        )}
-                    />
+
 
                     <CampoFormulario
                         control={formularioRegistro.control}

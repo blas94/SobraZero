@@ -9,7 +9,10 @@ export async function marcarTutorialVisto() {
   const { data } = await authHttp.post("/auth/tutorial");
   return data;
 }
-
+export async function registrarPasoTutorial(paso) {
+  const { data } = await authHttp.post("/auth/tutorial/paso", { paso });
+  return data;
+}
 export async function registrarCuenta(datos) {
   const { data } = await authHttp.post("/auth/register", datos);
   return data;

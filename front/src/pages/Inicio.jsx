@@ -38,9 +38,11 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { createRoot } from "react-dom/client";
 import { usarTema } from "@/hooks/usar-tema";
+import { useAuth } from "@/context/AuthContext";
 
 const Inicio = () => {
   const navegar = useNavigate();
+  const { usuario } = useAuth();
   const { esModoOscuro } = usarTema();
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("all");
   const [busquedaTexto, setBusquedaTexto] = useState("");
@@ -162,19 +164,20 @@ const Inicio = () => {
   const isFirstRender = useRef(true);
 
   useEffect(() => {
-    // Chequear si ya consultamos el permiso previamente
-    const permisoConsultado = localStorage.getItem("permisoUbicacionConsultado");
+    const key = `permisoUbicacionConsultado_${usuario?.id}`;
+    const permisoConsultado = localStorage.getItem(key);
     if (!permisoConsultado) {
       // Mostrar modal custom
       const timer = setTimeout(() => setMostrarPermisoUbicacion(true), 1500); // Pequeño delay de UX
       return () => clearTimeout(timer);
     }
     // Si ya fue consultado, la lógica de activación se manejará en el evento 'load' del mapa
-  }, []);
+  }, [usuario?.id]);
 
   const handleAceptarUbicacion = () => {
     setMostrarPermisoUbicacion(false);
-    localStorage.setItem("permisoUbicacionConsultado", "true");
+    localStorage.setItem(`permisoUbicacionConsultado_${usuario?.id}`, "true");
+    window.dispatchEvent(new Event("ubicacionGestionada"));
     // Activar geolocalización ahora
     if (geolocateControlRef.current) {
       geolocateControlRef.current.trigger();
@@ -183,7 +186,8 @@ const Inicio = () => {
 
   const handleDenegarUbicacion = () => {
     setMostrarPermisoUbicacion(false);
-    localStorage.setItem("permisoUbicacionConsultado", "true");
+    localStorage.setItem(`permisoUbicacionConsultado_${usuario?.id}`, "true");
+    window.dispatchEvent(new Event("ubicacionGestionada"));
     // No hacemos nada, queda la ubicación default
   };
 
@@ -219,7 +223,7 @@ const Inicio = () => {
       const event = new CustomEvent("mapLoaded");
       window.dispatchEvent(event);
 
-      const permisoConsultado = localStorage.getItem("permisoUbicacionConsultado");
+      const permisoConsultado = localStorage.getItem(`permisoUbicacionConsultado_${usuario?.id}`);
       if (permisoConsultado) {
         geolocate.trigger();
       }

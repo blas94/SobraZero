@@ -31,9 +31,6 @@ function getAuthPayload(req) {
   }
 }
 
-
-
-
 router.post("/register", async (req, res) => {
   try {
     const { nombre, email, clave, tel } = req.body || {};
@@ -73,6 +70,7 @@ router.post("/register", async (req, res) => {
         tel: user.tel,
         avatar: user.avatar,
         vioTutorial: user.vioTutorial,
+        tutorialPasos: user.tutorialPasos || [], // <--- NUEVO
       },
     });
   } catch (e) {
@@ -114,6 +112,7 @@ router.post("/login", async (req, res) => {
         tel: user.tel,
         avatar: user.avatar,
         vioTutorial: user.vioTutorial,
+        tutorialPasos: user.tutorialPasos || [], // <--- NUEVO
       },
     });
   } catch (e) {
@@ -126,8 +125,9 @@ router.get("/me", async (req, res) => {
   const payload = getAuthPayload(req);
   if (!payload) return res.status(401).json({ error: "No autorizado" });
 
+  // Se agrega tutorialPasos al select
   const user = await Usuario.findById(payload.uid).select(
-    "_id nombre email tel avatar vioTutorial"
+    "_id nombre email tel avatar vioTutorial tutorialPasos"
   );
   if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
 
@@ -138,6 +138,7 @@ router.get("/me", async (req, res) => {
     tel: user.tel,
     avatar: user.avatar,
     vioTutorial: user.vioTutorial,
+    tutorialPasos: user.tutorialPasos || [], // <--- NUEVO
   });
 });
 
@@ -155,13 +156,10 @@ router.put("/me", async (req, res) => {
     actualizacion.avatar = avatar === null ? null : avatar;
   }
 
-
-
-
   const user = await Usuario.findByIdAndUpdate(
     payload.uid,
     { $set: actualizacion },
-    { new: true, runValidators: true, fields: "_id nombre email tel avatar vioTutorial" }
+    { new: true, runValidators: true, fields: "_id nombre email tel avatar vioTutorial tutorialPasos" } // Se agrega fields
   );
 
   if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
@@ -173,6 +171,7 @@ router.put("/me", async (req, res) => {
     tel: user.tel,
     avatar: user.avatar,
     vioTutorial: user.vioTutorial,
+    tutorialPasos: user.tutorialPasos || [], // <--- NUEVO
   });
 });
 
@@ -199,8 +198,9 @@ router.get("/verificar", async (req, res) => {
   const payload = getAuthPayload(req);
   if (!payload) return res.status(401).json({ autenticado: false });
 
+  // Se agrega tutorialPasos al select
   const user = await Usuario.findById(payload.uid).select(
-    "_id nombre email tel ubicacionTexto ubicacionGeo avatar vioTutorial"
+    "_id nombre email tel ubicacionTexto ubicacionGeo avatar vioTutorial tutorialPasos"
   );
   if (!user) return res.status(404).json({ autenticado: false });
 
@@ -213,6 +213,7 @@ router.get("/verificar", async (req, res) => {
       tel: user.tel,
       avatar: user.avatar,
       vioTutorial: user.vioTutorial,
+      tutorialPasos: user.tutorialPasos || [], // <--- NUEVO
     },
   });
 });
@@ -232,6 +233,29 @@ router.post("/tutorial", async (req, res) => {
   } catch (e) {
     console.error("Error updating tutorial:", e);
     return res.status(500).json({ error: "Error al actualizar estado" });
+  }
+});
+
+// NUEVO ENDPOINT: Registrar paso individual del tutorial
+router.post("/tutorial/paso", async (req, res) => {
+  const payload = getAuthPayload(req);
+  if (!payload) return res.status(401).json({ error: "No autorizado" });
+
+  const { paso } = req.body;
+  if (!paso) return res.status(400).json({ error: "Paso requerido" });
+
+  try {
+    // Usamos $addToSet para que no se guarden pasos duplicados si el usuario insiste
+    const user = await Usuario.findByIdAndUpdate(
+      payload.uid,
+      { $addToSet: { tutorialPasos: paso } },
+      { new: true }
+    );
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+    return res.json({ success: true, tutorialPasos: user.tutorialPasos });
+  } catch (e) {
+    console.error("Error updating tutorial step:", e);
+    return res.status(500).json({ error: "Error al registrar paso" });
   }
 });
 

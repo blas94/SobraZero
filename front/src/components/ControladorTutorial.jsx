@@ -1,50 +1,49 @@
 import { useEffect, useState, useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Tutorial } from "@/components/Tutorial";
-import { marcarTutorialVisto } from "@/services/autenticacion";
+import { marcarTutorialVisto, registrarPasoTutorial } from "@/services/autenticacion";
 import { Heart, User, ShoppingBag } from "lucide-react";
-
 export function ControladorTutorial() {
     const { usuario, updateUser } = useAuth();
     const [abierto, setAbierto] = useState(false);
     const ubicacion = useLocation();
-
-    // Recuperar pasos vistos desde localStorage para este usuario
-    const getPasosVistos = () => {
-        if (!usuario) return [];
-        const guardados = localStorage.getItem(`tutorial_vistos_${usuario.id}`);
-        return guardados ? JSON.parse(guardados) : [];
-    };
-
-    const [pasosVistos, setPasosVistos] = useState([]);
-
-    // Sincronizar estado inicial al cargar usuario
+    // Estado para saber si ya gestionó la ubicación (solo relevante para /inicio)
+    const [permisoUbicacionConsultado, setPermisoUbicacionConsultado] = useState(false);
+    // Actualizar estado basado en localStorage específico del usuario
     useEffect(() => {
-        if (usuario) {
-            setPasosVistos(getPasosVistos());
+        if (usuario?.id) {
+            const consultado = !!localStorage.getItem(`permisoUbicacionConsultado_${usuario.id}`);
+            setPermisoUbicacionConsultado(consultado);
         }
     }, [usuario?.id]);
-
-    // Definición de pasos
+    // Escuchar evento (para actualización en tiempo real cuando el usuario acepta/deniega)
+    useEffect(() => {
+        const manejarUbicacionGestionada = () => {
+            setPermisoUbicacionConsultado(true);
+        };
+        window.addEventListener("ubicacionGestionada", manejarUbicacionGestionada);
+        return () => window.removeEventListener("ubicacionGestionada", manejarUbicacionGestionada);
+    }, []);
+    // DEFINICIÓN DE PASOS
     const pasos = useMemo(() => ({
         "/inicio": {
             esBienvenida: true,
             titulo: "Bienvenido a SobraZero",
             descripcion: "En la pantalla de Inicio encontrarás las mejores ofertas cerca de tu ubicación. ¡No te pierdas nada!",
-            textoBoton: "Entendido"
+            textoBoton: "Continuar"
         },
         "/pedidos": {
             icono: <ShoppingBag className="w-12 h-12 text-primary mb-4" />,
             titulo: "Pedidos",
             descripcion: "Seguí el estado de tus reservas en tiempo real. Desde la confirmación hasta el retiro.",
-            textoBoton: "Entendido"
+            textoBoton: "Continuar"
         },
         "/favoritos": {
             icono: <Heart className="w-12 h-12 text-primary mb-4" />,
             titulo: "Favoritos",
             descripcion: "Guardá tus comercios preferidos para acceder rápido a sus ofertas cuando lo necesites.",
-            textoBoton: "Entendido"
+            textoBoton: "Continuar"
         },
         "/perfil": {
             icono: <User className="w-12 h-12 text-primary mb-4" />,
@@ -54,19 +53,20 @@ export function ControladorTutorial() {
             esUltimo: true
         }
     }), []);
-
     const pasoActual = pasos[ubicacion.pathname];
-
-    // Determinar si debemos mostrar el modal
+    // LÓGICA DE VISUALIZACIÓN
+    const pasosVistosBD = usuario?.tutorialPasos || [];
+    // CONDICIÓN ESPECIAL: Si estamos en /inicio, DEBEMOS esperar a que acepte/deniegue ubicación
+    const enInicio = ubicacion.pathname === "/inicio";
+    const esperaUbicacion = enInicio && !permisoUbicacionConsultado;
     const debeMostrar =
         usuario &&
         usuario.vioTutorial === false &&
         pasoActual &&
-        !pasosVistos.includes(ubicacion.pathname);
-
+        !pasosVistosBD.includes(ubicacion.pathname) &&
+        !esperaUbicacion;
     useEffect(() => {
         if (debeMostrar) {
-            // Pequeño delay para renderizado
             const temporizador = setTimeout(() => {
                 setAbierto(true);
             }, 800);
@@ -75,12 +75,10 @@ export function ControladorTutorial() {
             setAbierto(false);
         }
     }, [debeMostrar, ubicacion.pathname]);
-
+    // ACCIONES
     const finalizarTutorialCompleto = async () => {
         setAbierto(false);
         if (!usuario) return;
-
-        // Actualizamos backend y contexto para que no vuelva a aparecer NUNCA
         updateUser({ ...usuario, vioTutorial: true });
         try {
             await marcarTutorialVisto();
@@ -88,23 +86,37 @@ export function ControladorTutorial() {
             console.error("Error al finalizar tutorial", error);
         }
     };
-
-    const manejarAceptar = () => {
+    const navegar = useNavigate();
+    // MAPA DE NAVEGACIÓN
+    const siguientePaso = useMemo(() => ({
+        "/inicio": "/pedidos",
+        "/pedidos": "/favoritos",
+        "/favoritos": "/perfil",
+        "/perfil": null // Último paso
+    }), []);
+    const manejarAceptar = async () => {
         setAbierto(false);
-
-        // 1. Marcar paso actual como visto localmente
-        const nuevosVistos = [...pasosVistos, ubicacion.pathname];
-        setPasosVistos(nuevosVistos);
-        localStorage.setItem(`tutorial_vistos_${usuario.id}`, JSON.stringify(nuevosVistos));
-
-        // 2. Si es el último paso o una acción especial, finalizamos todo
+        if (!usuario) return;
+        const nuevosPasos = [...pasosVistosBD, ubicacion.pathname];
+        updateUser({ ...usuario, tutorialPasos: nuevosPasos });
+        try {
+            await registrarPasoTutorial(ubicacion.pathname);
+        } catch (error) {
+            console.error("Error guardando paso tutorial:", error);
+        }
         if (pasoActual?.esUltimo) {
             finalizarTutorialCompleto();
+        } else {
+            // Navegar automáticamente al siguiente paso
+            const proximo = siguientePaso[ubicacion.pathname];
+            if (proximo) {
+                setTimeout(() => {
+                    navegar(proximo);
+                }, 300); // Pequeño delay para suavizar la transición
+            }
         }
     };
-
     if (!debeMostrar && !abierto) return null;
-
     return (
         <Tutorial
             abierto={abierto}

@@ -10,6 +10,7 @@ const UserSchema = new mongoose.Schema(
     avatar: { type: String }, // Base64 string
 
     vioTutorial: { type: Boolean, default: false },
+    tutorialPasos: { type: [String], default: [] },
 
     // Recuperación de contraseña
     resetPasswordToken: { type: String, select: false },
