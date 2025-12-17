@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef, useMemo } from "react";
 import {
   Search,
   MapPin,
@@ -26,6 +25,7 @@ import {
   TituloCajon,
 } from "@/components/ui/Cajon";
 import { Tarjeta } from "@/components/ui/Tarjeta";
+import TarjetaComercio from "@/components/TarjetaComercio";
 import FiltrosComercio from "@/components/FiltrosComercio";
 import ContenidoComercio from "@/components/ContenidoComercio";
 import NavegacionInferior from "@/components/NavegacionInferior";
@@ -51,6 +51,8 @@ const Inicio = () => {
   const mapaRef = useRef(null);
   const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
   const [comercioSeleccionado, setComercioSeleccionado] = useState(null);
+  const [mostrandoLista, setMostrandoLista] = useState(false);
+  const buscadorRef = useRef(null);
   const [mostrarPermisoUbicacion, setMostrarPermisoUbicacion] = useState(false);
   const [debeCentrarMapa, setDebeCentrarMapa] = useState(false);
   const [tokenMapbox] = useState(
@@ -106,9 +108,9 @@ const Inicio = () => {
     setNotificaciones([]);
   };
 
-  const normalizarTexto = (texto = "") => {
-    return texto
-      .toString()
+  const normalizarTexto = (texto) => {
+    if (!texto) return "";
+    return String(texto)
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
@@ -130,6 +132,32 @@ const Inicio = () => {
 
     return coincideCategoria && coincideBusqueda;
   });
+
+  const comerciosLista = useMemo(() => {
+    let baseComercios = comerciosLocales;
+    if (categoriaSeleccionada !== "all") {
+      baseComercios = baseComercios.filter(c => c.categoria === categoriaSeleccionada);
+    }
+    if (!busquedaTexto) {
+      return baseComercios;
+    }
+    return baseComercios.filter((comercio) => {
+      const busquedaNormalizada = normalizarTexto(busquedaTexto);
+      const nombreNormalizado = normalizarTexto(comercio.nombre);
+      return nombreNormalizado.includes(busquedaNormalizada);
+    });
+  }, [comerciosLocales, categoriaSeleccionada, busquedaTexto]);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (buscadorRef.current && !buscadorRef.current.contains(event.target)) {
+        setMostrandoLista(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const comerciosMapaFiltrados = comerciosLocales.filter((comercio) => {
     const coincideCategoria =
@@ -437,13 +465,17 @@ const Inicio = () => {
 
       <h1 className="sr-only">Buscador de Comercios</h1>
 
-      <div className="absolute top-4 left-4 right-4 z-10 flex gap-2">
+      <div className="absolute top-4 left-4 right-4 z-50 flex gap-2" ref={buscadorRef}>
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
           <Entrada
             placeholder="Buscar comercios..."
             value={busquedaTexto}
-            onChange={(e) => setBusquedaTexto(e.target.value)}
+            onFocus={() => setMostrandoLista(true)}
+            onChange={(e) => {
+              setBusquedaTexto(e.target.value);
+              setMostrandoLista(true);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 setBusquedaMapa(busquedaTexto);
@@ -465,6 +497,31 @@ const Inicio = () => {
             >
               <X className="w-4 h-4" />
             </Boton>
+          )}
+          {/* Lista desplegable de comercios */}
+          {mostrandoLista && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-md rounded-xl shadow-lg border border-border overflow-hidden max-h-[60vh] overflow-y-auto">
+              {comerciosLista.length > 0 ? (
+                <div className="p-2 space-y-2">
+                  {comerciosLista.map((comercio) => (
+                    <TarjetaComercio
+                      key={comercio.id}
+                      {...comercio}
+                      onClick={() => {
+                        setComercioSeleccionado(comercio.id);
+                        setMostrandoLista(false);
+                        setBusquedaTexto(""); // Opcional: limpiar búsqueda al seleccionar
+                      }}
+                      nivelEncabezado="h4"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 text-center text-muted-foreground text-sm">
+                  {busquedaTexto ? "No se encontraron comercios" : "Escribe para buscar comercios"}
+                </div>
+              )}
+            </div>
           )}
         </div>
         <Boton
