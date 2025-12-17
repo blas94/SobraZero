@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Search,
   MapPin,
@@ -39,7 +40,6 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { createRoot } from "react-dom/client";
 import { usarTema } from "@/hooks/usar-tema";
 import { useAuth } from "@/context/AuthContext";
-
 const Inicio = () => {
   const navegar = useNavigate();
   const { usuario } = useAuth();
@@ -97,30 +97,24 @@ const Inicio = () => {
       unread: false,
     },
   ]);
-
   const notificacionesSinLeer = notificaciones.filter((n) => n.unread).length;
-
   const manejarEliminarNotificacion = (notificationId) => {
     setNotificaciones((prev) => prev.filter((n) => n.id !== notificationId));
   };
-
   const manejarEliminarTodasNotificaciones = () => {
     setNotificaciones([]);
   };
-
-  const normalizarTexto = (texto) => {
-    if (!texto) return "";
-    return String(texto)
+  const normalizarTexto = (texto = "") => {
+    return texto
+      .toString()
       .toLowerCase()
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
   };
-
   const comerciosFiltrados = comerciosLocales.filter((comercio) => {
     const coincideCategoria =
       categoriaSeleccionada === "all" ||
       comercio.categoria === categoriaSeleccionada;
-
     const busquedaNormalizada = normalizarTexto(busquedaMapa);
     const nombreNormalizado = normalizarTexto(comercio.nombre);
     const palabrasBusqueda = busquedaNormalizada
@@ -129,10 +123,23 @@ const Inicio = () => {
     const coincideBusqueda =
       palabrasBusqueda.length === 0 ||
       palabrasBusqueda.every((palabra) => nombreNormalizado.includes(palabra));
-
     return coincideCategoria && coincideBusqueda;
   });
-
+  const comerciosMapaFiltrados = comerciosLocales.filter((comercio) => {
+    const coincideCategoria =
+      categoriaSeleccionada === "all" ||
+      comercio.categoria === categoriaSeleccionada;
+    const busquedaNormalizada = normalizarTexto(busquedaMapa);
+    const nombreNormalizado = normalizarTexto(comercio.nombre);
+    const palabrasBusqueda = busquedaNormalizada
+      .split(" ")
+      .filter((palabra) => palabra.length > 0);
+    const coincideBusqueda =
+      palabrasBusqueda.length === 0 ||
+      palabrasBusqueda.every((palabra) => nombreNormalizado.includes(palabra));
+    return coincideCategoria && coincideBusqueda;
+  });
+  // Comercios para la lista (filtrado en tiempo real por busquedaTexto)
   const comerciosLista = useMemo(() => {
     let baseComercios = comerciosLocales;
     if (categoriaSeleccionada !== "all") {
@@ -141,12 +148,15 @@ const Inicio = () => {
     if (!busquedaTexto) {
       return baseComercios;
     }
+
     return baseComercios.filter((comercio) => {
       const busquedaNormalizada = normalizarTexto(busquedaTexto);
       const nombreNormalizado = normalizarTexto(comercio.nombre);
+
       return nombreNormalizado.includes(busquedaNormalizada);
     });
   }, [comerciosLocales, categoriaSeleccionada, busquedaTexto]);
+  // Manejar clic fuera del buscador para cerrar la lista
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (buscadorRef.current && !buscadorRef.current.contains(event.target)) {
@@ -158,39 +168,17 @@ const Inicio = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const comerciosMapaFiltrados = comerciosLocales.filter((comercio) => {
-    const coincideCategoria =
-      categoriaSeleccionada === "all" ||
-      comercio.categoria === categoriaSeleccionada;
-
-    const busquedaNormalizada = normalizarTexto(busquedaMapa);
-    const nombreNormalizado = normalizarTexto(comercio.nombre);
-    const palabrasBusqueda = busquedaNormalizada
-      .split(" ")
-      .filter((palabra) => palabra.length > 0);
-    const coincideBusqueda =
-      palabrasBusqueda.length === 0 ||
-      palabrasBusqueda.every((palabra) => nombreNormalizado.includes(palabra));
-
-    return coincideCategoria && coincideBusqueda;
-  });
-
-
-
   const [mapaCentro] = useState(() => {
     const coordsGuardadas = localStorage.getItem("ultimasCoordenadas");
     return coordsGuardadas
       ? JSON.parse(coordsGuardadas)
       : [-58.3960002, -34.6043469];
   });
-
   // Referencia para guardar la ubicación sin causar re-renders
   const ultimaUbicacionRef = useRef(mapaCentro);
   const marcadoresRef = useRef([]);
   const geolocateControlRef = useRef(null);
   const isFirstRender = useRef(true);
-
   useEffect(() => {
     const key = `permisoUbicacionConsultado_${usuario?.id}`;
     const permisoConsultado = localStorage.getItem(key);
@@ -201,7 +189,6 @@ const Inicio = () => {
     }
     // Si ya fue consultado, la lógica de activación se manejará en el evento 'load' del mapa
   }, [usuario?.id]);
-
   const handleAceptarUbicacion = () => {
     setMostrarPermisoUbicacion(false);
     localStorage.setItem(`permisoUbicacionConsultado_${usuario?.id}`, "true");
@@ -211,19 +198,15 @@ const Inicio = () => {
       geolocateControlRef.current.trigger();
     }
   };
-
   const handleDenegarUbicacion = () => {
     setMostrarPermisoUbicacion(false);
     localStorage.setItem(`permisoUbicacionConsultado_${usuario?.id}`, "true");
     window.dispatchEvent(new Event("ubicacionGestionada"));
     // No hacemos nada, queda la ubicación default
   };
-
   useEffect(() => {
     if (!contenedorMapa.current || mapaRef.current) return;
-
     mapboxgl.accessToken = tokenMapbox;
-
     mapaRef.current = new mapboxgl.Map({
       container: contenedorMapa.current,
       style: esModoOscuro
@@ -232,9 +215,7 @@ const Inicio = () => {
       center: mapaCentro,
       zoom: 14,
     });
-
     mapaRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
-
     const geolocate = new mapboxgl.GeolocateControl({
       positionOptions: {
         enableHighAccuracy: true,
@@ -242,21 +223,17 @@ const Inicio = () => {
       trackUserLocation: true,
       showUserHeading: true,
     });
-
     geolocateControlRef.current = geolocate;
     mapaRef.current.addControl(geolocate, "top-right");
-
     // Activar el control visual de Mapbox en cuanto cargue
     mapaRef.current.on('load', () => {
       const event = new CustomEvent("mapLoaded");
       window.dispatchEvent(event);
-
       const permisoConsultado = localStorage.getItem(`permisoUbicacionConsultado_${usuario?.id}`);
       if (permisoConsultado) {
         geolocate.trigger();
       }
     });
-
     // Guardar la última posición del mapa cuando el usuario deja de moverlo
     mapaRef.current.on("moveend", () => {
       if (mapaRef.current) {
@@ -266,7 +243,6 @@ const Inicio = () => {
         localStorage.setItem("ultimasCoordenadas", JSON.stringify(centerArray));
       }
     });
-
     return () => {
       marcadoresRef.current.forEach((marker) => marker.remove());
       marcadoresRef.current = [];
@@ -276,7 +252,6 @@ const Inicio = () => {
       }
     };
   }, [tokenMapbox]);
-
   // Efecto para ajustar el mapa a los comercios filtrados
   useEffect(() => {
     // Evitar que el mapa se centre automáticamente en el primer render,
@@ -285,28 +260,22 @@ const Inicio = () => {
       isFirstRender.current = false;
       return;
     }
-
     // Solo centrar si se activó explícitamente
     if (!debeCentrarMapa) return;
-
     if (!mapaRef.current || !mapaRef.current.loaded()) {
       setDebeCentrarMapa(false);
       return;
     }
-
     // Si no hay comercios filtrados, mostrar notificación
     if (comerciosMapaFiltrados.length === 0) {
       toast.info("No se encontraron comercios");
       setDebeCentrarMapa(false);
       return;
     }
-
     const bounds = new mapboxgl.LngLatBounds();
-
     comerciosMapaFiltrados.forEach((comercio) => {
       bounds.extend([comercio.longitud, comercio.latitud]);
     });
-
     // Solo ajustar si el bounds no está vacío
     if (!bounds.isEmpty()) {
       mapaRef.current.fitBounds(bounds, {
@@ -315,30 +284,23 @@ const Inicio = () => {
         duration: 1000,
       });
     }
-
     // Resetear la bandera
     setDebeCentrarMapa(false);
-
   }, [debeCentrarMapa, comerciosMapaFiltrados]);
-
   useEffect(() => {
     // Función para limpiar todos los marcadores actuales
     const clearMarkers = () => {
       marcadoresRef.current.forEach((marker) => marker.remove());
       marcadoresRef.current = [];
     };
-
     const updateMarkers = () => {
       if (!mapaRef.current) return;
-
       clearMarkers();
-
       comerciosMapaFiltrados.forEach((comercio) => {
         if (mapaRef.current) {
           // Find category data to get the icon
           const categoriaData = categorias.find(c => c.id === comercio.categoria) || categorias[0];
           const Icono = categoriaData.icon;
-
           // Create marker DOM element
           const el = document.createElement('div');
           el.className = 'custom-marker';
@@ -352,35 +314,27 @@ const Inicio = () => {
           el.style.color = 'white';
           el.style.cursor = 'pointer';
           el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
-
           // Render icon into the element
           const root = createRoot(el);
           root.render(<Icono size={18} />);
-
           const marker = new mapboxgl.Marker({ element: el })
             .setLngLat([comercio.longitud, comercio.latitud])
             .addTo(mapaRef.current);
-
           marker.getElement().addEventListener("click", () => {
             setComercioSeleccionado(comercio.id);
           });
-
           marcadoresRef.current.push(marker);
         }
       });
     };
-
     // Asegurarse de limpiar antes de actualizar
     updateMarkers();
-
     window.addEventListener("mapLoaded", updateMarkers);
-
     return () => {
       window.removeEventListener("mapLoaded", updateMarkers);
       clearMarkers(); // Limpiar al desmontar efecto
     };
   }, [navegar, comerciosMapaFiltrados, esModoOscuro]);
-
   // Actualizar estilo del mapa cuando cambie el modo oscuro
   useEffect(() => {
     if (mapaRef.current) {
@@ -391,23 +345,18 @@ const Inicio = () => {
       );
     }
   }, [esModoOscuro]);
-
   useEffect(() => {
     if (mostrarNotificaciones) {
       window.history.pushState({ notificacionesOpen: true }, "");
-
       const handlePopState = (event) => {
         setMostrarNotificaciones(false);
       };
-
       window.addEventListener("popstate", handlePopState);
-
       return () => {
         window.removeEventListener("popstate", handlePopState);
       };
     }
   }, [mostrarNotificaciones]);
-
   useEffect(() => {
     const manejarReservaComercio = (evento) => {
       const { idComercio, nuevoDisponible } = evento.detail;
@@ -419,12 +368,10 @@ const Inicio = () => {
         )
       );
     };
-
     window.addEventListener("comercioReservado", manejarReservaComercio);
     return () =>
       window.removeEventListener("comercioReservado", manejarReservaComercio);
   }, []);
-
   return (
     <div className="relative w-full h-screen overflow-hidden">
       <div
@@ -462,9 +409,7 @@ const Inicio = () => {
           filter: invert(38%) sepia(61%) saturate(464%) hue-rotate(86deg) brightness(80%) contrast(90%) !important;
         }
       `}</style>
-
       <h1 className="sr-only">Buscador de Comercios</h1>
-
       <div className="absolute top-4 left-4 right-4 z-50 flex gap-2" ref={buscadorRef}>
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
@@ -506,11 +451,19 @@ const Inicio = () => {
                   {comerciosLista.map((comercio) => (
                     <TarjetaComercio
                       key={comercio.id}
-                      {...comercio}
+                      nombre={comercio.nombre}
+                      categoria={comercio.categoria}
+                      distancia={comercio.distancia}
+                      calificacion={comercio.calificacion}
+                      totalReseñas={comercio.totalReseñas}
+                      descuento={comercio.descuento}
+                      horarioRetiro={comercio.horarioRetiro}
+                      disponibles={comercio.disponibles}
+                      imagenUrl={comercio.imagenUrl}
                       onClick={() => {
                         setComercioSeleccionado(comercio.id);
                         setMostrandoLista(false);
-                        setBusquedaTexto(""); // Opcional: limpiar búsqueda al seleccionar
+                        setBusquedaTexto("");
                       }}
                       nivelEncabezado="h4"
                     />
@@ -541,7 +494,6 @@ const Inicio = () => {
           )}
         </Boton>
       </div>
-
       <div className="absolute top-16 left-4 right-4 z-10">
         <FiltrosComercio
           categoriaSeleccionada={categoriaSeleccionada}
@@ -553,12 +505,7 @@ const Inicio = () => {
           }}
         />
       </div>
-
-
-
-
       <NavegacionInferior />
-
       <Cajon
         open={!!comercioSeleccionado}
         onOpenChange={(open) => !open && setComercioSeleccionado(null)}
@@ -586,7 +533,6 @@ const Inicio = () => {
           </div>
         </ContenidoCajon>
       </Cajon>
-
       <Hoja
         open={mostrarNotificaciones}
         onOpenChange={setMostrarNotificaciones}
@@ -598,7 +544,6 @@ const Inicio = () => {
           <EncabezadoHoja>
             <TituloHoja>Notificaciones</TituloHoja>
           </EncabezadoHoja>
-
           <div className="mt-6 space-y-3 pb-6">
             {notificaciones.length === 0 ? (
               <div className="text-center py-12">
@@ -667,9 +612,7 @@ const Inicio = () => {
           </div >
         </ContenidoHoja >
       </Hoja >
-
       <NavegacionInferior />
-
       <PermisoUbicacion
         open={mostrarPermisoUbicacion}
         onAccept={handleAceptarUbicacion}
@@ -678,5 +621,4 @@ const Inicio = () => {
     </div >
   );
 };
-
 export default Inicio;
