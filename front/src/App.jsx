@@ -31,8 +31,9 @@ import EstadoPago from "./pages/EstadoPago";
 import EditarPerfil from "./pages/EditarPerfil";
 import RegistrarComercio from "./pages/RegistrarComercio";
 import EditarComercio from "./pages/EditarComercio";
-import RecuperarPassword from "./pages/RecuperarPassword";
-import RestablecerPassword from "./pages/RestablecerPassword";
+import RecuperarClave from "./pages/RecuperarClave";
+import RestablecerClave from "./pages/RestablecerClave";
+import CambiarClave from "./pages/CambiarClave";
 import VerificarCambioEmail from "./pages/VerificarCambioEmail";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
@@ -127,11 +128,15 @@ const App = () => {
                   <Route path="/autenticacion" element={<Autenticacion />} />
                   <Route
                     path="/recuperar-clave"
-                    element={<RecuperarPassword />}
+                    element={<RecuperarClave />}
                   />
                   <Route
-                    path="/restablecer-password"
-                    element={<RestablecerPassword />}
+                    path="/restablecer-clave"
+                    element={<RestablecerClave />}
+                  />
+                  <Route
+                    path="/cambiar-clave"
+                    element={<CambiarClave />}
                   />
                   <Route
                     path="/verificar-cambio-email"

@@ -8,7 +8,7 @@ import { Boton } from "@/components/ui/Boton";
 import { Entrada } from "@/components/ui/Entrada";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
-import { restablecerPassword } from "@/services/autenticacion";
+import { restablecerClave } from "@/services/autenticacion";
 import {
     Formulario,
     ControlFormulario,
@@ -27,7 +27,7 @@ const esquemaReset = z.object({
     path: ["confirmPassword"],
 });
 
-const RestablecerPassword = () => {
+const RestablecerClave = () => {
     const [searchParams] = useSearchParams();
     const token = searchParams.get("token");
     const navegar = useNavigate();
@@ -49,7 +49,7 @@ const RestablecerPassword = () => {
 
         setEnviando(true);
         try {
-            await restablecerPassword(token, data.newPassword);
+            await restablecerClave(token, data.newPassword);
             toast.success("Contraseña actualizada exitosamente");
             setTimeout(() => navegar("/autenticacion"), 2000);
         } catch (error) {
@@ -125,4 +125,4 @@ const RestablecerPassword = () => {
     );
 };
 
-export default RestablecerPassword;
+export default RestablecerClave;

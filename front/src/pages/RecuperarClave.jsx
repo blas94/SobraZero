@@ -28,9 +28,9 @@ const esquemaRecupero = z.object({
     .max(255, "Máximo 255 caracteres"),
 });
 
-import { recuperarPassword } from "@/services/autenticacion";
+import { recuperarClave } from "@/services/autenticacion";
 
-const RecuperarPassword = () => {
+const RecuperarClave = () => {
   const navegar = useNavigate();
   const { esModoOscuro } = usarTema();
   const [enviando, setEnviando] = useState(false);
@@ -45,7 +45,7 @@ const RecuperarPassword = () => {
   const manejarEnvio = async (data) => {
     setEnviando(true);
     try {
-      await recuperarPassword(data.email);
+      await recuperarClave(data.email);
       toast.success(
         "Enviamos un correo con instrucciones para restablecer tu contraseña"
       );
@@ -124,4 +124,4 @@ const RecuperarPassword = () => {
   );
 };
 
-export default RecuperarPassword;
+export default RecuperarClave;

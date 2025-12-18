@@ -57,6 +57,7 @@ const Inicio = () => {
   );
   const [comerciosLocales, setComerciosLocales] = useState([]);
   const [cargandoComercios, setCargandoComercios] = useState(true);
+  const [ubicacionUsuario, setUbicacionUsuario] = useState(null);
   const [notificaciones, setNotificaciones] = useState([
     {
       id: "1",
@@ -96,6 +97,38 @@ const Inicio = () => {
     },
   ]);
   const notificacionesSinLeer = notificaciones.filter((n) => n.unread).length;
+
+  // Función para calcular distancia entre dos puntos usando fórmula de Haversine
+  const calcularDistancia = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distanciaKm = R * c;
+
+    // Formatear según la distancia
+    if (distanciaKm < 1) {
+      return `${Math.round(distanciaKm * 1000)} m`;
+    }
+    return `${distanciaKm.toFixed(1)} km`;
+  };
+
+  // Función auxiliar para obtener distancia numérica (para ordenar)
+  const calcularDistanciaNum = (lat1, lon1, lat2, lon2) => {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // Retornar valor numérico en km
+  };
   const manejarEliminarNotificacion = (notificationId) => {
     setNotificaciones((prev) => prev.filter((n) => n.id !== notificationId));
   };
@@ -140,9 +173,38 @@ const Inicio = () => {
   // Comercios para la lista (filtrado en tiempo real por busquedaTexto)
   const comerciosLista = useMemo(() => {
     let baseComercios = comerciosLocales;
+
+    // Filtrar por categoría
     if (categoriaSeleccionada !== "all") {
       baseComercios = baseComercios.filter(c => c.categoria === categoriaSeleccionada);
     }
+
+    // Agregar distancia calculada dinámicamente
+    baseComercios = baseComercios.map(comercio => ({
+      ...comercio,
+      distancia: ubicacionUsuario
+        ? calcularDistancia(
+          ubicacionUsuario.lat,
+          ubicacionUsuario.lng,
+          comercio.latitud,
+          comercio.longitud
+        )
+        : comercio.distancia || "Calculando...",
+      // Guardar distancia numérica para ordenar
+      distanciaNum: ubicacionUsuario
+        ? calcularDistanciaNum(
+          ubicacionUsuario.lat,
+          ubicacionUsuario.lng,
+          comercio.latitud,
+          comercio.longitud
+        )
+        : Infinity
+    }));
+
+    // Ordenar por distancia (más cercano primero)
+    baseComercios.sort((a, b) => a.distanciaNum - b.distanciaNum);
+
+    // Filtrar por búsqueda
     if (!busquedaTexto) {
       return baseComercios;
     }
@@ -150,10 +212,9 @@ const Inicio = () => {
     return baseComercios.filter((comercio) => {
       const busquedaNormalizada = normalizarTexto(busquedaTexto);
       const nombreNormalizado = normalizarTexto(comercio.nombre);
-
       return nombreNormalizado.includes(busquedaNormalizada);
     });
-  }, [comerciosLocales, categoriaSeleccionada, busquedaTexto]);
+  }, [comerciosLocales, categoriaSeleccionada, busquedaTexto, ubicacionUsuario]);
   // Manejar clic fuera del buscador para cerrar la lista
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -258,6 +319,22 @@ const Inicio = () => {
     });
     geolocateControlRef.current = geolocate;
     mapaRef.current.addControl(geolocate, "top-right");
+
+    // Actualizar ubicación del usuario cuando se obtiene geolocalización
+    geolocate.on('geolocate', (e) => {
+      if (e && e.coords) {
+        setUbicacionUsuario({
+          lat: e.coords.latitude,
+          lng: e.coords.longitude
+        });
+      }
+    });
+
+    // Actualizar ubicación inicial del mapa
+    setUbicacionUsuario({
+      lat: mapaCentro[1],
+      lng: mapaCentro[0]
+    });
     // Activar el control visual de Mapbox en cuanto cargue
     mapaRef.current.on('load', () => {
       const event = new CustomEvent("mapLoaded");
@@ -274,6 +351,7 @@ const Inicio = () => {
         const centerArray = [center.lng, center.lat];
         ultimaUbicacionRef.current = centerArray;
         localStorage.setItem("ultimasCoordenadas", JSON.stringify(centerArray));
+        // NO actualizar ubicacionUsuario aquí - debe mantenerse en la ubicación GPS del usuario
       }
     });
     return () => {
@@ -458,6 +536,7 @@ const Inicio = () => {
               if (e.key === "Enter") {
                 setBusquedaMapa(busquedaTexto);
                 setDebeCentrarMapa(true);
+                setMostrandoLista(false); // Cerrar lista desplegable
                 e.currentTarget.blur();
               }
             }}

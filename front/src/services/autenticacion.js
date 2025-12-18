@@ -46,12 +46,12 @@ export async function verificarSesion() {
   return data;
 }
 
-export const recuperarPassword = async (email) => {
+export const recuperarClave = async (email) => {
   const { data } = await authHttp.post("/auth/forgot-password", { email });
   return data;
 };
 
-export const restablecerPassword = async (token, newPassword) => {
+export const restablecerClave = async (token, newPassword) => {
   const { data } = await authHttp.post("/auth/reset-password", {
     token,
     newPassword,
