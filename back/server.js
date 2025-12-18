@@ -5,13 +5,14 @@ import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
-
 import reservasRouter from "./server/routes/reservas.js";
 import authRouter from "./server/routes/auth.js";
 import pagosRouter from "./server/routes/pagos.js";
 import comerciosRouter from "./server/routes/comercios.js";
 import reseñasRouter from "./server/routes/reseñas.js";
 import mercadopagoRouter from "./server/routes/mercadopago.js";
+import adminRouter from "./server/routes/admin.js";
+
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, ".env") });
@@ -99,6 +100,7 @@ app.use("/api/pagos", pagosRouter);
 app.use("/api/comercios", comerciosRouter);
 app.use("/api/resenas", reseñasRouter);
 app.use("/api/mercadopago", mercadopagoRouter);
+app.use("/api/admin", adminRouter);
 
 app.listen(PORT, () => {
   const mpMasked = MP_ACCESS_TOKEN

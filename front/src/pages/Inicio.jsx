@@ -481,7 +481,7 @@ const Inicio = () => {
             <div className="absolute top-full left-0 right-0 mt-2 bg-background/95 backdrop-blur-md rounded-xl shadow-lg border border-border overflow-hidden max-h-[60vh] overflow-y-auto">
               {comerciosLista.length > 0 ? (
                 <div className="p-2 space-y-2">
-                  {comerciosLista.map((comercio) => (
+                  {comerciosLista.slice(0, window.innerWidth < 768 ? 2 : 5).map((comercio) => (
                     <TarjetaComercio
                       key={comercio.id}
                       nombre={comercio.nombre}

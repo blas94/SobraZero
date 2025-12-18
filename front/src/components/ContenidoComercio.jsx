@@ -590,12 +590,14 @@ const ContenidoComercio = ({
                       key={estrella}
                       type="button"
                       onClick={() => setNuevaReseñaCalificacion(estrella)}
-                      className={`text-2xl transition-colors ${estrella <= nuevaReseñaCalificacion
-                        ? "text-yellow-400"
-                        : "text-gray-300 dark:text-gray-600"
-                        }`}
+                      className="transition-transform hover:scale-110"
                     >
-                      ★
+                      <Star
+                        className={`w-6 h-6 transition-colors ${estrella <= nuevaReseñaCalificacion
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "fill-gray-300 text-gray-300 dark:fill-gray-600 dark:text-gray-600"
+                          }`}
+                      />
                     </button>
                   ))}
                 </div>
