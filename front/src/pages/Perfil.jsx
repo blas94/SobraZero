@@ -9,6 +9,9 @@ import {
   Leaf,
   DollarSign,
   Store,
+  Clock,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 
 import { Tarjeta } from "@/components/ui/Tarjeta";
@@ -33,6 +36,7 @@ import {
 import { obtenerPerfil } from "@/services/autenticacion";
 import { authHttp } from "@/services/http-client";
 import { useAuth } from "@/context/AuthContext";
+import { obtenerMisComercios } from "@/services/comercios";
 
 const opcionesMenu = [
   {
@@ -74,6 +78,8 @@ const Perfil = () => {
   const { logout } = useAuth();
   const [mostrarDialogoSalir, setMostrarDialogoSalir] = useState(false);
   const [tieneComercioRegistrado, setTieneComercioRegistrado] = useState(false);
+  const [miComercio, setMiComercio] = useState(null);
+  const [cargandoComercio, setCargandoComercio] = useState(true);
 
   const [usuario, setUsuario] = useState(() => {
     const almacenado = localStorage.getItem("user");
@@ -94,9 +100,6 @@ const Perfil = () => {
   });
 
   useEffect(() => {
-    const comercioRegistrado = localStorage.getItem("comercioRegistrado");
-    setTieneComercioRegistrado(!!comercioRegistrado);
-
     const cargarPerfil = async () => {
       try {
         const data = await obtenerPerfil();
@@ -119,7 +122,29 @@ const Perfil = () => {
       }
     };
 
+    const cargarComercio = async () => {
+      try {
+        setCargandoComercio(true);
+        const comercios = await obtenerMisComercios();
+
+        if (comercios.length > 0) {
+          setMiComercio(comercios[0]);
+          setTieneComercioRegistrado(true);
+        } else {
+          setMiComercio(null);
+          setTieneComercioRegistrado(false);
+        }
+      } catch (error) {
+        console.error("Error cargando comercio:", error);
+        setMiComercio(null);
+        setTieneComercioRegistrado(false);
+      } finally {
+        setCargandoComercio(false);
+      }
+    };
+
     cargarPerfil();
+    cargarComercio();
   }, []);
 
   const manejarCerrarSesion = async () => {
@@ -183,6 +208,104 @@ const Perfil = () => {
             </div>
           </div>
         </Tarjeta>
+
+        {/* Tarjeta Mi Comercio */}
+        {!cargandoComercio && miComercio && (
+          <Tarjeta className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Store className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">{miComercio.nombre}</h3>
+                  <p className="text-sm text-muted-foreground capitalize">
+                    {miComercio.rubro}
+                  </p>
+                </div>
+              </div>
+              <Boton
+                size="sm"
+                variant="outline"
+                onClick={() => navegar("/perfil/editar-comercio")}
+              >
+                <Edit className="w-4 h-4 mr-1" />
+                Editar
+              </Boton>
+            </div>
+
+            {/* Estado del comercio */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Estado de aprobación:</span>
+                {miComercio.estadoAprobacion === "pendiente_revision" && (
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-900">
+                    <Clock className="w-4 h-4 text-yellow-600 dark:text-yellow-500" />
+                    <span className="text-sm font-medium text-yellow-700 dark:text-yellow-400">
+                      En revisión
+                    </span>
+                  </div>
+                )}
+                {miComercio.estadoAprobacion === "aprobado" && (
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900">
+                    <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-500" />
+                    <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                      Aprobado
+                    </span>
+                  </div>
+                )}
+                {miComercio.estadoAprobacion === "rechazado" && (
+                  <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900">
+                    <XCircle className="w-4 h-4 text-red-600 dark:text-red-500" />
+                    <span className="text-sm font-medium text-red-700 dark:text-red-400">
+                      Rechazado
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {miComercio.estadoAprobacion === "aprobado" && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Visibilidad en mapa:</span>
+                  {miComercio.activo ? (
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900">
+                      <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-500" />
+                      <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                        Activo
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-50 dark:bg-gray-950/20 border border-gray-200 dark:border-gray-900">
+                      <XCircle className="w-4 h-4 text-gray-600 dark:text-gray-500" />
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-400">
+                        Inactivo
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {miComercio.estadoAprobacion === "pendiente_revision" && (
+                <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-950/10 border border-yellow-200 dark:border-yellow-900 rounded-lg">
+                  <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                    Tu comercio está siendo revisado. En menos de 24 hs recibirás una notificación.
+                  </p>
+                </div>
+              )}
+
+              {miComercio.estadoAprobacion === "rechazado" && miComercio.razonRechazo && (
+                <div className="mt-3 p-3 bg-red-50 dark:bg-red-950/10 border border-red-200 dark:border-red-900 rounded-lg">
+                  <p className="text-sm font-medium text-red-800 dark:text-red-300 mb-1">
+                    Razón del rechazo:
+                  </p>
+                  <p className="text-sm text-red-700 dark:text-red-400">
+                    {miComercio.razonRechazo}
+                  </p>
+                </div>
+              )}
+            </div>
+          </Tarjeta>
+        )}
 
         <Tarjeta className="divide-y divide-border">
           {opcionesMenu

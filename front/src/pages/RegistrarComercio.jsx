@@ -4,13 +4,16 @@ import { Etiqueta } from "@/components/ui/Etiqueta";
 import { CasillaVerificacion } from "@/components/ui/CasillaVerificacion";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import AutocompleteDireccion from "@/components/AutocompleteDireccion";
+import SelectorHorarios from "@/components/SelectorHorarios";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
 import FormasDecorativas from "@/components/FormasDecorativas";
+import { registrarComercio } from "@/services/comercios";
+import { useState } from "react";
 
 
 const esquemaComercio = z.object({
@@ -34,7 +37,50 @@ const esquemaComercio = z.object({
         message: "La dirección debe incluir el número de la calle",
       }
     ),
-  telefono: z.string().min(1, "El teléfono es requerido").max(20),
+  horarios: z
+    .array(
+      z.object({
+        dia: z.string(),
+        abierto: z.boolean(),
+        horaApertura: z.string().optional(),
+        horaCierre: z.string().optional(),
+      })
+    )
+    .min(1, "Debés configurar al menos un día")
+    .refine(
+      (horarios) => {
+        // Verificar que al menos un día esté abierto
+        return horarios.some((h) => h.abierto);
+      },
+      {
+        message: "Debés tener al menos un día abierto",
+      }
+    )
+    .refine(
+      (horarios) => {
+        // Verificar que los días abiertos tengan horarios
+        return horarios.every((h) => {
+          if (!h.abierto) return true;
+          return h.horaApertura && h.horaCierre;
+        });
+      },
+      {
+        message: "Los días abiertos deben tener horarios de apertura y cierre",
+      }
+    ),
+  telefono: z
+    .string()
+    .min(1, "El teléfono es requerido")
+    .refine(
+      (valor) => {
+        // Eliminar espacios, guiones y paréntesis para contar solo dígitos
+        const soloDigitos = valor.replace(/[\s\-()]/g, "");
+        return soloDigitos.length >= 10;
+      },
+      {
+        message: "El teléfono debe tener al menos 10 dígitos",
+      }
+    ),
   registroLocalVigente: z.boolean().refine((valor) => valor === true, {
     message: "Debés marcar esta opción para continuar",
   }),
@@ -47,6 +93,7 @@ const esquemaComercio = z.object({
 
 const RegistrarComercio = () => {
   const navegar = useNavigate();
+  const [cargando, setCargando] = useState(false);
 
   const {
     register,
@@ -54,12 +101,22 @@ const RegistrarComercio = () => {
     formState: { errors },
     setValue,
     watch,
+    control,
   } = useForm({
     resolver: zodResolver(esquemaComercio),
     defaultValues: {
       nombreComercio: "",
       tipoComercio: "",
       direccion: "",
+      horarios: [
+        { dia: "lunes", abierto: true, horaApertura: "09:00", horaCierre: "18:00" },
+        { dia: "martes", abierto: true, horaApertura: "09:00", horaCierre: "18:00" },
+        { dia: "miercoles", abierto: true, horaApertura: "09:00", horaCierre: "18:00" },
+        { dia: "jueves", abierto: true, horaApertura: "09:00", horaCierre: "18:00" },
+        { dia: "viernes", abierto: true, horaApertura: "09:00", horaCierre: "18:00" },
+        { dia: "sabado", abierto: false, horaApertura: "", horaCierre: "" },
+        { dia: "domingo", abierto: false, horaApertura: "", horaCierre: "" },
+      ],
       telefono: "",
       registroLocalVigente: false,
       localFisico: false,
@@ -85,32 +142,28 @@ const RegistrarComercio = () => {
         nombre: datos.nombreComercio,
         rubro: datos.tipoComercio,
         direccion: datos.direccion,
+        horarios: datos.horarios,
         telefono: datos.telefono,
       };
 
-      // POST al backend
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/comercios`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(datosComercio),
-      });
+      await registrarComercio(datosComercio);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al registrar comercio");
-      }
+      toast.success(
+        "Tu comercio está siendo revisado. En menos de 24 hs recibirás una notificación para completar la información",
+        { duration: 5000 }
+      );
 
-      const comercioCreado = await response.json();
-
-      toast.success("Comercio registrado exitosamente");
-
-      // Redirigir a editar para agregar productos
-      navegar(`/comercios/editar/${comercioCreado._id}`);
+      // Redirigir al perfil
+      setTimeout(() => navegar("/perfil"), 2000);
     } catch (error) {
       console.error("Error:", error);
-      toast.error(error.message || "Error al registrar el comercio");
+
+      // Manejar error específico de comercio ya registrado
+      if (error.response?.data?.message?.includes("Ya tenés un comercio registrado")) {
+        toast.error("Ya tenés un comercio registrado");
+      } else {
+        toast.error(error.response?.data?.message || "Error al registrar el comercio");
+      }
     } finally {
       setCargando(false);
     }
@@ -202,6 +255,19 @@ const RegistrarComercio = () => {
               )}
             </div>
 
+            {/* Selector de Horarios */}
+            <Controller
+              name="horarios"
+              control={control}
+              render={({ field }) => (
+                <SelectorHorarios
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={errors.horarios?.message}
+                />
+              )}
+            />
+
             <div className="space-y-2">
               <Etiqueta htmlFor="telefono">Teléfono de contacto del comercio</Etiqueta>
               <Entrada
@@ -211,6 +277,9 @@ const RegistrarComercio = () => {
                 aria-label="Teléfono de contacto del comercio"
                 {...register("telefono")}
               />
+              <p className="text-xs text-muted-foreground">
+                Este teléfono servirá únicamente para uso administrativo y de soporte
+              </p>
               {errors.telefono && (
                 <p className="text-sm text-red-600 dark:text-red-500">
                   {errors.telefono.message}
@@ -268,8 +337,8 @@ const RegistrarComercio = () => {
               </div>
             </div>
 
-            <Boton type="submit" size="lg" className="w-full">
-              Registrar mi comercio
+            <Boton type="submit" size="lg" className="w-full" disabled={cargando}>
+              {cargando ? "Registrando..." : "Registrar mi comercio"}
             </Boton>
           </form>
         </Tarjeta>

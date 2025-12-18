@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   ArrowLeft,
   MapPin,
@@ -7,6 +7,7 @@ import {
   ShoppingBag,
   Camera,
   ChevronDown,
+  X,
 } from "lucide-react";
 import { Boton } from "@/components/ui/Boton";
 import { Tarjeta } from "@/components/ui/Tarjeta";
@@ -29,6 +30,7 @@ import {
   ContenidoPlegable,
   ActivadorPlegable,
 } from "@/components/ui/Plegable";
+import { obtenerMisComercios, editarComercio } from "@/services/comercios";
 
 const EditarComercio = () => {
   const navegar = useNavigate();
@@ -61,32 +63,57 @@ const EditarComercio = () => {
   ];
 
   useEffect(() => {
-    const comercioRegistrado = localStorage.getItem("comercioRegistrado");
+    const cargarComercio = async () => {
+      try {
+        const comercios = await obtenerMisComercios();
 
-    if (!comercioRegistrado) {
-      setMostrarDialogoSinComercio(true);
-      return;
-    }
+        if (comercios.length === 0) {
+          setMostrarDialogoSinComercio(true);
+          return;
+        }
 
-    const comercio = JSON.parse(comercioRegistrado);
-    setDatosComercio(comercio);
+        // Tomar el primer comercio (el usuario solo puede tener uno)
+        const comercio = comercios[0];
+        setDatosComercio(comercio);
 
-    setNombreEditado(comercio.nombreComercio || "");
-    setTipoComercioEditado(comercio.tipoComercio || "");
-    setDireccionEditada(comercio.direccion || "");
-    setDescripcionEditada(
-      comercio.description ||
-      "Bolsa sorpresa con productos variados del comercio"
-    );
-    const pickupTime = comercio.pickupTime || "18:00 - 20:00";
-    const [start, end] = pickupTime.split(" - ");
-    setHoraRetiroInicio(start || "18:00");
-    setHoraRetiroFin(end || "20:00");
-    setPrecioOriginalEditado(comercio.originalPrice?.toString() || "3000");
-    setPrecioDescuentoEditado(comercio.discountedPrice?.toString() || "1000");
-    setTelefonoEditado(comercio.telefono || "");
-    setCorreoEditado(comercio.correo || "");
-    setProductosEditados(comercio.products || []);
+        // Mapear datos de la API al formato del componente
+        setNombreEditado(comercio.nombre || "");
+        setTipoComercioEditado(comercio.rubro || "");
+        setDireccionEditada(comercio.direccion || "");
+        setDescripcionEditada(
+          comercio.descripcion ||
+          "Bolsa sorpresa con productos variados del comercio"
+        );
+
+        const horarioRetiro = comercio.horarioRetiro || "18:00 - 20:00";
+        const [start, end] = horarioRetiro.split(" - ");
+        setHoraRetiroInicio(start || "18:00");
+        setHoraRetiroFin(end || "20:00");
+
+        setPrecioOriginalEditado(comercio.precioOriginal?.toString() || "");
+        setPrecioDescuentoEditado(comercio.precioDescuento?.toString() || "");
+        setTelefonoEditado(comercio.telefono || "");
+        setCorreoEditado(""); // No tenemos correo en el modelo
+
+        // Mapear productos
+        const productosFormateados = (comercio.productos || []).map(p => ({
+          id: p.id || p._id,
+          name: p.nombre,
+          stock: p.stock,
+          weight: p.peso,
+          originalPrice: p.precioOriginal,
+          discountedPrice: p.precioDescuento,
+          imageUrl: undefined, // Por ahora no manejamos imágenes de productos
+        }));
+        setProductosEditados(productosFormateados);
+      } catch (error) {
+        console.error("Error cargando comercio:", error);
+        toast.error("Error al cargar los datos del comercio");
+        setMostrarDialogoSinComercio(true);
+      }
+    };
+
+    cargarComercio();
   }, []);
 
   const manejarClickImagen = () => {
@@ -163,91 +190,114 @@ const EditarComercio = () => {
     );
   };
 
-  const manejarGuardarCampo = (campo) => {
+  const manejarGuardarCampo = async (campo) => {
     if (!datosComercio) return;
 
-    const comercioActualizado = { ...datosComercio };
+    try {
+      let datosActualizados = {};
 
-    switch (campo) {
-      case "informacion":
-        comercioActualizado.nombreComercio = nombreEditado;
-        comercioActualizado.tipoComercio = tipoComercioEditado;
-        comercioActualizado.direccion = direccionEditada;
-        comercioActualizado.pickupTime = `${horaRetiroInicio} - ${horaRetiroFin}`;
-        break;
-      case "descripcion":
-        comercioActualizado.description = descripcionEditada;
-        break;
-      case "retiro":
-        comercioActualizado.pickupTime = `${horaRetiroInicio} - ${horaRetiroFin}`;
-        break;
-      case "precios":
-        comercioActualizado.originalPrice = parseFloat(precioOriginalEditado);
-        comercioActualizado.discountedPrice = parseFloat(
-          precioDescuentoEditado
-        );
-        break;
-      case "contacto":
-        comercioActualizado.telefono = telefonoEditado;
-        comercioActualizado.correo = correoEditado;
-        break;
-      case "productos":
-        const errores = {};
-        let hayErrores = false;
+      switch (campo) {
+        case "informacion":
+          datosActualizados = {
+            nombre: nombreEditado,
+            rubro: tipoComercioEditado,
+            direccion: direccionEditada,
+            horarioRetiro: `${horaRetiroInicio} - ${horaRetiroFin}`,
+          };
+          break;
+        case "descripcion":
+          datosActualizados = {
+            descripcion: descripcionEditada,
+          };
+          break;
+        case "retiro":
+          datosActualizados = {
+            horarioRetiro: `${horaRetiroInicio} - ${horaRetiroFin}`,
+          };
+          break;
+        case "precios":
+          datosActualizados = {
+            precioOriginal: parseFloat(precioOriginalEditado),
+            precioDescuento: parseFloat(precioDescuentoEditado),
+          };
+          break;
+        case "contacto":
+          datosActualizados = {
+            telefono: telefonoEditado,
+          };
+          break;
+        case "productos":
+          const errores = {};
+          let hayErrores = false;
 
-        productosEditados.forEach((producto) => {
-          const errorProducto = {};
+          productosEditados.forEach((producto) => {
+            const errorProducto = {};
 
-          if (!producto.name.trim()) {
-            errorProducto.name = "El nombre es obligatorio";
-            hayErrores = true;
-          }
-          if (producto.stock <= 0) {
-            errorProducto.stock = "El stock debe ser mayor a 0";
-            hayErrores = true;
-          }
-          if (!producto.originalPrice || producto.originalPrice <= 0) {
-            errorProducto.originalPrice = "El precio original es obligatorio";
-            hayErrores = true;
-          }
-          if (!producto.discountedPrice || producto.discountedPrice <= 0) {
-            errorProducto.discountedPrice =
-              "El precio con descuento es obligatorio";
-            hayErrores = true;
-          }
-          if (
-            producto.originalPrice &&
-            producto.discountedPrice &&
-            producto.originalPrice <= producto.discountedPrice
-          ) {
-            errorProducto.discountedPrice =
-              "El precio con descuento debe ser menor al precio original";
-            hayErrores = true;
+            if (!producto.name.trim()) {
+              errorProducto.name = "El nombre es obligatorio";
+              hayErrores = true;
+            }
+            if (producto.stock <= 0) {
+              errorProducto.stock = "El stock debe ser mayor a 0";
+              hayErrores = true;
+            }
+            if (!producto.originalPrice || producto.originalPrice <= 0) {
+              errorProducto.originalPrice = "El precio original es obligatorio";
+              hayErrores = true;
+            }
+            if (!producto.discountedPrice || producto.discountedPrice <= 0) {
+              errorProducto.discountedPrice =
+                "El precio con descuento es obligatorio";
+              hayErrores = true;
+            }
+            if (
+              producto.originalPrice &&
+              producto.discountedPrice &&
+              producto.originalPrice <= producto.discountedPrice
+            ) {
+              errorProducto.discountedPrice =
+                "El precio con descuento debe ser menor al precio original";
+              hayErrores = true;
+            }
+
+            if (Object.keys(errorProducto).length > 0) {
+              errores[producto.id] = errorProducto;
+            }
+          });
+
+          if (hayErrores) {
+            setErroresProductos(errores);
+            return;
           }
 
-          if (Object.keys(errorProducto).length > 0) {
-            errores[producto.id] = errorProducto;
-          }
-        });
+          setErroresProductos({});
 
-        if (hayErrores) {
-          setErroresProductos(errores);
-          return;
-        }
+          // Mapear productos al formato de la API
+          datosActualizados = {
+            productos: productosEditados.map(p => ({
+              id: p.id,
+              nombre: p.name,
+              stock: p.stock,
+              peso: p.weight,
+              precioOriginal: p.originalPrice,
+              precioDescuento: p.discountedPrice,
+            })),
+          };
+          break;
+      }
 
-        setErroresProductos({});
-        comercioActualizado.products = productosEditados;
-        break;
+      // Guardar en la API
+      const comercioActualizado = await editarComercio(datosComercio._id, datosActualizados);
+
+      // Actualizar estado local
+      setDatosComercio(comercioActualizado);
+      setCampoEditando(null);
+      setProductosExpandidos([]);
+      toast.success("Cambios guardados");
+    } catch (error) {
+      console.error("Error guardando cambios:", error);
+      toast.error(error.response?.data?.message || "Error al guardar los cambios");
     }
-
-    localStorage.setItem(
-      "comercioRegistrado",
-      JSON.stringify(comercioActualizado)
-    );
-    setDatosComercio(comercioActualizado);
-    setCampoEditando(null);
-    setProductosExpandidos([]);
-    toast.success("Cambios guardados");
   };
 
   const manejarCancelarEdicion = () => {
@@ -314,6 +364,83 @@ const EditarComercio = () => {
           <h1 className="text-2xl font-bold">Editar tu comercio</h1>
         </div>
       </header>
+
+      {/* Mensaje de estado de aprobación */}
+      {datosComercio.estadoAprobacion === "pendiente_revision" && (
+        <div className="px-4 pt-4 relative z-10">
+          <Tarjeta className="p-4 bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-900">
+            <div className="flex items-start gap-3">
+              <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-yellow-800 dark:text-yellow-300 mb-1">
+                  Comercio en revisión
+                </h3>
+                <p className="text-sm text-yellow-700 dark:text-yellow-400">
+                  Tu comercio está siendo revisado. En menos de 24 hs recibirás una notificación para completar la información y activarlo.
+                </p>
+              </div>
+            </div>
+          </Tarjeta>
+        </div>
+      )}
+
+      {datosComercio.estadoAprobacion === "rechazado" && (
+        <div className="px-4 pt-4 relative z-10">
+          <Tarjeta className="p-4 bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900">
+            <div className="flex items-start gap-3">
+              <X className="w-5 h-5 text-red-600 dark:text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-red-800 dark:text-red-300 mb-1">
+                  Comercio rechazado
+                </h3>
+                <p className="text-sm text-red-700 dark:text-red-400">
+                  {datosComercio.razonRechazo || "Tu comercio no pudo ser aprobado. Contactá con soporte para más información."}
+                </p>
+              </div>
+            </div>
+          </Tarjeta>
+        </div>
+      )}
+
+      {/* Toggle de activación (solo si está aprobado) */}
+      {datosComercio.estadoAprobacion === "aprobado" && (
+        <div className="px-4 pt-4 relative z-10">
+          <Tarjeta className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold mb-1">Estado del comercio</h3>
+                <p className="text-sm text-muted-foreground">
+                  {datosComercio.activo
+                    ? "Tu comercio está activo y visible en el mapa"
+                    : "Tu comercio está inactivo y no aparece en el mapa"}
+                </p>
+              </div>
+              <Boton
+                variant={datosComercio.activo ? "destructive" : "default"}
+                onClick={async () => {
+                  try {
+                    const nuevoEstado = !datosComercio.activo;
+                    const comercioActualizado = await editarComercio(datosComercio._id, {
+                      activo: nuevoEstado,
+                    });
+                    setDatosComercio(comercioActualizado);
+                    toast.success(
+                      nuevoEstado
+                        ? "Comercio activado exitosamente"
+                        : "Comercio desactivado exitosamente"
+                    );
+                  } catch (error) {
+                    console.error("Error cambiando estado:", error);
+                    toast.error("Error al cambiar el estado del comercio");
+                  }
+                }}
+              >
+                {datosComercio.activo ? "Desactivar" : "Activar"}
+              </Boton>
+            </div>
+          </Tarjeta>
+        </div>
+      )}
 
       <div className="px-4 py-6 space-y-4 relative z-10">
         <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg overflow-hidden group">

@@ -16,6 +16,7 @@ const AutocompleteDireccion = ({
     const [indiceSeleccionado, setIndiceSeleccionado] = useState(-1);
     const contenedorRef = useRef(null);
     const temporizadorRef = useRef(null);
+    const seleccionandoRef = useRef(false); // Flag para evitar búsqueda al seleccionar
 
     // Token de Mapbox (el mismo que se usa en Inicio.jsx)
     const tokenMapbox =
@@ -42,6 +43,12 @@ const AutocompleteDireccion = ({
         // Limpiar temporizador anterior
         if (temporizadorRef.current) {
             clearTimeout(temporizadorRef.current);
+        }
+
+        // No buscar si se está seleccionando una opción
+        if (seleccionandoRef.current) {
+            seleccionandoRef.current = false;
+            return;
         }
 
         // No buscar si el texto es muy corto
@@ -115,6 +122,10 @@ const AutocompleteDireccion = ({
     const manejarSeleccion = (sugerencia) => {
         const direccionCompleta = sugerencia.place_name;
         const direccionLimpia = limpiarDireccion(direccionCompleta);
+
+        // Marcar que estamos seleccionando para evitar búsqueda automática
+        seleccionandoRef.current = true;
+
         alCambiar(direccionLimpia);
         alSeleccionarLugar(direccionLimpia);
         setMostrarSugerencias(false);
@@ -159,7 +170,8 @@ const AutocompleteDireccion = ({
                     onChange={(e) => alCambiar(e.target.value)}
                     onKeyDown={manejarTecla}
                     onFocus={() => {
-                        if (sugerencias.length > 0) {
+                        // Solo mostrar sugerencias si hay texto y sugerencias disponibles
+                        if (valor.length >= 3 && sugerencias.length > 0) {
                             setMostrarSugerencias(true);
                         }
                     }}

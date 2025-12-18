@@ -14,6 +14,18 @@ const comercioSchema = new Schema(
     },
     telefono: { type: String, required: true },
 
+    // Horarios de disponibilidad semanal
+    horarios: [{
+      dia: {
+        type: String,
+        enum: ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"],
+        required: true
+      },
+      abierto: { type: Boolean, default: true },
+      horaApertura: { type: String }, // Formato: "HH:MM"
+      horaCierre: { type: String }, // Formato: "HH:MM"
+    }],
+
     // Datos de la oferta principal
     descripcion: { type: String },
     horarioRetiro: { type: String },
@@ -38,6 +50,19 @@ const comercioSchema = new Schema(
     // Metadata
     imagenUrl: { type: String, default: "" },
     activo: { type: Boolean, default: true },
+
+    // Sistema de aprobación
+    estadoAprobacion: {
+      type: String,
+      enum: ["pendiente_revision", "aprobado", "rechazado"],
+      default: "pendiente_revision",
+    },
+    propietarioId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Usuario",
+      required: false, // Opcional para mantener compatibilidad con comercios existentes
+    },
+    razonRechazo: { type: String }, // Solo si es rechazado
   },
   { timestamps: true }
 );

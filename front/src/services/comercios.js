@@ -11,11 +11,41 @@ export async function obtenerComercioPorId(idComercio) {
 }
 
 /**
- * Lista todos los comercios disponibles
+ * Lista todos los comercios disponibles (activos y aprobados)
  * @returns {Promise<Array>} Array de comercios
  */
 export async function listarComercios() {
     const { data } = await authHttp.get("/comercios");
+    return data;
+}
+
+/**
+ * Obtiene los comercios del usuario autenticado
+ * @returns {Promise<Array>} Array de comercios del usuario
+ */
+export async function obtenerMisComercios() {
+    const { data } = await authHttp.get("/comercios/mis-comercios");
+    return data;
+}
+
+/**
+ * Registra un nuevo comercio
+ * @param {Object} datosComercio - Datos del comercio a registrar
+ * @returns {Promise<Object>} Comercio creado
+ */
+export async function registrarComercio(datosComercio) {
+    const { data } = await authHttp.post("/comercios", datosComercio);
+    return data;
+}
+
+/**
+ * Edita un comercio existente
+ * @param {string} idComercio - ID del comercio a editar
+ * @param {Object} datosActualizados - Datos a actualizar
+ * @returns {Promise<Object>} Comercio actualizado
+ */
+export async function editarComercio(idComercio, datosActualizados) {
+    const { data } = await authHttp.put(`/comercios/${idComercio}`, datosActualizados);
     return data;
 }
 
