@@ -73,7 +73,7 @@ router.post("/crear-preferencia", async (req, res) => {
       items: [
         {
           id: String(reservaId),
-          title: "Reserva SobraZero",
+          title: "SobraZero",
           quantity: 1,
           unit_price: Number(precio_total),
           currency_id: "ARS",
