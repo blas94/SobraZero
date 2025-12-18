@@ -35,6 +35,7 @@ const RestablecerClave = () => {
 
     const formulario = useForm({
         resolver: zodResolver(esquemaReset),
+        mode: 'onChange', // Validar en cada cambio para actualizar errores en tiempo real
         defaultValues: {
             newPassword: "",
             confirmPassword: "",

@@ -47,7 +47,7 @@ const CambiarClave = () => {
         try {
             await recuperarClave(data.email);
             toast.success(
-                "Enviamos un correo con instrucciones para cambiar tu contraseña"
+                "Enviamos un correo con instrucciones para restablecer tu contraseña"
             );
             setTimeout(() => navegar("/perfil/configuracion"), 3000);
         } catch (error) {
@@ -80,7 +80,7 @@ const CambiarClave = () => {
                             loading="eager"
                             fetchpriority="high"
                         />
-                        <h1 className="text-2xl font-bold mb-2">Cambiar contraseña</h1>
+                        <h1 className="text-2xl font-bold mb-2">Restablecer contraseña</h1>
                         <p className="text-sm text-muted-foreground">
                             Ingresá tu email y te enviaremos instrucciones para cambiar tu
                             contraseña

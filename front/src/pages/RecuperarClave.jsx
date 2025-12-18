@@ -80,7 +80,7 @@ const RecuperarClave = () => {
               loading="eager"
               fetchpriority="high"
             />
-            <h1 className="text-2xl font-bold mb-2">Recuperar contraseña</h1>
+            <h1 className="text-2xl font-bold mb-2">Restablecer contraseña</h1>
             <p className="text-sm text-muted-foreground">
               Ingresá tu email y te enviaremos instrucciones para restablecer tu
               contraseña
