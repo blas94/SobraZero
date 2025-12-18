@@ -1,9 +1,12 @@
 import { authHttp } from "./http-client";
 
-export async function iniciarSesion(datos) {
-  const { data } = await authHttp.post("/auth/login", datos);
-  return data;
-}
+export const iniciarSesion = async (data) => {
+  const res = await authHttp.post("/auth/login", data);
+  if (res.data?.token) {
+    localStorage.setItem("token", res.data.token);
+  }
+  return res.data;
+};
 
 export async function marcarTutorialVisto() {
   const { data } = await authHttp.post("/auth/tutorial");
@@ -28,10 +31,15 @@ export async function actualizarPerfil(datos) {
   return data;
 }
 
-export async function cerrarSesion() {
-  const { data } = await authHttp.post("/auth/logout");
-  return data;
-}
+export const cerrarSesion = async () => {
+  localStorage.removeItem("token");
+  await authHttp.post("/auth/logout");
+};
+
+export const usuarioActual = async () => {
+  const res = await authHttp.get("/auth/me");
+  return res.data;
+};
 
 export async function verificarSesion() {
   const { data } = await authHttp.get("/auth/verificar");

@@ -9,19 +9,15 @@ import { enviarCorreoRecuperacion, enviarCorreoCambioEmail } from "../utils/emai
 const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_cambia_esto";
 
-
 function getAuthPayload(req) {
-  // 1. Intentar header Authorization: Bearer <token>
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith("Bearer ")) {
     try {
       return jwt.verify(authHeader.split(" ")[1], JWT_SECRET);
     } catch {
-      // Token inválido en header, seguimos probando cookies
     }
   }
 
-  // 2. Leer token desde cookie HttpOnly (fallback)
   const token = req.cookies?.token;
   if (!token) return null;
   try {
@@ -53,16 +49,15 @@ router.post("/register", async (req, res) => {
 
     const token = jwt.sign({ uid: user._id, email: user.email, rol: user.rol }, JWT_SECRET, { expiresIn: "7d" });
 
-    // Enviar token como cookie HttpOnly (Compatibilidad)
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' permite cross-site (Vercel -> Render)
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     return res.status(201).json({
-      token, // Devolvemos el token para uso en localStorage (Bearer)
+      token,
       user: {
         id: user._id.toString(),
         nombre: user.nombre,
@@ -71,7 +66,7 @@ router.post("/register", async (req, res) => {
         rol: user.rol,
         avatar: user.avatar,
         vioTutorial: user.vioTutorial,
-        tutorialPasos: user.tutorialPasos || [], // <--- NUEVO
+        tutorialPasos: user.tutorialPasos || [],
       },
     });
   } catch (e) {
@@ -100,17 +95,16 @@ router.post("/login", async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    // Enviar token como cookie HttpOnly (Compatibilidad)
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' permite cross-site (Vercel -> Render)
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 días
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
     return res.json({
       debug: "LOGIN CON ROL ACTIVO",
-      token, // Devolvemos el token para uso en localStorage (Bearer)
+      token,
       user: {
         id: user._id.toString(),
         nombre: user.nombre,
@@ -119,7 +113,7 @@ router.post("/login", async (req, res) => {
         rol: user.rol,
         avatar: user.avatar,
         vioTutorial: user.vioTutorial,
-        tutorialPasos: user.tutorialPasos || [], // <--- NUEVO
+        tutorialPasos: user.tutorialPasos || [],
       },
     });
   } catch (e) {
@@ -132,10 +126,10 @@ router.get("/me", async (req, res) => {
   const payload = getAuthPayload(req);
   if (!payload) return res.status(401).json({ error: "No autorizado" });
 
-  // Se agrega tutorialPasos al select
   const user = await Usuario.findById(payload.uid).select(
-    "_id nombre email tel avatar vioTutorial tutorialPasos"
+    "_id nombre email tel rol avatar vioTutorial tutorialPasos"
   );
+
   if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
 
   return res.json({
@@ -143,9 +137,10 @@ router.get("/me", async (req, res) => {
     nombre: user.nombre,
     email: user.email,
     tel: user.tel,
+    rol: user.rol,
     avatar: user.avatar,
     vioTutorial: user.vioTutorial,
-    tutorialPasos: user.tutorialPasos || [], // <--- NUEVO
+    tutorialPasos: user.tutorialPasos || [],
   });
 });
 
@@ -158,7 +153,6 @@ router.put("/me", async (req, res) => {
 
   if (typeof nombre === "string" && nombre.trim()) actualizacion.nombre = nombre.trim();
   if (typeof tel === "string") actualizacion.tel = tel.trim();
-  // Permitir avatar null para eliminación de foto
   if (avatar !== undefined) {
     actualizacion.avatar = avatar === null ? null : avatar;
   }
@@ -166,7 +160,7 @@ router.put("/me", async (req, res) => {
   const user = await Usuario.findByIdAndUpdate(
     payload.uid,
     { $set: actualizacion },
-    { new: true, runValidators: true, fields: "_id nombre email tel avatar vioTutorial tutorialPasos" } // Se agrega fields
+    { new: true, runValidators: true, fields: "_id nombre email tel avatar vioTutorial tutorialPasos" }
   );
 
   if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
@@ -178,13 +172,11 @@ router.put("/me", async (req, res) => {
     tel: user.tel,
     avatar: user.avatar,
     vioTutorial: user.vioTutorial,
-    tutorialPasos: user.tutorialPasos || [], // <--- NUEVO
+    tutorialPasos: user.tutorialPasos || [],
   });
 });
 
-// Logout - Limpiar cookie de múltiples formas para asegurar borrado
 router.post("/logout", (req, res) => {
-  // 1. Instancia Segura (Prod/Dev)
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -192,7 +184,6 @@ router.post("/logout", (req, res) => {
     path: "/"
   });
 
-  // 2. Instancia Fallback (por si acaso quedó una vieja sin secure)
   res.clearCookie("token", {
     path: "/"
   });
@@ -200,15 +191,14 @@ router.post("/logout", (req, res) => {
   return res.json({ message: "Sesión cerrada exitosamente" });
 });
 
-// Verificar autenticación
 router.get("/verificar", async (req, res) => {
   const payload = getAuthPayload(req);
   if (!payload) return res.status(401).json({ autenticado: false });
 
-  // Se agrega tutorialPasos al select
   const user = await Usuario.findById(payload.uid).select(
-    "_id nombre email tel ubicacionTexto ubicacionGeo avatar vioTutorial tutorialPasos"
+    "_id nombre email tel rol ubicacionTexto ubicacionGeo avatar vioTutorial tutorialPasos"
   );
+
   if (!user) return res.status(404).json({ autenticado: false });
 
   return res.json({
@@ -218,6 +208,7 @@ router.get("/verificar", async (req, res) => {
       nombre: user.nombre,
       email: user.email,
       tel: user.tel,
+      rol: user.rol,
       avatar: user.avatar,
       vioTutorial: user.vioTutorial,
       tutorialPasos: user.tutorialPasos || [], // <--- NUEVO

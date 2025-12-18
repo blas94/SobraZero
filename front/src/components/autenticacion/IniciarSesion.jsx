@@ -25,7 +25,7 @@ const esquemaInicioSesion = z.object({
 
 const IniciarSesion = ({ onCambiarPestana }) => {
     const navegar = useNavigate();
-    const { login } = useAuth(); // Usar login del contexto
+    const { login } = useAuth();
     const [cargando, setCargando] = useState(false);
 
     const formularioInicio = useForm({
@@ -41,14 +41,24 @@ const IniciarSesion = ({ onCambiarPestana }) => {
                 clave: datos.clave,
             });
 
-            // Actualizar contexto. Pasa user y token.
-            login(data);
+            // ✅ tu backend devuelve { token, user, ... }
+            const token = data?.token || null;
+            const user = data?.user || null;
+
+            // Actualizar contexto (tu AuthContext espera { user, token })
+            login({ user, token });
 
             toast.success("Sesión iniciada correctamente");
-            // Navegar a /inicio explícitamente, ya que / redirige a /autenticacion
-            navegar("/inicio");
+
+            // ✅ si es admin, a /admin
+            if (user?.rol === "admin") {
+                navegar("/admin");
+            } else {
+                navegar("/inicio");
+            }
         } catch (error) {
-            const mensaje = error?.response?.data?.error || "Credenciales inválidas";
+            const mensaje =
+                error?.response?.data?.error || error?.message || "Credenciales inválidas";
             toast.error(mensaje);
         } finally {
             setCargando(false);
@@ -72,11 +82,7 @@ const IniciarSesion = ({ onCambiarPestana }) => {
                                 <ControlFormulario>
                                     <div className="relative">
                                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-muted-foreground" />
-                                        <Entrada
-                                            placeholder="tu@email.com"
-                                            className="pl-9"
-                                            {...field}
-                                        />
+                                        <Entrada placeholder="tu@email.com" className="pl-9" {...field} />
                                     </div>
                                 </ControlFormulario>
                                 <MensajeFormulario />
@@ -108,10 +114,7 @@ const IniciarSesion = ({ onCambiarPestana }) => {
 
                     <p className="text-sm text-center mt-2">
                         ¿Olvidaste tu contraseña?{" "}
-                        <Link
-                            to="/recuperar-clave"
-                            className="text-primary hover:underline"
-                        >
+                        <Link to="/recuperar-clave" className="text-primary hover:underline">
                             Hacé click acá
                         </Link>
                     </p>

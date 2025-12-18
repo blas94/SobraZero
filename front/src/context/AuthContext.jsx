@@ -12,21 +12,42 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-    const [usuario, setUsuario] = useState(null);
+    const [usuario, setUsuario] = useState(() => {
+        try {
+            const raw = localStorage.getItem("user");
+            return raw ? JSON.parse(raw) : null;
+        } catch {
+            return null;
+        }
+    });
     const [cargando, setCargando] = useState(true);
 
     useEffect(() => {
         const checkUser = async () => {
             try {
-                // 1. Intentar validar la cookie/token con el backend
-                const { user, token } = await verificarSesion();
-                if (user.vioTutorial === undefined) user.vioTutorial = false;
-                console.log("Sesión verificada:", user);
-                setUsuario(user);
-                // Persistencia local
-                localStorage.setItem("user", JSON.stringify(user));
+                // ✅ tu /auth/verificar devuelve { autenticado, user }
+                const data = await verificarSesion();
+
+                const user = data?.user || null;
+
+                if (user) {
+                    if (user.vioTutorial === undefined) user.vioTutorial = false;
+
+                    console.log("Sesión verificada:", user);
+                    setUsuario(user);
+                    localStorage.setItem("user", JSON.stringify(user));
+
+                    // si backend devuelve token alguna vez, lo guardamos (por compat)
+                    if (data?.token) {
+                        localStorage.setItem("token", data.token);
+                    }
+                } else {
+                    // si no vino user, sesión inválida
+                    setUsuario(null);
+                    localStorage.removeItem("user");
+                    localStorage.removeItem("token");
+                }
             } catch (error) {
-                // 2. Si falla (401/403), no hay sesión válida
                 console.log("Sesión no válida o expirada:", error);
                 setUsuario(null);
                 localStorage.removeItem("user");
@@ -41,16 +62,22 @@ export const AuthProvider = ({ children }) => {
 
     const login = (data) => {
         // Data debe contener { user, token }
-        setUsuario(data.user);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        if (data.token) {
-            localStorage.setItem("token", data.token); // Guardar token para próximas requests
+        const user = data?.user || null;
+        const token = data?.token || null;
+
+        setUsuario(user);
+        localStorage.setItem("user", JSON.stringify(user));
+
+        if (token) {
+            localStorage.setItem("token", token);
         }
     };
+
     const updateUser = (user) => {
         setUsuario(user);
         localStorage.setItem("user", JSON.stringify(user));
     };
+
     const logout = async () => {
         try {
             await cerrarSesion();

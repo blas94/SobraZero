@@ -34,6 +34,9 @@ import EditarComercio from "./pages/EditarComercio";
 import RecuperarPassword from "./pages/RecuperarPassword";
 import RestablecerPassword from "./pages/RestablecerPassword";
 import VerificarCambioEmail from "./pages/VerificarCambioEmail";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsuarios from "./pages/admin/AdminUsuarios";
+import { PantallaCarga } from "@/components/ui/PantallaCarga";
 
 const queryClient = new QueryClient();
 
@@ -64,8 +67,12 @@ class ErrorBoundary extends React.Component {
       return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-red-50 text-red-900">
           <div className="max-w-md w-full bg-white p-6 rounded-lg shadow-lg border border-red-200">
-            <h2 className="text-xl font-bold mb-4 text-red-600">Algo salió mal</h2>
-            <p className="mb-4 text-sm">La aplicación ha encontrado un error inesperado.</p>
+            <h2 className="text-xl font-bold mb-4 text-red-600">
+              Algo salió mal
+            </h2>
+            <p className="mb-4 text-sm">
+              La aplicación ha encontrado un error inesperado.
+            </p>
             <pre className="bg-gray-800 text-white p-3 rounded text-xs overflow-auto max-h-48">
               {this.state.error?.toString()}
             </pre>
@@ -84,7 +91,6 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-import { PantallaCarga } from "@/components/ui/PantallaCarga";
 
 function RutaProtegida({ children }) {
   const { usuario, cargando } = useAuth();
@@ -92,6 +98,14 @@ function RutaProtegida({ children }) {
   if (cargando) return <PantallaCarga texto="Verificando sesión..." />;
   if (!usuario) return <Navigate to="/autenticacion" replace />;
 
+  return children;
+}
+
+function RutaAdmin({ children }) {
+  const { usuario, cargando } = useAuth();
+  if (cargando) return <PantallaCarga texto="Verificando sesión..." />;
+  if (!usuario) return <Navigate to="/autenticacion" replace />;
+  if (usuario.rol !== "admin") return <Navigate to="/inicio" replace />;
   return children;
 }
 
@@ -111,12 +125,40 @@ const App = () => {
                 <ScrollToTop />
                 <Routes>
                   <Route path="/autenticacion" element={<Autenticacion />} />
-                  <Route path="/recuperar-clave" element={<RecuperarPassword />} />
-                  <Route path="/restablecer-password" element={<RestablecerPassword />} />
-                  <Route path="/verificar-cambio-email" element={<VerificarCambioEmail />} />
+                  <Route
+                    path="/recuperar-clave"
+                    element={<RecuperarPassword />}
+                  />
+                  <Route
+                    path="/restablecer-password"
+                    element={<RestablecerPassword />}
+                  />
+                  <Route
+                    path="/verificar-cambio-email"
+                    element={<VerificarCambioEmail />}
+                  />
                   <Route path="/pagos/estado" element={<EstadoPago />} />
+                  <Route
+                    path="/"
+                    element={<Navigate to="/autenticacion" replace />}
+                  />
+                  <Route
+                    path="/admin"
+                    element={
+                      <RutaAdmin>
+                        <AdminDashboard />
+                      </RutaAdmin>
+                    }
+                  />
 
-                  <Route path="/" element={<Navigate to="/autenticacion" replace />} />
+                  <Route
+                    path="/admin/usuarios"
+                    element={
+                      <RutaAdmin>
+                        <AdminUsuarios />
+                      </RutaAdmin>
+                    }
+                  />
 
                   <Route
                     path="/inicio"
@@ -126,7 +168,6 @@ const App = () => {
                       </RutaProtegida>
                     }
                   />
-
                   <Route
                     path="/comercio/:id"
                     element={
