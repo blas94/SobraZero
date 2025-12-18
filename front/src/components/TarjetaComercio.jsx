@@ -17,8 +17,42 @@ const TarjetaComercio = ({
   alAlternarFavorito,
   usarIconoCruz = false,
   nivelEncabezado = "h3",
+  variante = "normal",
 }) => {
   const EtiquetaTitulo = nivelEncabezado;
+
+  const modoVisual = variante !== "normal" ? variante : (variante === "compact" ? "compacta" : "normal");
+
+  if (modoVisual === "compacta") {
+    return (
+      <div
+        className="flex gap-3 p-3 bg-card hover:bg-accent/50 cursor-pointer transition-colors border-b border-border/50 last:border-0"
+        onClick={onClick}
+      >
+        <div className="w-12 h-12 flex-shrink-0 rounded-md bg-muted overflow-hidden">
+          {imagenUrl ? (
+            <img
+              src={imagenUrl}
+              alt={`Imagen de portada de ${nombre}`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-primary/10">
+              <IconoComercio className="w-5 h-5 text-primary" />
+            </div>
+          )}
+        </div>
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <EtiquetaTitulo className="font-medium text-sm truncate leading-tight">
+            {nombre}
+          </EtiquetaTitulo>
+          <p className="text-xs text-muted-foreground truncate mt-1">
+            {categoria} • {distancia}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Tarjeta

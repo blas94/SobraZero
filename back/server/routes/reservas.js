@@ -104,6 +104,8 @@ router.post("/", async (req, res) => {
       productoNombre,
       cantidad: cantidadNum,
       estado: "pendiente",
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutos
+      stockDevuelto: false,
     });
 
     console.log("✅ Reserva creada:", nuevaReserva._id.toString());

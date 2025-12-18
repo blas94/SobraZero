@@ -108,3 +108,18 @@ app.listen(PORT, () => {
   console.log(`CLIENT_URL permitido: ${CLIENT_URL}`);
   console.log(`MP_ACCESS_TOKEN: ${mpMasked}`);
 });
+
+// Limpieza automática de reservas expiradas cada 5 minutos
+import limpiarReservasExpiradas from "./scripts/limpiar-reservas-expiradas.js";
+
+const INTERVALO_LIMPIEZA = 5 * 60 * 1000; // 5 minutos
+
+setInterval(async () => {
+  try {
+    await limpiarReservasExpiradas();
+  } catch (error) {
+    console.error("❌ Error en limpieza automática:", error.message);
+  }
+}, INTERVALO_LIMPIEZA);
+
+console.log(`🧹 Limpieza automática de reservas configurada (cada 5 minutos)`);

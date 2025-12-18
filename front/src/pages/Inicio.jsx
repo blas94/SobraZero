@@ -499,6 +499,7 @@ const Inicio = () => {
                         setBusquedaTexto("");
                       }}
                       nivelEncabezado="h4"
+                      variante="compacta"
                     />
                   ))}
                 </div>

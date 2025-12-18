@@ -208,7 +208,12 @@ router.post("/webhook", async (req, res) => {
       if (status === "approved") {
         const updated = await Reserva.findByIdAndUpdate(
           reservaId,
-          { $set: { estado: "pagada" } },
+          {
+            $set: {
+              estado: "pagada",
+              stockDevuelto: true // Marcar para que no se devuelva el stock
+            }
+          },
           { new: true }
         );
 
