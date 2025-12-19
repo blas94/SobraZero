@@ -230,4 +230,76 @@ router.get(
     }
 );
 
+// Aprobar comercio
+router.put(
+    "/comercios/:id/aprobar",
+    middlewareAutenticacion,
+    soloAdministrador,
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+            const adminId = req.usuario?.uid;
+
+            const comercio = await Comercio.findById(id);
+            if (!comercio) {
+                return res.status(404).json({ error: "Comercio no encontrado" });
+            }
+
+            // Actualizar estado
+            comercio.estadoAprobacion = "aprobado";
+            await comercio.save();
+
+            // Log de auditoría
+            console.log(`✅ [ADMIN] Comercio aprobado: ${comercio.nombre} (ID: ${id}) por admin ${adminId}`);
+
+            res.json({
+                ok: true,
+                comercio,
+                message: "Comercio aprobado exitosamente"
+            });
+        } catch (e) {
+            console.error("[ADMIN] Error aprobando comercio:", e);
+            res.status(500).json({ error: "No se pudo aprobar el comercio" });
+        }
+    }
+);
+
+// Rechazar comercio
+router.put(
+    "/comercios/:id/rechazar",
+    middlewareAutenticacion,
+    soloAdministrador,
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+            const { razon } = req.body || {};
+            const adminId = req.usuario?.uid;
+
+            const comercio = await Comercio.findById(id);
+            if (!comercio) {
+                return res.status(404).json({ error: "Comercio no encontrado" });
+            }
+
+            // Actualizar estado
+            comercio.estadoAprobacion = "rechazado";
+            if (razon) {
+                comercio.razonRechazo = razon;
+            }
+            await comercio.save();
+
+            // Log de auditoría
+            console.log(`❌ [ADMIN] Comercio rechazado: ${comercio.nombre} (ID: ${id}) por admin ${adminId}${razon ? ` - Razón: ${razon}` : ''}`);
+
+            res.json({
+                ok: true,
+                comercio,
+                message: "Comercio rechazado"
+            });
+        } catch (e) {
+            console.error("[ADMIN] Error rechazando comercio:", e);
+            res.status(500).json({ error: "No se pudo rechazar el comercio" });
+        }
+    }
+);
+
 export default router;

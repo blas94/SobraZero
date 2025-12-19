@@ -10,11 +10,12 @@ const inactivo =
 export default function AdminNav() {
     return (
         <nav className="mb-6 flex gap-2 flex-wrap">
+
             <NavLink
                 to="/admin"
                 end
                 className={({ isActive }) =>
-                    `${linkBase} ${isActive ? activo : inactivo}`
+                    `${linkBase} ${isActive ? activo : inactivo} `
                 }
             >
                 Dashboard
@@ -23,7 +24,7 @@ export default function AdminNav() {
             <NavLink
                 to="/admin/usuarios"
                 className={({ isActive }) =>
-                    `${linkBase} ${isActive ? activo : inactivo}`
+                    `${linkBase} ${isActive ? activo : inactivo} `
                 }
             >
                 Usuarios
@@ -32,7 +33,7 @@ export default function AdminNav() {
             <NavLink
                 to="/admin/comercios"
                 className={({ isActive }) =>
-                    `${linkBase} ${isActive ? activo : inactivo}`
+                    `${linkBase} ${isActive ? activo : inactivo} `
                 }
             >
                 Comercios

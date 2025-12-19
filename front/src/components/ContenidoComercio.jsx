@@ -298,7 +298,7 @@ const ContenidoComercio = ({
       } catch (err) {
         console.error("Error al guardar notificación:", err);
       }
-      console.log("Notificación guardada para usuario:", usuarioId); // LOG DE DEBUG
+      console.log("Notificación guardada para usuario:", usuarioId);
 
       toast.success("Reserva creada. Redirigiendo a Mercado Pago...");
 

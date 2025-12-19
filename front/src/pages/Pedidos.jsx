@@ -96,7 +96,16 @@ const ItemPedido = ({ pedido }) => {
             {pedido.nombreComercio || "Comercio"}
           </h2>
           <p className="text-xs text-muted-foreground">
-            {new Date(pedido.createdAt).toLocaleString("es-AR")}
+            {new Date(pedido.createdAt).toLocaleDateString("es-AR", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric"
+            })}{" "}
+            {new Date(pedido.createdAt).toLocaleTimeString("es-AR", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false
+            })} hs
           </p>
         </div>
 

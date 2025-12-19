@@ -61,45 +61,15 @@ const Inicio = () => {
   const [comerciosLocales, setComerciosLocales] = useState([]);
   const [cargandoComercios, setCargandoComercios] = useState(true);
   const [ubicacionUsuario, setUbicacionUsuario] = useState(null);
-  const [notificaciones, setNotificaciones] = useState([
-    {
-      id: "1",
-      type: "order",
-      title: "Pedido confirmado",
-      description: "Tu pedido de Panadería Don Juan está listo para retirar",
-      time: "Hace 10 min",
-      icon: CheckCircle2,
-      unread: true,
-    },
-    {
-      id: "2",
-      type: "promo",
-      title: "Nueva oferta cerca",
-      description: "Verdulería Los Andes tiene 60% de descuento",
-      time: "Hace 1 hora",
-      icon: Package,
-      unread: true,
-    },
-    {
-      id: "3",
-      type: "reminder",
-      title: "Recordatorio de retiro",
-      description: "No olvides retirar tu pedido antes de las 20:00",
-      time: "Hace 2 horas",
-      icon: Clock,
-      unread: true,
-    },
-    {
-      id: "4",
-      type: "order",
-      title: "Pedido completado",
-      description: "¡Gracias por usar SobraZero!",
-      time: "Ayer",
-      icon: CheckCircle2,
-      unread: false,
-    },
-  ]);
-  const notificacionesSinLeer = notificaciones.filter((n) => n.unread).length;
+
+  const {
+    notificaciones,
+    noLeidas: notificacionesSinLeer,
+    agregarNotificacion,
+    marcarComoLeida,
+    eliminarNotificacion: manejarEliminarNotificacion,
+    limpiarTodas: manejarEliminarTodasNotificaciones
+  } = usarNotificaciones(usuario?.id);
 
   // Función para calcular distancia entre dos puntos usando fórmula de Haversine
   const calcularDistancia = (lat1, lon1, lat2, lon2) => {
@@ -132,12 +102,7 @@ const Inicio = () => {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c; // Retornar valor numérico en km
   };
-  const manejarEliminarNotificacion = (notificationId) => {
-    setNotificaciones((prev) => prev.filter((n) => n.id !== notificationId));
-  };
-  const manejarEliminarTodasNotificaciones = () => {
-    setNotificaciones([]);
-  };
+
   const normalizarTexto = (texto = "") => {
     return texto
       .toString()
@@ -471,6 +436,43 @@ const Inicio = () => {
       };
     }
   }, [mostrarNotificaciones]);
+  useEffect(() => {
+    const verificarComercios = async () => {
+      // Verificar flag de email actualizado
+      const emailActualizado = localStorage.getItem("notificar_email_actualizado");
+      if (emailActualizado) {
+        agregarNotificacion({
+          titulo: "Email Actualizado",
+          descripcion: "Tu dirección de correo ha sido confirmada exitosamente",
+          tipo: 'business' // Usamos business check o similar
+        });
+        localStorage.removeItem("notificar_email_actualizado");
+      }
+      try {
+        const comercios = await obtenerMisComercios();
+        comercios.forEach(comercio => {
+          if (comercio.estadoAprobacion === 'aprobado') {
+            const keyNotificacion = `notificacion_aprobacion_vista_${comercio.id}`;
+            const yaNotificado = localStorage.getItem(keyNotificacion);
+            if (!yaNotificado) {
+              agregarNotificacion({
+                titulo: "¡Comercio Aprobado!",
+                descripcion: `Tu comercio "${comercio.nombre}" ya está visible en SobraZero`,
+                tipo: 'business'
+              });
+              localStorage.setItem(keyNotificacion, 'true');
+            }
+          }
+        });
+      } catch (error) {
+        console.error("Error verificando comercios:", error);
+      }
+    };
+    if (usuario?.id) {
+      verificarComercios();
+    }
+  }, [usuario?.id, agregarNotificacion]);
+  // Manejador para evento 'comercioReservado' (ya existente, verificar si duplicas)
   useEffect(() => {
     const manejarReservaComercio = (evento) => {
       const { idComercio, nuevoDisponible } = evento.detail;

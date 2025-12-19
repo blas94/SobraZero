@@ -109,13 +109,24 @@ router.get("/usuario/:usuarioId", async (req, res) => {
       console.log("  - Estados:", reservas.map(r => r.estado).join(", "));
     }
 
-    // Formatear respuesta para incluir nombreComercio
-    const reservasFormateadas = reservas.map(r => ({
-      ...r,
-      nombreComercio: r.comercioId?.nombre || 'Comercio',
-      // Mantener comercioId como ObjectId para compatibilidad
-      comercioId: r.comercioId?._id || r.comercioId
-    }));
+    // Formatear respuesta para incluir nombreComercio y mantener toda la info del comercio
+    const reservasFormateadas = reservas.map(r => {
+      const comercio = r.comercioId;
+      return {
+        ...r,
+        nombreComercio: comercio?.nombre || 'Comercio',
+        // Mantener comercioId como objeto completo con toda la información
+        comercioId: comercio ? {
+          _id: comercio._id,
+          nombre: comercio.nombre,
+          direccion: comercio.direccion,
+          imagenUrl: comercio.imagenUrl,
+          horarios: comercio.horarios || []
+        } : null
+      };
+    });
+
+    console.log("  - Ejemplo de comercio con horarios:", reservasFormateadas[0]?.comercioId);
 
     res.json({ ok: true, reservas: reservasFormateadas });
   } catch (e) {

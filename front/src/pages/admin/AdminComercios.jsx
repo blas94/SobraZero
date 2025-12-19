@@ -1,7 +1,10 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { apiFetch } from "@/services/api";
 import { toast } from "sonner";
+import { Boton } from "@/components/ui/Boton";
 import AdminNav from "@/components/admin/AdminNav";
+import BadgeEstadoComercio from "@/components/admin/BadgeEstadoComercio";
+import ModalRechazarComercio from "@/components/admin/ModalRechazarComercio";
 
 const normalizarComercio = (c) => {
     const obj = c && typeof c === "object" ? c : {};
@@ -16,7 +19,7 @@ const normalizarComercio = (c) => {
 const money = (n) => {
     const num = Number(n);
     if (Number.isNaN(num)) return "-";
-    return `$${num.toLocaleString("es-AR")}`;
+    return `$${num.toLocaleString("es-AR")} `;
 };
 
 const fecha = (f) => (f ? new Date(f).toLocaleString("es-AR") : "-");
@@ -31,7 +34,7 @@ export default function AdminComercios() {
     const [cargando, setCargando] = useState(true);
     const [busqueda, setBusqueda] = useState("");
     const [abiertos, setAbiertos] = useState(() => new Set());
-
+    const [modalRechazar, setModalRechazar] = useState({ open: false, comercio: null });
     const [reservasPorComercio, setReservasPorComercio] = useState({});
     const [cargandoReservas, setCargandoReservas] = useState({});
 
@@ -86,7 +89,7 @@ export default function AdminComercios() {
 
         setCargandoReservas((prev) => ({ ...prev, [id]: true }));
         try {
-            const data = await apiFetch(`/admin/comercios/${id}/reservas`);
+            const data = await apiFetch(`/ admin / comercios / ${id}/reservas`);
             setReservasPorComercio((prev) => ({
                 ...prev,
                 [id]: Array.isArray(data?.reservas) ? data.reservas : [],
@@ -141,6 +144,46 @@ export default function AdminComercios() {
         }
     };
 
+    const aprobarComercio = async (comercioId) => {
+        try {
+            await apiFetch(`/admin/comercios/${comercioId}/aprobar`, {
+                method: "PUT",
+            });
+            // Actualizar lista local
+            setComercios((prev) =>
+                prev.map((c) =>
+                    String(c._id) === String(comercioId)
+                        ? { ...c, estadoAprobacion: "aprobado" }
+                        : c
+                )
+            );
+            toast.success("Comercio aprobado exitosamente");
+        } catch (e) {
+            toast.error(e?.message || "No se pudo aprobar el comercio");
+        }
+    };
+    const rechazarComercio = async (razon) => {
+        if (!modalRechazar.comercio) return;
+        try {
+            await apiFetch(`/admin/comercios/${modalRechazar.comercio._id}/rechazar`, {
+                method: "PUT",
+                body: JSON.stringify({ razon }),
+            });
+            // Actualizar lista local
+            setComercios((prev) =>
+                prev.map((c) =>
+                    String(c._id) === String(modalRechazar.comercio._id)
+                        ? { ...c, estadoAprobacion: "rechazado", razonRechazo: razon }
+                        : c
+                )
+            );
+            setModalRechazar({ open: false, comercio: null });
+            toast.success("Comercio rechazado");
+        } catch (e) {
+            toast.error(e?.message || "No se pudo rechazar el comercio");
+        }
+    };
+
     if (cargando) return <p className="p-6">Cargando comercios…</p>;
 
     return (
@@ -175,10 +218,11 @@ export default function AdminComercios() {
                                 <th className="p-2 text-left">Rubro</th>
                                 <th className="p-2 text-left">Dirección</th>
                                 <th className="p-2 text-left">Teléfono</th>
+                                <th className="p-2 text-center">Estado</th>
                                 <th className="p-2 text-center">Calificación</th>
                                 <th className="p-2 text-center">Productos</th>
                                 <th className="p-2 text-center">Pedidos</th>
-                                <th className="p-2 text-center">Detalle</th>
+                                <th className="p-2 text-center w-48">Acciones</th>
                             </tr>
                         </thead>
 
@@ -202,6 +246,9 @@ export default function AdminComercios() {
                                             <td className="p-2">{c?.direccion || "-"}</td>
                                             <td className="p-2">{c?.telefono || "-"}</td>
                                             <td className="p-2 text-center">
+                                                <BadgeEstadoComercio estado={c?.estadoAprobacion} />
+                                            </td>
+                                            <td className="p-2 text-center">
                                                 {c?.calificacionPromedio ?? "-"}
                                             </td>
                                             <td className="p-2 text-center">
@@ -209,13 +256,35 @@ export default function AdminComercios() {
                                             </td>
                                             <td className="p-2 text-center">{pedidosCount}</td>
                                             <td className="p-2 text-center">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => toggle(id)}
-                                                    className="text-primary hover:underline"
-                                                >
-                                                    {abierto ? "Ocultar" : "Ver"}
-                                                </button>
+                                                <div className="flex gap-2 justify-center items-center flex-wrap">
+                                                    {c?.estadoAprobacion === "pendiente" && (
+                                                        <div className="flex gap-2">
+                                                            <Boton
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => aprobarComercio(c._id)}
+                                                                className="min-w-[90px] border-emerald-200 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 hover:border-emerald-300"
+                                                            >
+                                                                ✓ Aprobar
+                                                            </Boton>
+                                                            <Boton
+                                                                size="sm"
+                                                                variant="outline"
+                                                                onClick={() => setModalRechazar({ open: true, comercio: c })}
+                                                                className="min-w-[90px] border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800 hover:border-rose-300"
+                                                            >
+                                                                ✕ Rechazar
+                                                            </Boton>
+                                                        </div>
+                                                    )}
+                                                    <Boton
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => toggle(id)}
+                                                    >
+                                                        {abierto ? "Ocultar" : "Ver"}
+                                                    </Boton>
+                                                </div>
                                             </td>
                                         </tr>
 
@@ -419,6 +488,12 @@ export default function AdminComercios() {
                     </table>
                 </div>
             )}
+            <ModalRechazarComercio
+                open={modalRechazar.open}
+                onOpenChange={(open) => setModalRechazar({ open, comercio: null })}
+                onConfirm={rechazarComercio}
+                nombreComercio={modalRechazar.comercio?.nombre || ""}
+            />
         </div>
     );
 }
