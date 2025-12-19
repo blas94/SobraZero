@@ -13,8 +13,6 @@ import {
 } from "@/components/ui/Plegable";
 import { authHttp } from "@/services/http-client";
 
-const ENDPOINT_CHECKOUT = "/pagos/checkout";
-
 const ESTADOS_FILTRO = [
   { id: "en-curso", etiqueta: "En curso" },
   { id: "historial", etiqueta: "Historial" },
@@ -22,9 +20,17 @@ const ESTADOS_FILTRO = [
 
 const normalizarEstado = (valor = "") => {
   const estado = valor.toString().toLowerCase();
+
   if (["pending", "pendiente"].includes(estado)) return "pendiente";
-  if (["picked_up", "retirado"].includes(estado)) return "retirado";
-  if (["cancelled", "cancelado"].includes(estado)) return "cancelado";
+
+  if (["paid", "pagado", "pagada", "approved"].includes(estado)) return "pagada";
+
+  if (["picked_up", "retirado", "retirada"].includes(estado)) return "retirada";
+
+  if (["cancelled", "cancelado", "cancelada"].includes(estado)) return "cancelada";
+
+  if (["expired", "expirada"].includes(estado)) return "expirada";
+
   return "completado";
 };
 
@@ -35,10 +41,14 @@ const obtenerEtiquetaEstado = (estado) => {
   switch (normalizarEstado(estado)) {
     case "pendiente":
       return "En curso";
-    case "cancelado":
-      return "Cancelado";
-    case "retirado":
+    case "pagada":
+      return "Pagado";
+    case "retirada":
       return "Retirado";
+    case "cancelada":
+      return "Cancelado";
+    case "expirada":
+      return "Expirado";
     default:
       return "Completado";
   }
@@ -48,10 +58,14 @@ const obtenerVarianteEstado = (estado) => {
   switch (normalizarEstado(estado)) {
     case "pendiente":
       return "default";
-    case "cancelado":
-      return "destructive";
-    case "retirado":
+    case "pagada":
       return "secondary";
+    case "retirada":
+      return "secondary";
+    case "cancelada":
+      return "destructive";
+    case "expirada":
+      return "destructive";
     default:
       return "secondary";
   }
@@ -59,8 +73,8 @@ const obtenerVarianteEstado = (estado) => {
 
 const ItemPedido = ({ pedido, manejarReorden }) => {
   const estadoNormalizado = normalizarEstado(pedido.estado || pedido.status);
-  const cantidadProductos = pedido.productos?.length || 0;
   const productos = pedido.productos || pedido.products || [];
+  const cantidadProductos = productos.length || 0;
 
   return (
     <Tarjeta className="p-4">
@@ -68,7 +82,7 @@ const ItemPedido = ({ pedido, manejarReorden }) => {
         <div>
           <h2 className="font-semibold">{obtenerNombreComercio(pedido)}</h2>
           <p className="text-xs text-muted-foreground">
-            {pedido.fecha || pedido.date}
+            {pedido.fecha || pedido.date || "—"}
           </p>
         </div>
         <Insignia variant={obtenerVarianteEstado(estadoNormalizado)}>
@@ -79,11 +93,11 @@ const ItemPedido = ({ pedido, manejarReorden }) => {
       <div className="space-y-2 text-sm">
         <div className="flex items-start gap-2 text-muted-foreground">
           <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-          <span>{pedido.direccion || pedido.address}</span>
+          <span>{pedido.direccion || pedido.address || "—"}</span>
         </div>
         <div className="flex items-center gap-2 text-muted-foreground">
           <Clock className="w-4 h-4" />
-          <span>Retiro: {pedido.horarioRetiro || pedido.pickupTime}</span>
+          <span>Retiro: {pedido.horarioRetiro || pedido.pickupTime || "—"}</span>
         </div>
       </div>
 
@@ -91,8 +105,7 @@ const ItemPedido = ({ pedido, manejarReorden }) => {
         <div className="flex items-center gap-2">
           <Package className="w-4 h-4 text-muted-foreground" />
           <ActivadorPlegable className="text-sm text-green-600 underline cursor-pointer hover:text-green-700">
-            {cantidadProductos}{" "}
-            {cantidadProductos === 1 ? "producto" : "productos"}
+            {cantidadProductos} {cantidadProductos === 1 ? "producto" : "productos"}
           </ActivadorPlegable>
         </div>
         <ContenidoPlegable className="mt-2">
@@ -102,10 +115,10 @@ const ItemPedido = ({ pedido, manejarReorden }) => {
                 <li key={index} className="text-sm">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">
-                      {producto.nombre || producto.name}
+                      {producto.nombre || producto.name || "—"}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      Unidades: {producto.cantidad || producto.quantity}
+                      Unidades: {producto.cantidad ?? producto.quantity ?? "—"}
                       {producto.weight && `  Peso: ${producto.weight} kilo/s`}
                     </span>
                   </div>
@@ -120,16 +133,12 @@ const ItemPedido = ({ pedido, manejarReorden }) => {
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-medium">Total</span>
           <span className="text-lg font-bold text-primary">
-            ${Number(pedido.total || 0).toLocaleString()}
+            ${Number(pedido.total || 0).toLocaleString("es-AR")}
           </span>
         </div>
 
-        {normalizarEstado(pedido.estado || pedido.status) === "retirado" && (
-          <Boton
-            onClick={() => manejarReorden(pedido)}
-            className="w-full"
-            size="sm"
-          >
+        {normalizarEstado(pedido.estado || pedido.status) === "retirada" && (
+          <Boton onClick={() => manejarReorden(pedido)} className="w-full" size="sm">
             Volver a pedir
           </Boton>
         )}
@@ -143,81 +152,75 @@ const Pedidos = () => {
   const ultimoValorRef = useRef(localStorage.getItem("pedidos"));
 
   const [pedidos, setPedidos] = useState(() => {
-    const pedidosGuardados = localStorage.getItem("pedidos");
-    if (!pedidosGuardados || JSON.parse(pedidosGuardados).length === 0) {
-      const pedidosEjemplo = [
-        {
-          id: "ejemplo-1",
-          nombreComercio: "Panadería Don Juan",
-          estado: "pendiente",
-          horarioRetiro: "18:00 - 20:00",
-          direccion: "Av. Corrientes 2850, Balvanera",
-          total: 1000,
-          articulos: 1,
-          fecha: "Hoy",
-          productos: [
-            { nombre: "Medialunas", cantidad: "6 unidades" },
-            { nombre: "Pan francés", cantidad: "500 g" },
-            { nombre: "Facturas surtidas", cantidad: "4 unidades" },
-            { nombre: "Pan de campo", cantidad: "1 kg" },
-          ],
-        },
-        {
-          id: "ejemplo-2",
-          nombreComercio: "Supermercado Express",
-          estado: "retirado",
-          horarioRetiro: "19:00 - 21:00",
-          direccion: "Av. Pueyrredón 258, Balvanera",
-          total: 3000,
-          articulos: 2,
-          fecha: "Ayer",
-          productos: [
-            { nombre: "Frutas de estación variadas", cantidad: "2 kg" },
-            { nombre: "Verduras frescas mixtas", cantidad: "1.5 kg" },
-            { nombre: "Lácteos (leche, yogurt)", cantidad: "3 unidades" },
-            { nombre: "Pan del día", cantidad: "500 g" },
-          ],
-        },
-        {
-          id: "ejemplo-3",
-          nombreComercio: "Restaurante La Estancia",
-          estado: "cancelado",
-          horarioRetiro: "20:00 - 21:30",
-          direccion: "Av. Rivadavia 2380, Balvanera",
-          total: 1500,
-          articulos: 1,
-          fecha: "Hace 2 días",
-          productos: [
-            {
-              nombre: "Milanesa napolitana con guarnición",
-              cantidad: "1 porción",
-            },
-            { nombre: "Tarta de verduras", cantidad: "1 porción" },
-            { nombre: "Flan casero con dulce de leche", cantidad: "1 porción" },
-          ],
-        },
-        {
-          id: "ejemplo-4",
-          nombreComercio: "Verdulería Los Andes",
-          estado: "retirado",
-          horarioRetiro: "17:00 - 19:00",
-          direccion: "Av. Córdoba 2645, Balvanera",
-          total: 1800,
-          articulos: 2,
-          fecha: "Hace 3 días",
-          productos: [
-            { nombre: "Tomates", cantidad: "1 kilo" },
-            { nombre: "Lechuga", cantidad: "2 unidades" },
-            { nombre: "Manzanas", cantidad: "1 kilo" },
-            { nombre: "Zanahorias", cantidad: "medio kilo" },
-          ],
-        },
-      ];
-      localStorage.setItem("pedidos", JSON.stringify(pedidosEjemplo));
-      return pedidosEjemplo;
+    try {
+      const raw = localStorage.getItem("pedidos");
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
     }
-    return JSON.parse(pedidosGuardados);
   });
+
+  const obtenerUsuarioId = () => {
+    try {
+      const u = JSON.parse(localStorage.getItem("user") || "null");
+      return u?._id || u?.id || u?.uid || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const sincronizarEstadosDesdeBackend = async () => {
+    const usuarioId = obtenerUsuarioId();
+    if (!usuarioId) return;
+
+    const resp = await authHttp.get(`/reservas/usuario/${usuarioId}`);
+    const reservas = resp?.data?.reservas || [];
+
+
+    const estadoPorReservaId = new Map(
+      reservas.map((r) => [String(r._id), r.estado])
+    );
+
+    const raw = localStorage.getItem("pedidos");
+    if (!raw) return;
+
+    let arr = [];
+    try {
+      arr = JSON.parse(raw);
+    } catch {
+      return;
+    }
+
+    const actualizado = arr.map((p) => {
+      const idLocal = String(p?.id || p?._id || p?.reservaId || "");
+      const nuevoEstado = estadoPorReservaId.get(idLocal);
+      if (!nuevoEstado) return p;
+      return { ...p, estado: nuevoEstado };
+    });
+
+    localStorage.setItem("pedidos", JSON.stringify(actualizado));
+    ultimoValorRef.current = JSON.stringify(actualizado);
+    setPedidos(actualizado);
+  };
+
+
+  useEffect(() => {
+    const run = async () => {
+      try {
+
+        const forzar = sessionStorage.getItem("sobrazero_refetch_pedidos") === "1";
+        if (forzar) sessionStorage.removeItem("sobrazero_refetch_pedidos");
+
+
+        await sincronizarEstadosDesdeBackend();
+      } catch (e) {
+
+        console.log("[Pedidos] No se pudo sincronizar estados:", e?.message || e);
+      }
+    };
+
+    run();
+  }, []);
 
   useEffect(() => {
     const manejarCambioStorage = () => {
@@ -237,15 +240,6 @@ const Pedidos = () => {
     };
   }, []);
 
-  const obtenerUsuarioId = () => {
-    try {
-      const u = JSON.parse(localStorage.getItem("user") || "null");
-      return u?._id || u?.id || u?.uid || null;
-    } catch {
-      return null;
-    }
-  };
-
   const manejarReorden = async (pedido) => {
     try {
       const usuarioId = obtenerUsuarioId();
@@ -254,7 +248,8 @@ const Pedidos = () => {
         return;
       }
 
-      const comercioId = pedido.comercioId || pedido.storeId || pedido.comercio?._id;
+      const comercioId =
+        pedido.comercioId || pedido.storeId || pedido.comercio?._id;
       if (!comercioId) {
         toast.error("Este pedido no tiene comercioId para volver a pedir.");
         return;
@@ -304,16 +299,15 @@ const Pedidos = () => {
     }
   };
 
-
   const pedidosFiltrados =
     filtroEstado === "en-curso"
-      ? pedidos.filter(
-        (pedido) =>
-          normalizarEstado(pedido.estado || pedido.status) === "pendiente"
-      )
-      : pedidos.filter((pedido) => {
-        const estado = normalizarEstado(pedido.estado || pedido.status);
-        return estado === "retirado" || estado === "cancelado";
+      ? pedidos.filter((p) => {
+        const e = normalizarEstado(p.estado || p.status);
+        return e === "pendiente" || e === "pagada";
+      })
+      : pedidos.filter((p) => {
+        const e = normalizarEstado(p.estado || p.status);
+        return e === "retirada" || e === "cancelada" || e === "expirada";
       });
 
   return (
@@ -352,7 +346,7 @@ const Pedidos = () => {
           <div className="space-y-4">
             {pedidosFiltrados.map((pedido) => (
               <ItemPedido
-                key={pedido.id}
+                key={pedido.id || pedido._id}
                 pedido={pedido}
                 manejarReorden={manejarReorden}
               />

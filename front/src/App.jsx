@@ -22,7 +22,7 @@ import Pedidos from "./pages/Pedidos";
 import Perfil from "./pages/Perfil";
 import Favoritos from "./pages/Favoritos";
 import Configuracion from "./pages/Configuracion";
-import Notificaciones from "./pages/Notificaciones";
+
 import CentroAyuda from "./pages/CentroAyuda";
 import ChatEnVivo from "./pages/ChatEnVivo";
 import Autenticacion from "./pages/Autenticacion";
@@ -246,14 +246,7 @@ const App = () => {
                       </RutaProtegida>
                     }
                   />
-                  <Route
-                    path="/perfil/notificaciones"
-                    element={
-                      <RutaProtegida>
-                        <Notificaciones />
-                      </RutaProtegida>
-                    }
-                  />
+
                   <Route
                     path="/perfil/centro-ayuda"
                     element={

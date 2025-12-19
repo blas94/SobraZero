@@ -1,12 +1,10 @@
 import {
   Settings,
   LogOut,
-  Bell,
   HelpCircle,
   ChevronRight,
   Edit,
-  ShoppingBag,
-  Leaf,
+  Package,
   DollarSign,
   Store,
   Clock,
@@ -48,11 +46,6 @@ const opcionesMenu = [
     icono: Settings,
     etiqueta: "Configuración",
     ruta: "/perfil/configuracion",
-  },
-  {
-    icono: Bell,
-    etiqueta: "Notificaciones",
-    ruta: "/perfil/notificaciones",
   },
   {
     icono: Store,
@@ -182,16 +175,8 @@ const Perfil = () => {
             <h2 className="text-xl font-bold">{usuario.nombre}</h2>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            <div className="text-center p-2 rounded-lg bg-primary/5 border border-primary/20">
-              <Leaf className="w-6 h-6 mx-auto mb-1 text-primary" />
-              <p className="text-xl font-bold text-primary mb-1">
-                {usuario.pedidosCompletados * 2.5}kg
-              </p>
-              <p className="text-xs text-muted-foreground">salvados</p>
-            </div>
-
-            <div className="text-center p-2 rounded-lg bg-primary/5 border border-primary/20">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="text-center p-3 rounded-lg bg-primary/5 border border-primary/20">
               <DollarSign className="w-6 h-6 mx-auto mb-1 text-primary" />
               <p className="text-xl font-bold text-primary mb-1">
                 {(usuario.pedidosCompletados * 450).toLocaleString()}
@@ -199,12 +184,12 @@ const Perfil = () => {
               <p className="text-xs text-muted-foreground">ahorrados</p>
             </div>
 
-            <div className="text-center p-2 rounded-lg bg-primary/5 border border-primary/20">
-              <ShoppingBag className="w-6 h-6 mx-auto mb-1 text-primary" />
+            <div className="text-center p-3 rounded-lg bg-primary/5 border border-primary/20">
+              <Package className="w-6 h-6 mx-auto mb-1 text-primary" />
               <p className="text-xl font-bold text-primary mb-1">
                 {usuario.pedidosCompletados}
               </p>
-              <p className="text-xs text-muted-foreground">pedidos</p>
+              <p className="text-xs text-muted-foreground">productos</p>
             </div>
           </div>
         </Tarjeta>

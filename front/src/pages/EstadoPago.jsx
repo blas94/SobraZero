@@ -7,6 +7,9 @@ const EstadoPago = () => {
 
   useEffect(() => {
     toast.success("Pago procesado. Actualizando pedidos...");
+
+    sessionStorage.setItem("sobrazero_refetch_pedidos", "1");
+
     navegar("/pedidos", { replace: true });
   }, [navegar]);
 
