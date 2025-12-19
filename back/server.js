@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
+
 import reservasRouter from "./server/routes/reservas.js";
 import authRouter from "./server/routes/auth.js";
 import pagosRouter from "./server/routes/pagos.js";
@@ -13,6 +14,8 @@ import reseñasRouter from "./server/routes/reseñas.js";
 import mercadopagoRouter from "./server/routes/mercadopago.js";
 import adminRouter from "./server/routes/admin.js";
 
+import limpiarReservasExpiradas from "./scripts/limpiar-reservas-expiradas.js";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 
@@ -20,6 +23,7 @@ const app = express();
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
+app.use(cookieParser());
 
 const {
   URI_DB,
@@ -60,17 +64,23 @@ const corsOptions = {
 
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
+
+  exposedHeaders: ["Content-Length", "ETag"],
 };
 
 app.use(cors(corsOptions));
 
-app.options("/*", cors(corsOptions));
-
-app.use(cookieParser());
+app.use((req, res, next) => {
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 app.use((err, req, res, next) => {
   if (err?.type === "entity.too.large") {
     return res.status(413).json({
+      ok: false,
       message: "La imagen es demasiado pesada (Límite del servidor excedido)",
     });
   }
@@ -79,7 +89,12 @@ app.use((err, req, res, next) => {
     return res.status(403).json({ ok: false, message: err.message });
   }
 
-  next(err);
+  if (err) {
+    console.error("Error no controlado:", err);
+    return res.status(500).json({ ok: false, message: "Error interno" });
+  }
+
+  next();
 });
 
 mongoose
@@ -103,6 +118,7 @@ app.get("/", (_req, res) => {
       <li>/api/comercios</li>
       <li>/api/resenas</li>
       <li>/api/mercadopago</li>
+      <li>/api/admin</li>
     </ul>
   `);
 });
@@ -119,12 +135,11 @@ app.listen(PORT, () => {
   const mpMasked = MP_ACCESS_TOKEN
     ? `${MP_ACCESS_TOKEN.slice(0, 10)}***`
     : "(no definido)";
-  console.log(`Servidor andando en http://localhost:${PORT}`);
+
+  console.log(`Servidor andando en puerto ${PORT}`);
   console.log(`CLIENT_URL permitido: ${CLIENT_URL}`);
   console.log(`MP_ACCESS_TOKEN: ${mpMasked}`);
 });
-
-import limpiarReservasExpiradas from "./scripts/limpiar-reservas-expiradas.js";
 
 const INTERVALO_LIMPIEZA = 5 * 60 * 1000;
 
@@ -136,4 +151,4 @@ setInterval(async () => {
   }
 }, INTERVALO_LIMPIEZA);
 
-console.log(`Limpieza automática de reservas configurada (cada 5 minutos)`);
+console.log("Limpieza automática de reservas configurada (cada 5 minutos)");

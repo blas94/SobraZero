@@ -199,7 +199,7 @@ const Perfil = () => {
             <div className="text-center p-3 rounded-lg bg-primary/5 border border-primary/20">
               <DollarSign className="w-6 h-6 mx-auto mb-1 text-primary" />
               <p className="text-xl font-bold text-primary mb-1">
-                ${estadisticas.dineroAhorrado.toLocaleString("es-AR")}
+                {estadisticas.dineroAhorrado.toLocaleString("es-AR")}
               </p>
               <p className="text-xs text-muted-foreground">ahorrados</p>
             </div>
