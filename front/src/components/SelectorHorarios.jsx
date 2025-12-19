@@ -51,8 +51,8 @@ const SelectorHorarios = ({ value = [], onChange, error }) => {
                         key={dia.id}
                         className="flex flex-col sm:flex-row sm:items-center gap-3 pb-3 border-b border-border last:border-b-0 last:pb-0"
                     >
-                        {/* Día + Checkbox + "Abierto" agrupados */}
-                        <div className="flex items-center justify-between w-full sm:w-auto sm:gap-3 sm:justify-start">
+                        {/* Día + Checkbox + "Abierto" */}
+                        <div className="flex items-center justify-between sm:justify-start sm:w-48 sm:gap-3">
                             <span className="text-sm font-medium">{dia.label}</span>
                             <div className="flex items-center gap-2">
                                 <CasillaVerificacion
@@ -67,14 +67,15 @@ const SelectorHorarios = ({ value = [], onChange, error }) => {
 
                         {/* Horarios */}
                         {horarios[index]?.abierto && (
-                            <div className="flex items-center gap-2 flex-1">
+                            <div className="flex items-center gap-2 justify-end sm:justify-normal">
                                 <Entrada
                                     type="time"
                                     value={horarios[index]?.horaApertura || "09:00"}
                                     onChange={(e) =>
                                         manejarCambio(index, "horaApertura", e.target.value)
                                     }
-                                    className="w-full sm:w-28"
+                                    className="w-32"
+                                    style={{ textAlign: 'center' }}
                                 />
                                 <span className="text-muted-foreground">-</span>
                                 <Entrada
@@ -83,7 +84,8 @@ const SelectorHorarios = ({ value = [], onChange, error }) => {
                                     onChange={(e) =>
                                         manejarCambio(index, "horaCierre", e.target.value)
                                     }
-                                    className="w-full sm:w-28"
+                                    className="w-32"
+                                    style={{ textAlign: 'center' }}
                                 />
                             </div>
                         )}

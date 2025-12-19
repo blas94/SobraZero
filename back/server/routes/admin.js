@@ -3,6 +3,7 @@ import {
     middlewareAutenticacion,
     soloAdministrador,
 } from "../middlewares/autenticacion.js";
+import mongoose from "mongoose";
 import Usuario from "../models/usuario.js";
 import Comercio from "../models/comercio.js";
 import Reserva from "../models/reserva.js";
@@ -11,12 +12,11 @@ const router = Router();
 
 router.get("/__ping", (_req, res) => res.json({ ok: true, admin: true }));
 
-
 router.get(
     "/usuarios",
     middlewareAutenticacion,
     soloAdministrador,
-    async (req, res) => {
+    async (_req, res) => {
         try {
             const usuarios = await Usuario.find()
                 .select("_id nombre email tel rol createdAt")
@@ -36,7 +36,7 @@ router.put(
     soloAdministrador,
     async (req, res) => {
         try {
-            const { rol } = req.body;
+            const { rol } = req.body || {};
             if (!["user", "admin"].includes(rol)) {
                 return res.status(400).json({ error: "Rol inválido" });
             }
@@ -74,36 +74,22 @@ router.delete(
             const { id } = req.params;
 
             if (req.usuario?.uid === id) {
-                return res.status(400).json({ error: "No podés eliminar tu propio usuario admin" });
+                return res
+                    .status(400)
+                    .json({ error: "No podés eliminar tu propio usuario admin" });
             }
 
             const deleted = await Usuario.findByIdAndDelete(id);
-            if (!deleted) return res.status(404).json({ error: "Usuario no encontrado" });
+            if (!deleted)
+                return res.status(404).json({ error: "Usuario no encontrado" });
 
-            return res.json({ ok: true, deleted: { _id: deleted._id, email: deleted.email } });
+            return res.json({
+                ok: true,
+                deleted: { _id: deleted._id, email: deleted.email },
+            });
         } catch (e) {
             console.error(e);
             return res.status(500).json({ error: "No se pudo eliminar el usuario" });
-        }
-    }
-);
-
-
-router.get(
-    "/reservas",
-    middlewareAutenticacion,
-    soloAdministrador,
-    async (_req, res) => {
-        try {
-            const reservas = await Reserva.find()
-                .sort({ createdAt: -1 })
-                .populate("usuario", "nombre email tel")
-                .populate("comercio", "nombre rubro direccion telefono");
-
-            res.json({ reservas });
-        } catch (e) {
-            console.error(e);
-            res.status(500).json({ error: "No se pudieron obtener las reservas" });
         }
     }
 );
@@ -116,13 +102,61 @@ router.get(
         try {
             const { id } = req.params;
 
-            const reservas = await Reserva.find({ usuarioId: id })
-                .sort({ createdAt: -1 });
+            const reservas = await Reserva.find({ usuarioId: id }).sort({
+                createdAt: -1,
+            });
 
             return res.json({ reservas });
         } catch (e) {
             console.error(e);
-            return res.status(500).json({ error: "No se pudieron obtener las reservas" });
+            return res
+                .status(500)
+                .json({ error: "No se pudieron obtener las reservas" });
+        }
+    }
+);
+
+router.get(
+    "/reservas",
+    middlewareAutenticacion,
+    soloAdministrador,
+    async (_req, res) => {
+        try {
+            const reservas = await Reserva.find().sort({ createdAt: -1 });
+            res.json({ reservas });
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({ error: "No se pudieron obtener las reservas" });
+        }
+    }
+);
+
+router.put(
+    "/reservas/:id/estado",
+    middlewareAutenticacion,
+    soloAdministrador,
+    async (req, res) => {
+        try {
+            const { estado } = req.body;
+
+            if (!["pendiente", "pagada"].includes(estado)) {
+                return res.status(400).json({ error: "Estado inválido" });
+            }
+
+            const reserva = await Reserva.findByIdAndUpdate(
+                req.params.id,
+                { estado },
+                { new: true }
+            );
+
+            if (!reserva) {
+                return res.status(404).json({ error: "Reserva no encontrada" });
+            }
+
+            res.json({ reserva });
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({ error: "No se pudo actualizar el estado" });
         }
     }
 );
@@ -133,8 +167,23 @@ router.get(
     soloAdministrador,
     async (_req, res) => {
         try {
-            const comercios = await Comercio.find().sort({ createdAt: -1 });
-            res.json({ comercios });
+            const comercios = await Comercio.find().sort({ createdAt: -1 }).lean();
+
+            const ids = comercios.map((c) => c._id);
+
+            const counts = await Reserva.aggregate([
+                { $match: { comercioId: { $in: ids } } },
+                { $group: { _id: "$comercioId", total: { $sum: 1 } } },
+            ]);
+
+            const mapa = new Map(counts.map((x) => [String(x._id), x.total]));
+
+            const comerciosConCount = comercios.map((c) => ({
+                ...c,
+                pedidosCount: mapa.get(String(c._id)) || 0,
+            }));
+
+            res.json({ comercios: comerciosConCount });
         } catch (e) {
             console.error(e);
             res.status(500).json({ error: "No se pudieron obtener los comercios" });
@@ -149,11 +198,34 @@ router.get(
     async (req, res) => {
         try {
             const comercio = await Comercio.findById(req.params.id);
-            if (!comercio) return res.status(404).json({ error: "Comercio no encontrado" });
+            if (!comercio)
+                return res.status(404).json({ error: "Comercio no encontrado" });
             res.json({ comercio });
         } catch (e) {
             console.error(e);
             res.status(500).json({ error: "No se pudo obtener el comercio" });
+        }
+    }
+);
+
+router.get(
+    "/comercios/:id/reservas",
+    middlewareAutenticacion,
+    soloAdministrador,
+    async (req, res) => {
+        try {
+            const { id } = req.params;
+
+            const reservas = await Reserva.find({ comercioId: id })
+                .sort({ createdAt: -1 })
+                .populate("usuarioId", "nombre email tel");
+
+            res.json({ reservas });
+        } catch (e) {
+            console.error(e);
+            res.status(500).json({
+                error: "No se pudieron obtener las reservas del comercio",
+            });
         }
     }
 );

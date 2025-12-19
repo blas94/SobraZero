@@ -214,6 +214,16 @@ router.put("/:id", async (req, res, next) => {
 
       const { estadoAprobacion, propietarioId, ...datosActualizables } = req.body;
 
+      // Validar que si se intenta activar el comercio, tenga al menos un producto
+      if (datosActualizables.activo === true) {
+        const productosActuales = datosActualizables.productos || comercio.productos || [];
+        if (productosActuales.length === 0) {
+          return res.status(400).json({
+            message: "No podés activar el comercio sin tener al menos un producto registrado"
+          });
+        }
+      }
+
       if (datosActualizables.direccion) {
         const coordenadas = await geocodificarDireccion(datosActualizables.direccion);
         datosActualizables.coordenadas = coordenadas;

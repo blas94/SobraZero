@@ -17,6 +17,7 @@ const AutocompleteDireccion = ({
     const contenedorRef = useRef(null);
     const temporizadorRef = useRef(null);
     const seleccionandoRef = useRef(false); // Flag para evitar búsqueda al seleccionar
+    const interactuadoRef = useRef(false); // Flag para detectar interacción real del usuario
 
     // Token de Mapbox (el mismo que se usa en Inicio.jsx)
     const tokenMapbox =
@@ -48,6 +49,11 @@ const AutocompleteDireccion = ({
         // No buscar si se está seleccionando una opción
         if (seleccionandoRef.current) {
             seleccionandoRef.current = false;
+            return;
+        }
+
+        // No buscar si el usuario no ha interactuado aún (evita búsqueda al montar)
+        if (!interactuadoRef.current) {
             return;
         }
 
@@ -167,7 +173,10 @@ const AutocompleteDireccion = ({
             <div className="relative">
                 <Entrada
                     value={valor}
-                    onChange={(e) => alCambiar(e.target.value)}
+                    onChange={(e) => {
+                        interactuadoRef.current = true; // Marcar que el usuario ha interactuado
+                        alCambiar(e.target.value);
+                    }}
                     onKeyDown={manejarTecla}
                     onFocus={() => {
                         // Solo mostrar sugerencias si hay texto y sugerencias disponibles

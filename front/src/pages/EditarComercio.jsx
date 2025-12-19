@@ -15,6 +15,7 @@ import { Entrada } from "@/components/ui/Entrada";
 import { AreaTexto } from "@/components/ui/AreaTexto";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import AutocompleteDireccion from "@/components/AutocompleteDireccion";
+import SelectorHorarios from "@/components/SelectorHorarios";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { toast } from "sonner";
 import {
@@ -50,7 +51,7 @@ const EditarComercio = () => {
   const [precioOriginalEditado, setPrecioOriginalEditado] = useState("");
   const [precioDescuentoEditado, setPrecioDescuentoEditado] = useState("");
   const [telefonoEditado, setTelefonoEditado] = useState("");
-  const [correoEditado, setCorreoEditado] = useState("");
+  const [horariosEditados, setHorariosEditados] = useState([]);
   const [productosEditados, setProductosEditados] = useState([]);
   const [mostrarDialogoImagen, setMostrarDialogoImagen] = useState(false);
   const [erroresProductos, setErroresProductos] = useState({});
@@ -90,10 +91,21 @@ const EditarComercio = () => {
         setHoraRetiroInicio(start || "18:00");
         setHoraRetiroFin(end || "20:00");
 
+        // Cargar horarios semanales o usar valores por defecto
+        const DIAS_SEMANA = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
+        const horariosIniciales = comercio.horarios && comercio.horarios.length > 0
+          ? comercio.horarios
+          : DIAS_SEMANA.map(dia => ({
+            dia,
+            abierto: ["sabado", "domingo"].includes(dia) ? false : true,
+            horaApertura: "09:00",
+            horaCierre: "18:00",
+          }));
+        setHorariosEditados(horariosIniciales);
+
         setPrecioOriginalEditado(comercio.precioOriginal?.toString() || "");
         setPrecioDescuentoEditado(comercio.precioDescuento?.toString() || "");
         setTelefonoEditado(comercio.telefono || "");
-        setCorreoEditado(""); // No tenemos correo en el modelo
 
         // Mapear productos
         const productosFormateados = (comercio.productos || []).map(p => ({
@@ -202,7 +214,7 @@ const EditarComercio = () => {
             nombre: nombreEditado,
             rubro: tipoComercioEditado,
             direccion: direccionEditada,
-            horarioRetiro: `${horaRetiroInicio} - ${horaRetiroFin}`,
+            horarios: horariosEditados,
           };
           break;
         case "descripcion":
@@ -291,6 +303,21 @@ const EditarComercio = () => {
 
       // Actualizar estado local
       setDatosComercio(comercioActualizado);
+
+      // Actualizar también los productos editados si se guardaron productos
+      if (campo === "productos") {
+        const productosFormateados = (comercioActualizado.productos || []).map(p => ({
+          id: p.id || p._id,
+          name: p.nombre,
+          stock: p.stock,
+          weight: p.peso,
+          originalPrice: p.precioOriginal,
+          discountedPrice: p.precioDescuento,
+          imageUrl: undefined,
+        }));
+        setProductosEditados(productosFormateados);
+      }
+
       setCampoEditando(null);
       setProductosExpandidos([]);
       toast.success("Cambios guardados");
@@ -303,19 +330,44 @@ const EditarComercio = () => {
   const manejarCancelarEdicion = () => {
     if (!datosComercio) return;
 
-    setNombreEditado(datosComercio.nombreComercio || "");
-    setTipoComercioEditado(datosComercio.tipoComercio || "");
+    setNombreEditado(datosComercio.nombre || "");
+    setTipoComercioEditado(datosComercio.rubro || "");
     setDireccionEditada(datosComercio.direccion || "");
-    setDescripcionEditada(datosComercio.description || "");
-    const pickupTime = datosComercio.pickupTime || "18:00 - 20:00";
-    const [start, end] = pickupTime.split(" - ");
+    setDescripcionEditada(datosComercio.descripcion || "");
+
+    const horarioRetiro = datosComercio.horarioRetiro || "18:00 - 20:00";
+    const [start, end] = horarioRetiro.split(" - ");
     setHoraRetiroInicio(start || "18:00");
     setHoraRetiroFin(end || "20:00");
-    setPrecioOriginalEditado(datosComercio.originalPrice?.toString() || "");
-    setPrecioDescuentoEditado(datosComercio.discountedPrice?.toString() || "");
+
+    // Restaurar horarios semanales
+    const DIAS_SEMANA = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"];
+    const horariosIniciales = datosComercio.horarios && datosComercio.horarios.length > 0
+      ? datosComercio.horarios
+      : DIAS_SEMANA.map(dia => ({
+        dia,
+        abierto: ["sabado", "domingo"].includes(dia) ? false : true,
+        horaApertura: "09:00",
+        horaCierre: "18:00",
+      }));
+    setHorariosEditados(horariosIniciales);
+
+    setPrecioOriginalEditado(datosComercio.precioOriginal?.toString() || "");
+    setPrecioDescuentoEditado(datosComercio.precioDescuento?.toString() || "");
     setTelefonoEditado(datosComercio.telefono || "");
-    setCorreoEditado(datosComercio.correo || "");
-    setProductosEditados(datosComercio.products || []);
+
+    // Mapear productos
+    const productosFormateados = (datosComercio.productos || []).map(p => ({
+      id: p.id || p._id,
+      name: p.nombre,
+      stock: p.stock,
+      weight: p.peso,
+      originalPrice: p.precioOriginal,
+      discountedPrice: p.precioDescuento,
+      imageUrl: undefined,
+    }));
+    setProductosEditados(productosFormateados);
+
     setErroresProductos({});
     setProductosExpandidos([]);
 
@@ -414,9 +466,15 @@ const EditarComercio = () => {
                     ? "Tu comercio está activo y visible en el mapa"
                     : "Tu comercio está inactivo y no aparece en el mapa"}
                 </p>
+                {!datosComercio.activo && (!datosComercio.productos || datosComercio.productos.length === 0) && (
+                  <p className="text-sm text-amber-600 dark:text-amber-500 mt-2">
+                    Necesitás agregar al menos un producto para poder activar tu comercio
+                  </p>
+                )}
               </div>
               <Boton
                 variant={datosComercio.activo ? "destructive" : "default"}
+                disabled={!datosComercio.activo && (!datosComercio.productos || datosComercio.productos.length === 0)}
                 onClick={async () => {
                   try {
                     const nuevoEstado = !datosComercio.activo;
@@ -431,7 +489,7 @@ const EditarComercio = () => {
                     );
                   } catch (error) {
                     console.error("Error cambiando estado:", error);
-                    toast.error("Error al cambiar el estado del comercio");
+                    toast.error(error.response?.data?.message || "Error al cambiar el estado del comercio");
                   }
                 }}
               >
@@ -499,17 +557,23 @@ const EditarComercio = () => {
           accept="image/*"
           onChange={manejarCambioImagen}
           className="hidden"
-          aria-label="Cambiar imagen del comercio" />
-        {campoEditando !== "informacion" && (
-          <Boton
-            variant="ghost"
-            size="sm"
-            onClick={() => setCampoEditando("informacion")}
-          >
-            Editar
-          </Boton>
-        )}
+          aria-label="Cambiar imagen del comercio"
+        />
+
+        {/* Sección de Información General */}
         <Tarjeta className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold">Información general</h3>
+            {campoEditando !== "informacion" && (
+              <Boton
+                variant="ghost"
+                size="sm"
+                onClick={() => setCampoEditando("informacion")}
+              >
+                Editar
+              </Boton>
+            )}
+          </div>
 
           {campoEditando === "informacion" ? (
             <div className="space-y-3">
@@ -550,24 +614,13 @@ const EditarComercio = () => {
                   ariaLabel="Calle y número del comercio"
                 />
               </div>
-              <div>
-                <Etiqueta>Horario de retiro - Inicio</Etiqueta>
-                <Entrada
-                  type="time"
-                  value={horaRetiroInicio}
-                  onChange={(e) => setHoraRetiroInicio(e.target.value)}
-                  aria-label="Horario de retiro - Inicio"
-                />
-              </div>
-              <div>
-                <Etiqueta>Horario de retiro - Fin</Etiqueta>
-                <Entrada
-                  type="time"
-                  value={horaRetiroFin}
-                  onChange={(e) => setHoraRetiroFin(e.target.value)}
-                  aria-label="Horario de retiro - Fin"
-                />
-              </div>
+
+              {/* Selector de Horarios Semanales */}
+              <SelectorHorarios
+                value={horariosEditados}
+                onChange={setHorariosEditados}
+              />
+
               <div className="flex gap-2 pt-2">
                 <Boton
                   size="sm"
@@ -585,24 +638,44 @@ const EditarComercio = () => {
               </div>
             </div>
           ) : (
-            <div className="space-y-2 text-sm">
-              <div className="flex items-start gap-2 text-muted-foreground">
-                <ShoppingBag className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>
+            <div className="space-y-3 text-sm">
+              {/* Nombre del comercio */}
+              <div>
+                <span className="font-medium text-foreground">Nombre del comercio:</span>
+                <p className="text-muted-foreground mt-1">{datosComercio.nombre}</p>
+              </div>
+
+              {/* Tipo */}
+              <div>
+                <span className="font-medium text-foreground">Tipo:</span>
+                <p className="text-muted-foreground mt-1">
                   {tiposComercio.find(
-                    (t) => t.id === datosComercio.tipoComercio
-                  )?.label || "Tipo no especificado"}
-                </span>
+                    (t) => t.id === datosComercio.rubro
+                  )?.label || "No especificado"}
+                </p>
               </div>
-              <div className="flex items-start gap-2 text-muted-foreground">
-                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span>{datosComercio.direccion}</span>
+
+              {/* Dirección */}
+              <div>
+                <span className="font-medium text-foreground">Dirección:</span>
+                <p className="text-muted-foreground mt-1">{datosComercio.direccion}</p>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                <span>
-                  Retiro hoy: {datosComercio.pickupTime || "18:00 - 20:00"}
-                </span>
+
+              {/* Horarios por día */}
+              <div>
+                <span className="font-medium text-foreground">Horarios de atención:</span>
+                <div className="mt-2 space-y-1">
+                  {horariosEditados.map((horario) => (
+                    <div key={horario.dia} className="flex items-center justify-between text-xs">
+                      <span className="capitalize text-muted-foreground">{horario.dia}:</span>
+                      <span className="text-muted-foreground">
+                        {horario.abierto
+                          ? `${horario.horaApertura} - ${horario.horaCierre}`
+                          : "Cerrado"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -913,16 +986,7 @@ const EditarComercio = () => {
                   aria-label="Teléfono de contacto del comercio"
                 />
               </div>
-              <div>
-                <Etiqueta>Email</Etiqueta>
-                <Entrada
-                  type="email"
-                  value={correoEditado}
-                  onChange={(e) => setCorreoEditado(e.target.value)}
-                  placeholder="Correo electrónico"
-                  aria-label="Email del comercio"
-                />
-              </div>
+
               <div className="flex gap-2">
                 <Boton
                   size="sm"

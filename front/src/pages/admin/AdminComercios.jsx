@@ -3,11 +3,11 @@ import { apiFetch } from "@/services/api";
 import { toast } from "sonner";
 import AdminNav from "@/components/admin/AdminNav";
 
-
 const normalizarComercio = (c) => {
     const obj = c && typeof c === "object" ? c : {};
     return {
         ...obj,
+        alias: obj.alias ?? obj.apodo ?? obj.nickname ?? "",
         telefono: obj.telefono ?? obj.tel ?? "Sin teléfono",
         productos: Array.isArray(obj.productos) ? obj.productos : [],
     };
@@ -19,11 +19,21 @@ const money = (n) => {
     return `$${num.toLocaleString("es-AR")}`;
 };
 
+const fecha = (f) => (f ? new Date(f).toLocaleString("es-AR") : "-");
+
+const norm = (s) =>
+    String(s ?? "")
+        .trim()
+        .toLowerCase();
+
 export default function AdminComercios() {
     const [comercios, setComercios] = useState([]);
     const [cargando, setCargando] = useState(true);
     const [busqueda, setBusqueda] = useState("");
     const [abiertos, setAbiertos] = useState(() => new Set());
+
+    const [reservasPorComercio, setReservasPorComercio] = useState({});
+    const [cargandoReservas, setCargandoReservas] = useState({});
 
     const cargar = async () => {
         setCargando(true);
@@ -34,6 +44,7 @@ export default function AdminComercios() {
                 : Array.isArray(data)
                     ? data
                     : [];
+
             setComercios(lista.map(normalizarComercio));
         } catch (e) {
             toast.error(e.message || "No se pudieron cargar los comercios");
@@ -48,19 +59,19 @@ export default function AdminComercios() {
     }, []);
 
     const filtrados = useMemo(() => {
-        const q = String(busqueda || "")
-            .trim()
-            .toLowerCase();
+        const q = norm(busqueda);
         if (!q) return comercios;
 
         return comercios.filter((c) => {
-            const nombre = String(c?.nombre || "").toLowerCase();
-            const rubro = String(c?.rubro || "").toLowerCase();
-            const direccion = String(c?.direccion || "").toLowerCase();
-            const telefono = String(c?.telefono || "").toLowerCase();
+            const nombre = norm(c?.nombre);
+            const alias = norm(c?.alias);
+            const rubro = norm(c?.rubro);
+            const direccion = norm(c?.direccion);
+            const telefono = norm(c?.telefono);
 
             return (
                 nombre.includes(q) ||
+                alias.includes(q) ||
                 rubro.includes(q) ||
                 direccion.includes(q) ||
                 telefono.includes(q)
@@ -68,14 +79,66 @@ export default function AdminComercios() {
         });
     }, [comercios, busqueda]);
 
-    const toggle = (id) => {
+    const fetchReservas = async (comercioId) => {
+        const id = String(comercioId);
+
+        if (reservasPorComercio[id]) return;
+
+        setCargandoReservas((prev) => ({ ...prev, [id]: true }));
+        try {
+            const data = await apiFetch(`/admin/comercios/${id}/reservas`);
+            setReservasPorComercio((prev) => ({
+                ...prev,
+                [id]: Array.isArray(data?.reservas) ? data.reservas : [],
+            }));
+        } catch (e) {
+            toast.error(
+                e?.message || "No se pudieron cargar las reservas del comercio"
+            );
+            setReservasPorComercio((prev) => ({ ...prev, [id]: [] }));
+        } finally {
+            setCargandoReservas((prev) => ({ ...prev, [id]: false }));
+        }
+    };
+
+    const toggle = async (id) => {
         const sid = String(id);
+
         setAbiertos((prev) => {
             const next = new Set(prev);
             if (next.has(sid)) next.delete(sid);
             else next.add(sid);
             return next;
         });
+
+        const vaAAbrir = !abiertos.has(sid);
+        if (vaAAbrir) await fetchReservas(sid);
+    };
+
+    const cambiarEstadoReserva = async (reservaId, nuevoEstado, comercioId) => {
+        try {
+            await apiFetch(`/admin/reservas/${reservaId}/estado`, {
+                method: "PUT",
+                body: JSON.stringify({ estado: nuevoEstado }),
+            });
+
+            const cid = String(comercioId);
+            setReservasPorComercio((prev) => {
+                const arr = Array.isArray(prev[cid]) ? prev[cid] : [];
+                return {
+                    ...prev,
+                    [cid]: arr.map((r) =>
+                        String(r?._id) === String(reservaId)
+                            ? { ...r, estado: nuevoEstado }
+                            : r
+                    ),
+                };
+            });
+
+            toast.success(`Reserva marcada como ${nuevoEstado.toUpperCase()}`);
+        } catch (e) {
+            toast.error(e?.message || "No se pudo actualizar el estado");
+        }
     };
 
     if (cargando) return <p className="p-6">Cargando comercios…</p>;
@@ -83,6 +146,7 @@ export default function AdminComercios() {
     return (
         <div className="p-6 max-w-6xl mx-auto">
             <AdminNav />
+
             <div className="flex items-end justify-between gap-3 mb-4">
                 <div>
                     <h1 className="text-2xl font-bold">Comercios</h1>
@@ -94,7 +158,7 @@ export default function AdminComercios() {
 
             <input
                 className="mb-4 w-full max-w-sm border rounded px-3 py-2"
-                placeholder="Buscar por nombre, rubro, dirección o teléfono…"
+                placeholder="Buscar por nombre, alias, rubro, dirección o teléfono…"
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
             />
@@ -107,11 +171,13 @@ export default function AdminComercios() {
                         <thead className="bg-muted">
                             <tr className="border-b">
                                 <th className="p-2 text-left">Nombre</th>
+                                <th className="p-2 text-left">Alias</th>
                                 <th className="p-2 text-left">Rubro</th>
                                 <th className="p-2 text-left">Dirección</th>
                                 <th className="p-2 text-left">Teléfono</th>
                                 <th className="p-2 text-center">Calificación</th>
                                 <th className="p-2 text-center">Productos</th>
+                                <th className="p-2 text-center">Pedidos</th>
                                 <th className="p-2 text-center">Detalle</th>
                             </tr>
                         </thead>
@@ -121,10 +187,17 @@ export default function AdminComercios() {
                                 const id = String(c?._id ?? idx);
                                 const abierto = abiertos.has(id);
 
+                                const reservas = reservasPorComercio[id] || [];
+                                const pedidosCount =
+                                    typeof c?.pedidosCount === "number"
+                                        ? c.pedidosCount
+                                        : reservas.length;
+
                                 return (
                                     <Fragment key={id}>
                                         <tr className="border-b hover:bg-muted/50">
                                             <td className="p-2">{c?.nombre || "-"}</td>
+                                            <td className="p-2">{c?.alias || "-"}</td>
                                             <td className="p-2">{c?.rubro || "-"}</td>
                                             <td className="p-2">{c?.direccion || "-"}</td>
                                             <td className="p-2">{c?.telefono || "-"}</td>
@@ -134,6 +207,7 @@ export default function AdminComercios() {
                                             <td className="p-2 text-center">
                                                 {Array.isArray(c?.productos) ? c.productos.length : 0}
                                             </td>
+                                            <td className="p-2 text-center">{pedidosCount}</td>
                                             <td className="p-2 text-center">
                                                 <button
                                                     type="button"
@@ -147,55 +221,194 @@ export default function AdminComercios() {
 
                                         {abierto && (
                                             <tr className="border-b bg-muted/20">
-                                                <td className="p-3" colSpan={7}>
-                                                    {!Array.isArray(c?.productos) ||
-                                                        c.productos.length === 0 ? (
-                                                        <p className="text-sm text-muted-foreground">
-                                                            Este comercio no tiene productos cargados.
-                                                        </p>
-                                                    ) : (
-                                                        <div className="overflow-auto">
-                                                            <table className="w-full text-sm border rounded">
-                                                                <thead className="bg-muted">
-                                                                    <tr className="border-b">
-                                                                        <th className="p-2 text-left">Producto</th>
-                                                                        <th className="p-2 text-center">Stock</th>
-                                                                        <th className="p-2 text-center">Peso</th>
-                                                                        <th className="p-2 text-center">
-                                                                            Precio original
-                                                                        </th>
-                                                                        <th className="p-2 text-center">
-                                                                            Precio desc.
-                                                                        </th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {c.productos.map((p, i) => {
-                                                                        const pid = String(p?._id ?? p?.id ?? i);
-                                                                        return (
-                                                                            <tr key={pid} className="border-b">
-                                                                                <td className="p-2">
-                                                                                    {p?.nombre || "-"}
-                                                                                </td>
-                                                                                <td className="p-2 text-center">
-                                                                                    {p?.stock ?? "-"}
-                                                                                </td>
-                                                                                <td className="p-2 text-center">
-                                                                                    {p?.peso ?? "-"}
-                                                                                </td>
-                                                                                <td className="p-2 text-center">
-                                                                                    {money(p?.precioOriginal)}
-                                                                                </td>
-                                                                                <td className="p-2 text-center">
-                                                                                    {money(p?.precioDescuento)}
-                                                                                </td>
-                                                                            </tr>
-                                                                        );
-                                                                    })}
-                                                                </tbody>
-                                                            </table>
+                                                <td className="p-3" colSpan={9}>
+                                                    <div className="mb-6">
+                                                        <h3 className="font-semibold mb-2">Productos</h3>
+
+                                                        {!Array.isArray(c?.productos) ||
+                                                            c.productos.length === 0 ? (
+                                                            <p className="text-sm text-muted-foreground">
+                                                                Este comercio no tiene productos cargados.
+                                                            </p>
+                                                        ) : (
+                                                            <div className="overflow-auto">
+                                                                <table className="w-full text-sm border rounded">
+                                                                    <thead className="bg-muted">
+                                                                        <tr className="border-b">
+                                                                            <th className="p-2 text-left">
+                                                                                Producto
+                                                                            </th>
+                                                                            <th className="p-2 text-center">Stock</th>
+                                                                            <th className="p-2 text-center">Peso</th>
+                                                                            <th className="p-2 text-center">
+                                                                                Precio original
+                                                                            </th>
+                                                                            <th className="p-2 text-center">
+                                                                                Precio desc.
+                                                                            </th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {c.productos.map((p, i) => {
+                                                                            const pid = String(p?._id ?? p?.id ?? i);
+                                                                            return (
+                                                                                <tr key={pid} className="border-b">
+                                                                                    <td className="p-2">
+                                                                                        {p?.nombre || "-"}
+                                                                                    </td>
+                                                                                    <td className="p-2 text-center">
+                                                                                        {p?.stock ?? "-"}
+                                                                                    </td>
+                                                                                    <td className="p-2 text-center">
+                                                                                        {p?.peso ?? "-"}
+                                                                                    </td>
+                                                                                    <td className="p-2 text-center">
+                                                                                        {money(p?.precioOriginal)}
+                                                                                    </td>
+                                                                                    <td className="p-2 text-center">
+                                                                                        {money(p?.precioDescuento)}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+                                                                        })}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <h3 className="font-semibold">
+                                                                Pedidos (Reservas)
+                                                            </h3>
+                                                            {cargandoReservas[id] ? (
+                                                                <span className="text-xs text-muted-foreground">
+                                                                    Cargando…
+                                                                </span>
+                                                            ) : null}
                                                         </div>
-                                                    )}
+
+                                                        {cargandoReservas[id] ? (
+                                                            <p className="text-sm text-muted-foreground">
+                                                                Cargando reservas del comercio…
+                                                            </p>
+                                                        ) : reservas.length === 0 ? (
+                                                            <p className="text-sm text-muted-foreground">
+                                                                Este comercio no tiene pedidos.
+                                                            </p>
+                                                        ) : (
+                                                            <div className="overflow-auto">
+                                                                <table className="w-full text-sm border rounded">
+                                                                    <thead className="bg-muted">
+                                                                        <tr className="border-b">
+                                                                            <th className="p-2 text-left">Usuario</th>
+                                                                            <th className="p-2 text-left">
+                                                                                Producto
+                                                                            </th>
+                                                                            <th className="p-2 text-center">
+                                                                                Cantidad
+                                                                            </th>
+                                                                            <th className="p-2 text-center">
+                                                                                $ Unit
+                                                                            </th>
+                                                                            <th className="p-2 text-center">
+                                                                                $ Total
+                                                                            </th>
+                                                                            <th className="p-2 text-center">
+                                                                                Estado
+                                                                            </th>
+                                                                            <th className="p-2 text-center">
+                                                                                PAGADA
+                                                                            </th>
+                                                                            <th className="p-2 text-center">Fecha</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {reservas.map((r, i) => {
+                                                                            const rid = String(r?._id ?? i);
+                                                                            const estado = String(r?.estado || "-");
+                                                                            const productoNombre = String(
+                                                                                r?.productoNombre || "-"
+                                                                            );
+                                                                            const cantidad = Number(r?.cantidad ?? 0);
+
+                                                                            const prod = (
+                                                                                Array.isArray(c?.productos)
+                                                                                    ? c.productos
+                                                                                    : []
+                                                                            ).find(
+                                                                                (p) =>
+                                                                                    norm(p?.nombre) ===
+                                                                                    norm(productoNombre)
+                                                                            );
+
+                                                                            const unit =
+                                                                                prod?.precioDescuento ??
+                                                                                prod?.precioOriginal ??
+                                                                                null;
+
+                                                                            const total =
+                                                                                unit == null ||
+                                                                                    Number.isNaN(Number(unit))
+                                                                                    ? null
+                                                                                    : Number(unit) *
+                                                                                    (Number.isNaN(cantidad)
+                                                                                        ? 0
+                                                                                        : cantidad);
+
+                                                                            const pagada = estado === "pagada";
+
+                                                                            return (
+                                                                                <tr key={rid} className="border-b">
+                                                                                    <td className="p-2">
+                                                                                        {r?.usuarioId?.nombre ||
+                                                                                            r?.usuarioId?.email ||
+                                                                                            String(r?.usuarioId || "-")}
+                                                                                    </td>
+                                                                                    <td className="p-2">
+                                                                                        {productoNombre}
+                                                                                    </td>
+                                                                                    <td className="p-2 text-center">
+                                                                                        {cantidad || "-"}
+                                                                                    </td>
+                                                                                    <td className="p-2 text-center">
+                                                                                        {unit == null ? "-" : money(unit)}
+                                                                                    </td>
+                                                                                    <td className="p-2 text-center">
+                                                                                        {total == null ? "-" : money(total)}
+                                                                                    </td>
+                                                                                    <td className="p-2 text-center">
+                                                                                        {estado === "-"
+                                                                                            ? "-"
+                                                                                            : estado.toUpperCase()}
+                                                                                    </td>
+                                                                                    <td className="p-2 text-center">
+                                                                                        <input
+                                                                                            type="checkbox"
+                                                                                            checked={pagada}
+                                                                                            onChange={(e) => {
+                                                                                                const nuevo = e.target.checked
+                                                                                                    ? "pagada"
+                                                                                                    : "pendiente";
+                                                                                                cambiarEstadoReserva(
+                                                                                                    rid,
+                                                                                                    nuevo,
+                                                                                                    id
+                                                                                                );
+                                                                                            }}
+                                                                                        />
+                                                                                    </td>
+                                                                                    <td className="p-2 text-center">
+                                                                                        {fecha(r?.createdAt)}
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+                                                                        })}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         )}
