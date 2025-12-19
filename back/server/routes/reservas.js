@@ -99,6 +99,7 @@ router.get("/usuario/:usuarioId", async (req, res) => {
     console.log("  - usuarioId:", usuarioId);
 
     const reservas = await Reserva.find({ usuarioId })
+      .populate('comercioId', 'nombre direccion imagenUrl')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -108,7 +109,15 @@ router.get("/usuario/:usuarioId", async (req, res) => {
       console.log("  - Estados:", reservas.map(r => r.estado).join(", "));
     }
 
-    res.json({ ok: true, reservas });
+    // Formatear respuesta para incluir nombreComercio
+    const reservasFormateadas = reservas.map(r => ({
+      ...r,
+      nombreComercio: r.comercioId?.nombre || 'Comercio',
+      // Mantener comercioId como ObjectId para compatibilidad
+      comercioId: r.comercioId?._id || r.comercioId
+    }));
+
+    res.json({ ok: true, reservas: reservasFormateadas });
   } catch (e) {
     console.error("  ❌ Error obteniendo reservas:", e.message);
     res.status(500).json({ ok: false, message: "Error cargando pedidos" });

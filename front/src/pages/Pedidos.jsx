@@ -123,40 +123,31 @@ const Pedidos = () => {
   const obtenerUsuarioId = () => {
     try {
       const u = JSON.parse(localStorage.getItem("user") || "null");
-      return u?._id || null;
+      const usuarioId = u?.id || u?._id || null;
+      console.log("🔍 [PEDIDOS] Usuario obtenido:", { id: u?.id, _id: u?._id, usuarioId });
+      return usuarioId;
     } catch {
       return null;
     }
   };
 
+  /* ===== CARGA REAL DESDE BACKEND ===== */
   useEffect(() => {
     const cargarPedidos = async () => {
       try {
-        const user = JSON.parse(localStorage.getItem("user") || "null");
-        const token = localStorage.getItem("token");
-
-        if (!user?._id || !token) {
-          console.log("No hay usuario o token");
+        const usuarioId = obtenerUsuarioId();
+        if (!usuarioId) {
           setPedidos([]);
           return;
         }
 
-        const res = await fetch(
-          `https://sobrazero-8o4y.onrender.com/api/reservas/usuario/${user._id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await res.json();
-        console.log("PEDIDOS DESDE BACKEND:", data);
-
-        setPedidos(data.reservas || []);
-      } catch (err) {
-        console.error("Error cargando pedidos:", err);
-        toast.error("No se pudieron cargar los pedidos");
+        const res = await authHttp.get(`/reservas/usuario/${usuarioId}`);
+        setPedidos(res.data.reservas || []);
+      } catch (e) {
+        console.error(e);
+        toast.error("No se pudieron cargar tus pedidos");
+      } finally {
+        setCargando(false);
       }
     };
 

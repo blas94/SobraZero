@@ -211,6 +211,8 @@ const ContenidoComercio = ({
       const user = safeParse(userStr, null);
       const usuarioId = user?.id || user?._id;
 
+      console.log("🔍 [DEBUG] Usuario obtenido:", { id: user?.id, _id: user?._id, usuarioId });
+
       if (!usuarioId) {
         toast.error("No se pudo identificar al usuario");
         return;
