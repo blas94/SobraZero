@@ -13,7 +13,6 @@ import reseñasRouter from "./server/routes/reseñas.js";
 import mercadopagoRouter from "./server/routes/mercadopago.js";
 import adminRouter from "./server/routes/admin.js";
 
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.resolve(__dirname, ".env") });
 
@@ -36,27 +35,36 @@ let origenesPermitidos = [CLIENT_URL];
 
 if (NODE_ENV !== "production") {
   origenesPermitidos.push("http://localhost:8080");
+  origenesPermitidos.push("http://localhost:5173");
 }
 
 origenesPermitidos = origenesPermitidos.filter(Boolean).map(normalizarURL);
 
-app.use(
-  cors({
-    origin: (origin, cb) => {
-      const originNormalizado = normalizarURL(origin);
-      if (
-        !origin ||
-        origenesPermitidos.includes(originNormalizado) ||
-        (origin && origin.endsWith(".vercel.app"))
-      ) {
-        return cb(null, true);
-      }
-      console.error("CORS Bloqueado:", origin);
-      return cb(new Error("CORS bloqueado para origen: " + origin));
-    },
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+
+    const originNormalizado = normalizarURL(origin);
+
+    const permitido =
+      origenesPermitidos.includes(originNormalizado) ||
+      originNormalizado.endsWith(".vercel.app");
+
+    if (permitido) return cb(null, true);
+
+    console.error("CORS Bloqueado:", originNormalizado);
+    return cb(new Error("CORS bloqueado para origen: " + originNormalizado));
+  },
+
+  credentials: true,
+
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+
+app.options("*", cors(corsOptions));
 
 app.use(cookieParser());
 
@@ -66,6 +74,11 @@ app.use((err, req, res, next) => {
       message: "La imagen es demasiado pesada (Límite del servidor excedido)",
     });
   }
+
+  if (err?.message?.includes("CORS bloqueado")) {
+    return res.status(403).json({ ok: false, message: err.message });
+  }
+
   next(err);
 });
 
@@ -111,17 +124,16 @@ app.listen(PORT, () => {
   console.log(`MP_ACCESS_TOKEN: ${mpMasked}`);
 });
 
-// Limpieza automática de reservas expiradas cada 5 minutos
 import limpiarReservasExpiradas from "./scripts/limpiar-reservas-expiradas.js";
 
-const INTERVALO_LIMPIEZA = 5 * 60 * 1000; // 5 minutos
+const INTERVALO_LIMPIEZA = 5 * 60 * 1000;
 
 setInterval(async () => {
   try {
     await limpiarReservasExpiradas();
   } catch (error) {
-    console.error("❌ Error en limpieza automática:", error.message);
+    console.error("Error en limpieza automática:", error.message);
   }
 }, INTERVALO_LIMPIEZA);
 
-console.log(`🧹 Limpieza automática de reservas configurada (cada 5 minutos)`);
+console.log(`Limpieza automática de reservas configurada (cada 5 minutos)`);
