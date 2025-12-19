@@ -2,8 +2,6 @@ import { useState } from "react";
 import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Entrada } from "@/components/ui/Entrada";
 import { CasillaVerificacion } from "@/components/ui/CasillaVerificacion";
-import { Boton } from "@/components/ui/Boton";
-import { Copy, Calendar } from "lucide-react";
 
 const DIAS_SEMANA = [
     { id: "lunes", label: "Lunes" },
@@ -43,82 +41,31 @@ const SelectorHorarios = ({ value = [], onChange, error }) => {
         actualizarHorarios(nuevosHorarios);
     };
 
-    const copiarATodos = () => {
-        const primerDia = horarios[0];
-        const nuevosHorarios = horarios.map(h => ({
-            ...h,
-            abierto: primerDia.abierto,
-            horaApertura: primerDia.horaApertura,
-            horaCierre: primerDia.horaCierre,
-        }));
-        actualizarHorarios(nuevosHorarios);
-    };
-
-    const copiarLunesAViernes = () => {
-        const lunes = horarios[0];
-        const nuevosHorarios = horarios.map((h, index) => {
-            // Aplicar a lunes-viernes (índices 0-4)
-            if (index <= 4) {
-                return {
-                    ...h,
-                    abierto: lunes.abierto,
-                    horaApertura: lunes.horaApertura,
-                    horaCierre: lunes.horaCierre,
-                };
-            }
-            return h;
-        });
-        actualizarHorarios(nuevosHorarios);
-    };
-
     return (
         <div className="space-y-4">
-            <div className="flex items-center justify-between">
-                <Etiqueta>Horarios de atención</Etiqueta>
-                <div className="flex gap-2">
-                    <Boton
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={copiarLunesAViernes}
-                        className="text-xs"
-                    >
-                        <Calendar className="w-3 h-3 mr-1" />
-                        Lun-Vie
-                    </Boton>
-                    <Boton
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={copiarATodos}
-                        className="text-xs"
-                    >
-                        <Copy className="w-3 h-3 mr-1" />
-                        Copiar a todos
-                    </Boton>
-                </div>
-            </div>
+            <Etiqueta>Horarios de atención</Etiqueta>
 
             <div className="space-y-3 border border-border rounded-lg p-4">
                 {DIAS_SEMANA.map((dia, index) => (
                     <div
                         key={dia.id}
-                        className="flex items-center gap-3 pb-3 border-b border-border last:border-b-0 last:pb-0"
+                        className="flex flex-col sm:flex-row sm:items-center gap-3 pb-3 border-b border-border last:border-b-0 last:pb-0"
                     >
-                        <div className="w-24 flex-shrink-0">
+                        {/* Día + Checkbox + "Abierto" agrupados */}
+                        <div className="flex items-center justify-between w-full sm:w-auto sm:gap-3 sm:justify-start">
                             <span className="text-sm font-medium">{dia.label}</span>
+                            <div className="flex items-center gap-2">
+                                <CasillaVerificacion
+                                    checked={horarios[index]?.abierto ?? true}
+                                    onCheckedChange={(checked) =>
+                                        manejarCambio(index, "abierto", checked)
+                                    }
+                                />
+                                <span className="text-sm text-muted-foreground">Abierto</span>
+                            </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
-                            <CasillaVerificacion
-                                checked={horarios[index]?.abierto ?? true}
-                                onCheckedChange={(checked) =>
-                                    manejarCambio(index, "abierto", checked)
-                                }
-                            />
-                            <span className="text-sm text-muted-foreground">Abierto</span>
-                        </div>
-
+                        {/* Horarios */}
                         {horarios[index]?.abierto && (
                             <div className="flex items-center gap-2 flex-1">
                                 <Entrada
@@ -127,7 +74,7 @@ const SelectorHorarios = ({ value = [], onChange, error }) => {
                                     onChange={(e) =>
                                         manejarCambio(index, "horaApertura", e.target.value)
                                     }
-                                    className="w-28"
+                                    className="w-full sm:w-28"
                                 />
                                 <span className="text-muted-foreground">-</span>
                                 <Entrada
@@ -136,7 +83,7 @@ const SelectorHorarios = ({ value = [], onChange, error }) => {
                                     onChange={(e) =>
                                         manejarCambio(index, "horaCierre", e.target.value)
                                     }
-                                    className="w-28"
+                                    className="w-full sm:w-28"
                                 />
                             </div>
                         )}

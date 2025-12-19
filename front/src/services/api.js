@@ -1,6 +1,11 @@
 import { obtenerToken } from "./sesion";
 
-const API_BASE = import.meta.env.VITE_API_URL;
+const API_BASE =
+    import.meta.env.VITE_API_URL ||
+    (import.meta.env.DEV ? "http://localhost:3000" : "");
+
+const normalizar = (url = "") => String(url || "").replace(/\/+$/, "");
+
 export async function apiFetch(path, opciones = {}) {
     const token = obtenerToken();
 
@@ -17,7 +22,14 @@ export async function apiFetch(path, opciones = {}) {
         headers.Authorization = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${API_BASE}${path}`, {
+    const base = normalizar(API_BASE) || "";
+    const pathLimpio = String(path || "");
+    const pathConSlash = pathLimpio.startsWith("/")
+        ? pathLimpio
+        : `/${pathLimpio}`;
+    const url = base ? `${base}/api${pathConSlash}` : `/api${pathConSlash}`;
+
+    const res = await fetch(url, {
         ...opciones,
         headers,
         credentials: "include",

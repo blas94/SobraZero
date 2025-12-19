@@ -37,6 +37,7 @@ import CambiarClave from "./pages/CambiarClave";
 import VerificarCambioEmail from "./pages/VerificarCambioEmail";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsuarios from "./pages/admin/AdminUsuarios";
+import AdminComercios from "./pages/admin/AdminComercios";
 import { PantallaCarga } from "@/components/ui/PantallaCarga";
 
 const queryClient = new QueryClient();
@@ -155,7 +156,6 @@ const App = () => {
                       </RutaAdmin>
                     }
                   />
-
                   <Route
                     path="/admin/usuarios"
                     element={
@@ -164,7 +164,14 @@ const App = () => {
                       </RutaAdmin>
                     }
                   />
-
+                  <Route
+                    path="/admin/comercios"
+                    element={
+                      <RutaAdmin>
+                        <AdminComercios />
+                      </RutaAdmin>
+                    }
+                  />
                   <Route
                     path="/inicio"
                     element={

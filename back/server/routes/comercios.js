@@ -2,12 +2,30 @@ import { Router } from "express";
 import Comercio from "../models/comercio.js";
 import { middlewareAutenticacion } from "../middlewares/autenticacion.js";
 
-
 const router = Router();
 
-// Función para geocodificar dirección usando Mapbox
+/**
+ * FLAGS de compatibilidad "vieja" (CRUD sin auth)
+ * Por defecto: OFF (seguro)
+ *
+ * Si necesitás que el comportamiento viejo siga funcionando:
+ * - ALLOW_LEGACY_COMERCIOS_READ_ALL=true     (GET /comercios?all=1)
+ * - ALLOW_LEGACY_COMERCIOS_WRITE=true        (POST/PUT/DELETE sin auth)
+ */
+const ALLOW_LEGACY_COMERCIOS_READ_ALL =
+  String(process.env.ALLOW_LEGACY_COMERCIOS_READ_ALL || "").toLowerCase() === "true";
+
+const ALLOW_LEGACY_COMERCIOS_WRITE =
+  String(process.env.ALLOW_LEGACY_COMERCIOS_WRITE || "").toLowerCase() === "true";
+
+// -----------------------------
+// Utilidad compartida: geocodificación
+// -----------------------------
 const geocodificarDireccion = async (direccion) => {
-  const token = process.env.MAPBOX_TOKEN || "pk.eyJ1IjoidG9tYXNtaXNyYWhpIiwiYSI6ImNtaDJwZDkwaDJ1eW0yd3B5eDZ6b3Y1djMifQ.44qXpnbdv09ro4NME7QxJQ";
+  const token =
+    process.env.MAPBOX_TOKEN ||
+    "pk.eyJ1IjoidG9tYXNtaXNyYWhpIiwiYSI6ImNtaDJwZDkwaDJ1eW0yd3B5eDZ6b3Y1djMifQ.44qXpnbdv09ro4NME7QxJQ";
+
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
     direccion
   )}.json?access_token=${token}&country=ar&limit=1`;
@@ -28,34 +46,54 @@ const geocodificarDireccion = async (direccion) => {
   }
 };
 
-// GET /comercios - Listar solo comercios activos y aprobados (público)
-router.get("/", async (_req, res) => {
+// -----------------------------
+// GET /comercios (PÚBLICO)
+// - PRO: solo activo + aprobado
+// - LEGACY opcional: si viene ?all=1 y el flag está prendido, devuelve todos
+// -----------------------------
+router.get("/", async (req, res) => {
   try {
+    const pedirTodos = String(req.query.all || "") === "1";
+
+    // Compatibilidad "vieja": listar todos (solo si se habilita)
+    if (pedirTodos && ALLOW_LEGACY_COMERCIOS_READ_ALL) {
+      const comercios = await Comercio.find();
+      return res.json(comercios);
+    }
+
+    // PRO (por defecto)
     const comercios = await Comercio.find({
       activo: true,
       estadoAprobacion: "aprobado",
     });
-    res.json(comercios);
+
+    return res.json(comercios);
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    return res.status(500).json({ message: e.message });
   }
 });
 
-// GET /comercios/mis-comercios - Obtener comercios del usuario autenticado
+// -----------------------------
+// GET /comercios/mis-comercios (AUTENTICADO)
+// - PRO: devuelve comercios del propietario logueado
+// -----------------------------
 router.get("/mis-comercios", middlewareAutenticacion, async (req, res) => {
   try {
     const comercios = await Comercio.find({
       propietarioId: req.usuario.uid,
     });
 
-    res.json(comercios);
+    return res.json(comercios);
   } catch (e) {
     console.error("Error en /mis-comercios:", e);
-    res.status(500).json({ message: e.message });
+    return res.status(500).json({ message: e.message });
   }
 });
 
-// GET /comercios/:id - Obtener un comercio específico
+// -----------------------------
+// GET /comercios/:id (PÚBLICO)
+// - PRO + LEGACY: obtener comercio por id
+// -----------------------------
 router.get("/:id", async (req, res) => {
   try {
     const comercio = await Comercio.findById(req.params.id);
@@ -64,144 +102,203 @@ router.get("/:id", async (req, res) => {
       return res.status(404).json({ message: "Comercio no encontrado" });
     }
 
-    res.json(comercio);
+    return res.json(comercio);
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    return res.status(500).json({ message: e.message });
   }
 });
 
-// POST /comercios - Registrar nuevo comercio (requiere autenticación)
-router.post("/", middlewareAutenticacion, async (req, res) => {
+// -----------------------------
+// POST /comercios
+// - PRO: requiere auth, crea comercio para el usuario, pendiente_revision + activo false
+// - LEGACY opcional: permite crear sin auth si ALLOW_LEGACY_COMERCIOS_WRITE=true
+// -----------------------------
+router.post("/", async (req, res, next) => {
+  // Si viene auth, seguimos PRO
+  const authHeader = req.headers.authorization;
+  const tieneCookie = !!req.cookies?.token;
+
+  const quierePro = !!authHeader || tieneCookie;
+
+  if (quierePro) return middlewareAutenticacion(req, res, next);
+
+  // Si no hay auth, solo dejamos legacy si está habilitado
+  if (!ALLOW_LEGACY_COMERCIOS_WRITE) {
+    return res.status(401).json({ message: "No autorizado" });
+  }
+
+  return next();
+}, async (req, res) => {
   try {
     const { direccion, ...restoData } = req.body;
 
-    // Verificar que el usuario no tenga ya un comercio
-    const comercioExistente = await Comercio.findOne({
-      propietarioId: req.usuario.uid,
-    });
-
-    if (comercioExistente) {
-      return res.status(400).json({
-        message: "Ya tenés un comercio registrado",
-      });
+    if (!direccion) {
+      return res.status(400).json({ message: "Dirección requerida" });
     }
 
-    // Geocodificar dirección para obtener coordenadas
     const coordenadas = await geocodificarDireccion(direccion);
 
-    // Crear comercio con estado pendiente de revisión
-    const nuevo = await Comercio.create({
+    // PRO: autenticado => comercio con dueño y pendiente_revision
+    if (req.usuario?.uid) {
+      const comercioExistente = await Comercio.findOne({
+        propietarioId: req.usuario.uid,
+      });
+
+      if (comercioExistente) {
+        return res.status(400).json({ message: "Ya tenés un comercio registrado" });
+      }
+
+      const nuevo = await Comercio.create({
+        ...restoData,
+        direccion,
+        coordenadas,
+        propietarioId: req.usuario.uid,
+        estadoAprobacion: "pendiente_revision",
+        activo: false,
+        calificacionPromedio: 0,
+        totalReseñas: 0,
+        productos: [],
+      });
+
+      return res.status(201).json(nuevo);
+    }
+
+    // LEGACY: sin auth => comportamiento viejo
+    const nuevoLegacy = await Comercio.create({
       ...restoData,
       direccion,
       coordenadas,
-      propietarioId: req.usuario.uid,
-      estadoAprobacion: "pendiente_revision",
-      activo: false,
+      activo: true,
       calificacionPromedio: 0,
       totalReseñas: 0,
       productos: [],
     });
 
-    res.status(201).json(nuevo);
+    return res.status(201).json(nuevoLegacy);
   } catch (e) {
     console.error("Error al crear comercio:", e);
-    res.status(400).json({
+    return res.status(400).json({
       message: "Error al crear comercio",
       error: e.message,
     });
   }
 });
 
-// PUT /comercios/:id - Editar comercio (requiere autenticación y ser propietario)
-router.put("/:id", middlewareAutenticacion, async (req, res) => {
+// -----------------------------
+// PUT /comercios/:id
+// - PRO: requiere auth + ser propietario
+// - LEGACY opcional: permite editar sin auth si ALLOW_LEGACY_COMERCIOS_WRITE=true
+// -----------------------------
+router.put("/:id", async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const tieneCookie = !!req.cookies?.token;
+  const quierePro = !!authHeader || tieneCookie;
+
+  if (quierePro) return middlewareAutenticacion(req, res, next);
+
+  if (!ALLOW_LEGACY_COMERCIOS_WRITE) {
+    return res.status(401).json({ message: "No autorizado" });
+  }
+
+  return next();
+}, async (req, res) => {
   try {
     const comercio = await Comercio.findById(req.params.id);
+    if (!comercio) return res.status(404).json({ message: "Comercio no encontrado" });
 
-    if (!comercio) {
+    // PRO: validar propietario
+    if (req.usuario?.uid) {
+      if (comercio.propietarioId?.toString() !== req.usuario.uid) {
+        return res.status(403).json({ message: "No tenés permisos para editar este comercio" });
+      }
+
+      const { estadoAprobacion, propietarioId, ...datosActualizables } = req.body;
+
+      if (datosActualizables.direccion) {
+        const coordenadas = await geocodificarDireccion(datosActualizables.direccion);
+        datosActualizables.coordenadas = coordenadas;
+      }
+
+      const updated = await Comercio.findByIdAndUpdate(
+        req.params.id,
+        datosActualizables,
+        { new: true, runValidators: true }
+      );
+
+      return res.json(updated);
+    }
+
+    // LEGACY: update libre
+    const updatedLegacy = await Comercio.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedLegacy) {
       return res.status(404).json({ message: "Comercio no encontrado" });
     }
 
-    // Verificar que el usuario sea el propietario
-    if (comercio.propietarioId?.toString() !== req.usuario.uid) {
-      return res.status(403).json({
-        message: "No tenés permisos para editar este comercio",
-      });
-    }
-
-    // No permitir cambiar estadoAprobacion ni propietarioId
-    const { estadoAprobacion, propietarioId, ...datosActualizables } = req.body;
-
-    // Si se está actualizando la dirección, geocodificar
-    if (datosActualizables.direccion) {
-      const coordenadas = await geocodificarDireccion(datosActualizables.direccion);
-      datosActualizables.coordenadas = coordenadas;
-    }
-
-    const updated = await Comercio.findByIdAndUpdate(
-      req.params.id,
-      datosActualizables,
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-
-    res.json(updated);
+    return res.json(updatedLegacy);
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    return res.status(500).json({ message: e.message });
   }
 });
 
-// DELETE /comercios/:id - Eliminar comercio (requiere autenticación y ser propietario)
-router.delete("/:id", middlewareAutenticacion, async (req, res) => {
+// -----------------------------
+// DELETE /comercios/:id
+// - PRO: requiere auth + ser propietario
+// - LEGACY opcional: permite borrar sin auth si ALLOW_LEGACY_COMERCIOS_WRITE=true
+// -----------------------------
+router.delete("/:id", async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const tieneCookie = !!req.cookies?.token;
+  const quierePro = !!authHeader || tieneCookie;
+
+  if (quierePro) return middlewareAutenticacion(req, res, next);
+
+  if (!ALLOW_LEGACY_COMERCIOS_WRITE) {
+    return res.status(401).json({ message: "No autorizado" });
+  }
+
+  return next();
+}, async (req, res) => {
   try {
     const comercio = await Comercio.findById(req.params.id);
+    if (!comercio) return res.status(404).json({ message: "Comercio no encontrado" });
 
-    if (!comercio) {
-      return res.status(404).json({ message: "Comercio no encontrado" });
-    }
-
-    // Verificar que el usuario sea el propietario
-    if (comercio.propietarioId?.toString() !== req.usuario.uid) {
-      return res.status(403).json({
-        message: "No tenés permisos para eliminar este comercio",
-      });
+    if (req.usuario?.uid) {
+      if (comercio.propietarioId?.toString() !== req.usuario.uid) {
+        return res.status(403).json({ message: "No tenés permisos para eliminar este comercio" });
+      }
     }
 
     const deleted = await Comercio.findByIdAndDelete(req.params.id);
 
-    res.json({
+    return res.json({
       ok: true,
       message: "Comercio eliminado correctamente",
       deleted,
     });
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    return res.status(500).json({ message: e.message });
   }
 });
 
-// POST /comercios/__debug/init - Inicializar comercios existentes (debug)
 router.post("/__debug/init", async (_req, res) => {
   try {
-    // Migrar comercios sin estadoAprobacion
     const r = await Comercio.updateMany(
       { estadoAprobacion: { $exists: false } },
-      {
-        $set: {
-          estadoAprobacion: "aprobado",
-          activo: true
-        }
-      }
+      { $set: { estadoAprobacion: "aprobado", activo: true } }
     );
 
-    res.json({
+    return res.json({
       ok: true,
       mensaje: "Comercios legacy migrados exitosamente",
       matched: r.matchedCount ?? r.nMatched,
       modified: r.modifiedCount ?? r.nModified,
     });
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    return res.status(500).json({ message: e.message });
   }
 });
 

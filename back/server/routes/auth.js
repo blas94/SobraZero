@@ -294,12 +294,6 @@ router.post("/reset-password", async (req, res) => {
 
     if (!user) return res.status(400).json({ error: "Token inválido o expirado" });
 
-    // Verificar que la nueva contraseña sea diferente a la actual
-    const esIgual = await bcrypt.compare(newPassword, user.clave);
-    if (esIgual) {
-      return res.status(400).json({ error: "La nueva contraseña no puede ser igual a la actual" });
-    }
-
     user.clave = await bcrypt.hash(newPassword, 10);
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
