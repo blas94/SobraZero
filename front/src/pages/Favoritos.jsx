@@ -4,7 +4,7 @@ import TarjetaComercio from "@/components/TarjetaComercio";
 import NavegacionInferior from "@/components/NavegacionInferior";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import {
   DialogoAlerta,
@@ -27,9 +27,17 @@ const Favoritos = () => {
 
   const cargarFavoritos = async () => {
     const favoritos = localStorage.getItem("favoritos");
-    if (!favoritos) return;
+    if (!favoritos) {
+      setComerciosFavoritos([]);
+      return;
+    }
 
     const idsFavoritos = JSON.parse(favoritos);
+    if (idsFavoritos.length === 0) {
+      setComerciosFavoritos([]);
+      return;
+    }
+
     console.log("📋 IDs en favoritos:", idsFavoritos);
 
     try {
@@ -39,9 +47,10 @@ const Favoritos = () => {
       const data = await response.json();
       console.log("🏪 Comercios desde API:", data.length);
 
-      // Transformar y filtrar favoritos
+      // Transformar y filtrar favoritos - optimizado con Set para búsqueda O(1)
+      const favoritosSet = new Set(idsFavoritos);
       const comercios = data
-        .filter((c) => idsFavoritos.includes(c._id))
+        .filter((c) => favoritosSet.has(c._id))
         .map((c) => ({
           ...c,
           id: c._id,
@@ -55,6 +64,7 @@ const Favoritos = () => {
       setComerciosFavoritos(comercios);
     } catch (error) {
       console.error("Error cargando favoritos:", error);
+      setComerciosFavoritos([]);
     }
   };
 

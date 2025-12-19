@@ -89,7 +89,7 @@ const ItemPedido = ({ pedido }) => {
   };
 
   return (
-    <Tarjeta className="p-4 !bg-white !opacity-100 relative z-10">
+    <Tarjeta className="p-4 relative z-10">
       <div className="flex items-start justify-between mb-3">
         <div>
           <h2 className="font-semibold">
@@ -207,10 +207,10 @@ const Pedidos = () => {
       );
 
   return (
-    <div className="min-h-screen bg-white pb-20 relative">
+    <div className="min-h-screen bg-background pb-20 relative">
       <FormasDecorativas />
 
-      <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
+      <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
         <div className="px-4 py-4">
           <h1 className="text-2xl font-bold mb-4">Mis Pedidos</h1>
 
