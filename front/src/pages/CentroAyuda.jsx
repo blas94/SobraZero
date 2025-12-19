@@ -35,39 +35,6 @@ const esquemaFeedback = z.object({
     .max(1000, "Máximo 1000 caracteres"),
 });
 
-const preguntasFrecuentes = [
-  {
-    pregunta: "¿Cómo funciona la app?",
-    respuesta:
-      "Conectamos comercios locales con personas que quieren evitar el desperdicio. Cada comercio publica bolsas sorpresa con excedente del día y podés reservarlas desde la app.",
-  },
-  {
-    pregunta: "¿Cómo reservo un pack?",
-    respuesta:
-      "Elegís un comercio, confirmás la reserva y pagás desde la app. Después solo tenés que pasar por el local en el horario indicado para retirar tu bolsa.",
-  },
-  {
-    pregunta: "¿Puedo cancelar mi reserva?",
-    respuesta:
-      "Sí, podés cancelar sin costo hasta dos horas antes del horario de retiro. Luego de ese plazo el comercio ya preparó tu pack y no podremos reembolsarlo.",
-  },
-  {
-    pregunta: "¿Qué pasa si llego tarde?",
-    respuesta:
-      "Los comercios guardan tu reserva hasta el final de la ventana horaria. Pasado ese tiempo pueden donar el pack y no podremos garantizar la devolución.",
-  },
-  {
-    pregunta: "¿Los packs son siempre distintos?",
-    respuesta:
-      "Sí, dependen del excedente del día. Esa sorpresa hace que cada pedido sea único y ayuda a que nada se desperdicie.",
-  },
-  {
-    pregunta: "¿Qué hago si algo salió mal?",
-    respuesta:
-      "Escribinos desde el chat o por mail con el número de pedido. Respondemos la mayoría de los reclamos en menos de dos horas.",
-  },
-];
-
 const recursosAdicionales = [
   {
     titulo: "Guía rápida",
@@ -177,27 +144,6 @@ const CentroAyuda = () => {
             })}
           </ContenidoTarjeta>
         </Tarjeta>
-
-        <div>
-          <h3 className="font-semibold mb-3 px-1 flex items-center gap-2 text-lg">
-            <BookOpen className="w-5 h-5" />
-            Preguntas frecuentes
-          </h3>
-          <Tarjeta>
-            <Acordeon type="single" collapsible className="w-full">
-              {preguntasFrecuentes.map((item, index) => (
-                <ItemAcordeon key={index} value={`pregunta-${index}`}>
-                  <ActivadorAcordeon className="px-4 text-left">
-                    <h4 className="text-sm font-medium">{item.pregunta}</h4>
-                  </ActivadorAcordeon>
-                  <ContenidoAcordeon className="px-4 text-muted-foreground">
-                    {item.respuesta}
-                  </ContenidoAcordeon>
-                </ItemAcordeon>
-              ))}
-            </Acordeon>
-          </Tarjeta>
-        </div>
 
         <div>
           <h3 className="font-semibold mb-3 px-1 flex items-center gap-2 text-lg">
