@@ -33,9 +33,13 @@ import {
   ActivadorPlegable,
 } from "@/components/ui/Plegable";
 import { obtenerMisComercios, editarComercio } from "@/services/comercios";
+import { useAuth } from "@/context/AuthContext";
+import { usarNotificaciones } from "@/hooks/usar-notificaciones";
 
 const EditarComercio = () => {
   const navegar = useNavigate();
+  const { usuario } = useAuth();
+  const { agregarNotificacion } = usarNotificaciones(usuario?.id);
   const [datosComercio, setDatosComercio] = useState(null);
   const [mostrarDialogoSinComercio, setMostrarDialogoSinComercio] =
     useState(false);
@@ -526,6 +530,20 @@ const EditarComercio = () => {
                       activo: nuevoEstado,
                     });
                     setDatosComercio(comercioActualizado);
+                    // Notificar cambio de estado
+                    if (nuevoEstado) {
+                      agregarNotificacion({
+                        titulo: "Comercio Activado",
+                        descripcion: "Tu comercio está visible y listo para recibir reservas",
+                        tipo: 'business'
+                      });
+                    } else {
+                      agregarNotificacion({
+                        titulo: "Comercio Pausado",
+                        descripcion: "Tu comercio ya no está visible para los usuarios",
+                        tipo: 'business'
+                      });
+                    }
                     toast.success(
                       nuevoEstado
                         ? "Comercio activado exitosamente"

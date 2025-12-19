@@ -73,8 +73,23 @@ const obtenerVarianteEstado = (estado) => {
 const ItemPedido = ({ pedido }) => {
   const estado = normalizarEstado(pedido.estado);
 
+  // Obtener horario de hoy
+  const obtenerHorarioHoy = () => {
+    console.log("🔍 [DEBUG] comercioId completo:", pedido.comercioId);
+    console.log("🔍 [DEBUG] horarios:", pedido.comercioId?.horarios);
+    if (!pedido.comercioId?.horarios) return "No disponible";
+
+    const hoy = new Date().toLocaleDateString('es-AR', { weekday: 'long' }).toLowerCase();
+    const horarioHoy = pedido.comercioId.horarios.find(h => h.dia === hoy);
+
+    if (horarioHoy && horarioHoy.abierto) {
+      return `${horarioHoy.horaApertura} - ${horarioHoy.horaCierre}`;
+    }
+    return "Cerrado hoy";
+  };
+
   return (
-    <Tarjeta className="p-4">
+    <Tarjeta className="p-4 !bg-white !opacity-100 relative z-10">
       <div className="flex items-start justify-between mb-3">
         <div>
           <h2 className="font-semibold">
@@ -89,6 +104,22 @@ const ItemPedido = ({ pedido }) => {
           {obtenerEtiquetaEstado(estado)}
         </Insignia>
       </div>
+
+      {/* Información del comercio */}
+      {pedido.comercioId && (
+        <div className="space-y-1 mb-3 text-sm text-muted-foreground">
+          {pedido.comercioId.direccion && (
+            <div className="flex items-start gap-2">
+              <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+              <span>{pedido.comercioId.direccion}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-2">
+            <Clock className="w-4 h-4 flex-shrink-0" />
+            <span>Horario hoy: {obtenerHorarioHoy()}</span>
+          </div>
+        </div>
+      )}
 
       <Plegable className="mt-2">
         <div className="flex items-center gap-2">
@@ -167,10 +198,10 @@ const Pedidos = () => {
       );
 
   return (
-    <div className="min-h-screen bg-background pb-20 relative">
+    <div className="min-h-screen bg-white pb-20 relative">
       <FormasDecorativas />
 
-      <header className="sticky top-0 z-50 bg-background border-b border-border shadow-sm">
+      <header className="sticky top-0 z-50 bg-white border-b border-border shadow-sm">
         <div className="px-4 py-4">
           <h1 className="text-2xl font-bold mb-4">Mis Pedidos</h1>
 

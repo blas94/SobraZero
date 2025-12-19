@@ -14,7 +14,8 @@ import { toast } from "sonner";
 import FormasDecorativas from "@/components/FormasDecorativas";
 import { registrarComercio } from "@/services/comercios";
 import { useState } from "react";
-
+import { useAuth } from "@/context/AuthContext";
+import { usarNotificaciones } from "@/hooks/usar-notificaciones";
 
 const esquemaComercio = z.object({
   nombreComercio: z
@@ -95,7 +96,8 @@ const esquemaComercio = z.object({
 const RegistrarComercio = () => {
   const navegar = useNavigate();
   const [cargando, setCargando] = useState(false);
-
+  const { usuario } = useAuth();
+  const { agregarNotificacion } = usarNotificaciones(usuario?.id);
   const {
     register,
     handleSubmit,
@@ -150,6 +152,13 @@ const RegistrarComercio = () => {
       };
 
       await registrarComercio(datosComercio);
+
+      // Crear notificación de éxito
+      agregarNotificacion({
+        titulo: "Comercio Registrado",
+        descripcion: `Tu comercio "${datos.nombreComercio}" está siendo revisado`,
+        tipo: 'business'
+      });
 
       toast.success(
         "Tu comercio está siendo revisado. En menos de 24 hs recibirás una notificación para completar la información",

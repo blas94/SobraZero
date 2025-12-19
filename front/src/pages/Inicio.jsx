@@ -37,6 +37,9 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { createRoot } from "react-dom/client";
 import { usarTema } from "@/hooks/usar-tema";
 import { useAuth } from "@/context/AuthContext";
+import { usarNotificaciones } from "@/hooks/usar-notificaciones";
+import { obtenerMisComercios } from "@/services/comercios";
+
 const Inicio = () => {
   const navegar = useNavigate();
   const { usuario } = useAuth();

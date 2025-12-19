@@ -99,7 +99,7 @@ router.get("/usuario/:usuarioId", async (req, res) => {
     console.log("  - usuarioId:", usuarioId);
 
     const reservas = await Reserva.find({ usuarioId })
-      .populate('comercioId', 'nombre direccion imagenUrl')
+      .populate('comercioId', 'nombre direccion imagenUrl horarios')
       .sort({ createdAt: -1 })
       .lean();
 

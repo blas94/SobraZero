@@ -277,6 +277,29 @@ const ContenidoComercio = ({
         return comercioActualizado;
       });
 
+      // Crear notificación
+      try {
+        const notificacionesKey = `notificaciones_usuario_${usuarioId}`;
+        const prevNotificaciones = localStorage.getItem(notificacionesKey);
+        const listaNotificaciones = prevNotificaciones ? JSON.parse(prevNotificaciones) : [];
+        const nuevaNotificacion = {
+          id: crypto.randomUUID(), // Generamos ID único
+          type: "order",
+          title: "Reserva Confirmada",
+          description: `Has reservado ${totalItems} producto(s) en ${comercio.nombre}`,
+          time: "Hace un momento",
+          timestamp: Date.now(),
+          unread: true
+        };
+        localStorage.setItem(notificacionesKey, JSON.stringify([nuevaNotificacion, ...listaNotificaciones]));
+
+        // Disparar evento para actualizar UI inmediatamente
+        window.dispatchEvent(new Event('notificaciones_actualizadas'));
+      } catch (err) {
+        console.error("Error al guardar notificación:", err);
+      }
+      console.log("Notificación guardada para usuario:", usuarioId); // LOG DE DEBUG
+
       toast.success("Reserva creada. Redirigiendo a Mercado Pago...");
 
       // Limpio selección antes de ir a MP
