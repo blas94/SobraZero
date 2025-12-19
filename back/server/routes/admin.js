@@ -230,7 +230,6 @@ router.get(
     }
 );
 
-// Aprobar comercio
 router.put(
     "/comercios/:id/aprobar",
     middlewareAutenticacion,
@@ -245,11 +244,9 @@ router.put(
                 return res.status(404).json({ error: "Comercio no encontrado" });
             }
 
-            // Actualizar estado
             comercio.estadoAprobacion = "aprobado";
             await comercio.save();
 
-            // Log de auditoría
             console.log(`✅ [ADMIN] Comercio aprobado: ${comercio.nombre} (ID: ${id}) por admin ${adminId}`);
 
             res.json({
@@ -264,7 +261,6 @@ router.put(
     }
 );
 
-// Rechazar comercio
 router.put(
     "/comercios/:id/rechazar",
     middlewareAutenticacion,
@@ -280,14 +276,12 @@ router.put(
                 return res.status(404).json({ error: "Comercio no encontrado" });
             }
 
-            // Actualizar estado
             comercio.estadoAprobacion = "rechazado";
             if (razon) {
                 comercio.razonRechazo = razon;
             }
             await comercio.save();
 
-            // Log de auditoría
             console.log(`❌ [ADMIN] Comercio rechazado: ${comercio.nombre} (ID: ${id}) por admin ${adminId}${razon ? ` - Razón: ${razon}` : ''}`);
 
             res.json({

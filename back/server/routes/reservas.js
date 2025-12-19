@@ -53,7 +53,6 @@ router.post("/", async (req, res) => {
     comercio.markModified("productos");
     await comercio.save();
 
-    // Calcular ahorro: (precioOriginal - precioDescuento) × cantidad
     const precioOrig = producto.precioOriginal || 0;
     const precioDesc = producto.precioDescuento || 0;
     const ahorro = (precioOrig - precioDesc) * cantidadNum;
@@ -76,11 +75,10 @@ router.post("/", async (req, res) => {
     console.log("    - comercioId:", reserva.comercioId.toString());
     console.log("    - estado:", reserva.estado);
 
-    // Actualizar estadísticas del usuario
     await Usuario.findByIdAndUpdate(usuarioId, {
       $inc: {
         dineroAhorrado: ahorro,
-        productosSalvados: 1, // Cada reserva = 1 producto salvado
+        productosSalvados: 1,
       },
     });
 
@@ -109,13 +107,11 @@ router.get("/usuario/:usuarioId", async (req, res) => {
       console.log("  - Estados:", reservas.map(r => r.estado).join(", "));
     }
 
-    // Formatear respuesta para incluir nombreComercio y mantener toda la info del comercio
     const reservasFormateadas = reservas.map(r => {
       const comercio = r.comercioId;
       return {
         ...r,
         nombreComercio: comercio?.nombre || 'Comercio',
-        // Mantener comercioId como objeto completo con toda la información
         comercioId: comercio ? {
           _id: comercio._id,
           nombre: comercio.nombre,

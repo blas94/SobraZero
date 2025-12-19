@@ -211,12 +211,11 @@ router.get("/verificar", async (req, res) => {
       rol: user.rol,
       avatar: user.avatar,
       vioTutorial: user.vioTutorial,
-      tutorialPasos: user.tutorialPasos || [], // <--- NUEVO
+      tutorialPasos: user.tutorialPasos || [],
     },
   });
 });
 
-// Actualizar estado de Tutorial (visto)
 router.post("/tutorial", async (req, res) => {
   const payload = getAuthPayload(req);
   if (!payload) return res.status(401).json({ error: "No autorizado" });
@@ -234,7 +233,6 @@ router.post("/tutorial", async (req, res) => {
   }
 });
 
-// NUEVO ENDPOINT: Registrar paso individual del tutorial
 router.post("/tutorial/paso", async (req, res) => {
   const payload = getAuthPayload(req);
   if (!payload) return res.status(401).json({ error: "No autorizado" });
@@ -243,7 +241,6 @@ router.post("/tutorial/paso", async (req, res) => {
   if (!paso) return res.status(400).json({ error: "Paso requerido" });
 
   try {
-    // Usamos $addToSet para que no se guarden pasos duplicados si el usuario insiste
     const user = await Usuario.findByIdAndUpdate(
       payload.uid,
       { $addToSet: { tutorialPasos: paso } },
@@ -257,7 +254,6 @@ router.post("/tutorial/paso", async (req, res) => {
   }
 });
 
-// Obtener estadísticas del usuario (dinero ahorrado y productos salvados)
 router.get("/estadisticas", async (req, res) => {
   const payload = getAuthPayload(req);
   if (!payload) return res.status(401).json({ error: "No autorizado" });
@@ -276,8 +272,6 @@ router.get("/estadisticas", async (req, res) => {
   }
 });
 
-// --- RECUPERACIÓN DE CONTRASEÑA ---
-
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
@@ -288,7 +282,7 @@ router.post("/forgot-password", async (req, res) => {
 
     const token = crypto.randomBytes(20).toString("hex");
     user.resetPasswordToken = token;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hora
+    user.resetPasswordExpires = Date.now() + 3600000;
     await user.save();
 
     const enviado = await enviarCorreoRecuperacion(user.email, user.nombre, token);
@@ -324,8 +318,6 @@ router.post("/reset-password", async (req, res) => {
     res.status(500).json({ error: "Error en el servidor" });
   }
 });
-
-// --- CAMBIO DE EMAIL ---
 
 router.post("/request-email-change", async (req, res) => {
   try {
@@ -368,7 +360,6 @@ router.post("/verify-email-change", async (req, res) => {
 
     if (!user) return res.status(400).json({ error: "Token inválido o expirado" });
 
-    // Verificar doble check de unicidad por si acaso
     const existe = await Usuario.findOne({ email: user.newEmailPending });
     if (existe && existe._id.toString() !== user._id.toString()) {
       return res.status(409).json({ error: "El email ya fue ocupado por otro usuario mientras esperabas" });
@@ -379,9 +370,6 @@ router.post("/verify-email-change", async (req, res) => {
     user.emailChangeExpires = undefined;
     user.newEmailPending = undefined;
     await user.save();
-
-    // Opcional: Invalidar sesiones viejas (cambio de email altera el JWT payload si se regenera)
-    // Por ahora solo confirmamos cambio.
 
     res.json({ message: "Email actualizado correctamente. Por favor inicia sesión nuevamente." });
   } catch (e) {
