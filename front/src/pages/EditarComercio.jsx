@@ -8,6 +8,7 @@ import {
   Camera,
   ChevronDown,
   X,
+  Trash2,
 } from "lucide-react";
 import { Boton } from "@/components/ui/Boton";
 import { Tarjeta } from "@/components/ui/Tarjeta";
@@ -51,6 +52,7 @@ const EditarComercio = () => {
   const [precioOriginalEditado, setPrecioOriginalEditado] = useState("");
   const [precioDescuentoEditado, setPrecioDescuentoEditado] = useState("");
   const [telefonoEditado, setTelefonoEditado] = useState("");
+  const [aliasEditado, setAliasEditado] = useState("");
   const [horariosEditados, setHorariosEditados] = useState([]);
   const [productosEditados, setProductosEditados] = useState([]);
   const [mostrarDialogoImagen, setMostrarDialogoImagen] = useState(false);
@@ -106,6 +108,7 @@ const EditarComercio = () => {
         setPrecioOriginalEditado(comercio.precioOriginal?.toString() || "");
         setPrecioDescuentoEditado(comercio.precioDescuento?.toString() || "");
         setTelefonoEditado(comercio.telefono || "");
+        setAliasEditado(comercio.alias || "");
 
         // Mapear productos
         const productosFormateados = (comercio.productos || []).map(p => ({
@@ -238,6 +241,11 @@ const EditarComercio = () => {
             telefono: telefonoEditado,
           };
           break;
+        case "alias":
+          datosActualizados = {
+            alias: aliasEditado,
+          };
+          break;
         case "productos":
           const errores = {};
           let hayErrores = false;
@@ -355,6 +363,7 @@ const EditarComercio = () => {
     setPrecioOriginalEditado(datosComercio.precioOriginal?.toString() || "");
     setPrecioDescuentoEditado(datosComercio.precioDescuento?.toString() || "");
     setTelefonoEditado(datosComercio.telefono || "");
+    setAliasEditado(datosComercio.alias || "");
 
     // Mapear productos
     const productosFormateados = (datosComercio.productos || []).map(p => ({
@@ -471,10 +480,19 @@ const EditarComercio = () => {
                     Necesitás agregar al menos un producto para poder activar tu comercio
                   </p>
                 )}
+                {!datosComercio.activo && (!datosComercio.alias || datosComercio.alias.trim() === "") && (
+                  <p className="text-sm text-amber-600 dark:text-amber-500 mt-2">
+                    Necesitás configurar tu alias de Mercado Pago para poder activar tu comercio
+                  </p>
+                )}
               </div>
               <Boton
                 variant={datosComercio.activo ? "destructive" : "default"}
-                disabled={!datosComercio.activo && (!datosComercio.productos || datosComercio.productos.length === 0)}
+                disabled={
+                  !datosComercio.activo &&
+                  ((!datosComercio.productos || datosComercio.productos.length === 0) ||
+                    (!datosComercio.alias || datosComercio.alias.trim() === ""))
+                }
                 onClick={async () => {
                   try {
                     const nuevoEstado = !datosComercio.activo;
@@ -681,6 +699,61 @@ const EditarComercio = () => {
           )}
         </Tarjeta>
 
+        {/* Sección de Alias de Mercado Pago */}
+        <Tarjeta className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold">Alias de Mercado Pago</h3>
+            {campoEditando !== "alias" && (
+              <Boton
+                variant="ghost"
+                size="sm"
+                onClick={() => setCampoEditando("alias")}
+              >
+                Editar
+              </Boton>
+            )}
+          </div>
+
+          {campoEditando === "alias" ? (
+            <div className="space-y-3">
+              <div>
+                <Etiqueta>Alias de Mercado Pago</Etiqueta>
+                <Entrada
+                  value={aliasEditado}
+                  onChange={(e) => setAliasEditado(e.target.value)}
+                  placeholder="Ej: mi.comercio.mp"
+                  aria-label="Alias de Mercado Pago"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Ingresá tu alias de Mercado Pago para recibir los pagos de tus ventas
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Boton
+                  size="sm"
+                  onClick={() => manejarGuardarCampo("alias")}
+                >
+                  Guardar
+                </Boton>
+                <Boton
+                  size="sm"
+                  variant="outline"
+                  onClick={manejarCancelarEdicion}
+                >
+                  Cancelar
+                </Boton>
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm">
+              <span className="font-medium text-foreground">Alias:</span>
+              <p className="text-muted-foreground mt-1">
+                {datosComercio.alias || "No especificado"}
+              </p>
+            </div>
+          )}
+        </Tarjeta>
+
         <Tarjeta className="p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold">Productos individuales</h3>
@@ -719,7 +792,8 @@ const EditarComercio = () => {
                         onClick={() => manejarEliminarProducto(producto.id)}
                         className="h-6 w-6 p-0"
                       >
-                        <span className="sr-only">Eliminar producto</span>X
+                        <span className="sr-only">Eliminar producto</span>
+                        <Trash2 className="w-4 h-4" />
                       </Boton>
                     </div>
                     <ContenidoPlegable>
@@ -926,8 +1000,8 @@ const EditarComercio = () => {
             </div>
           ) : (
             <div className="space-y-2">
-              {datosComercio.products && datosComercio.products.length > 0 ? (
-                datosComercio.products.map((producto, index) => (
+              {datosComercio.productos && datosComercio.productos.length > 0 ? (
+                datosComercio.productos.map((producto, index) => (
                   <div
                     key={producto.id}
                     className="text-sm text-muted-foreground"

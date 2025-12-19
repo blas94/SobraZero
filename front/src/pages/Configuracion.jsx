@@ -19,8 +19,6 @@ import {
 } from "@/components/ui/DialogoAlerta";
 import { usarTema } from "@/hooks/usar-tema";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
 const Configuracion = () => {
   const navegar = useNavigate();
   const { esModoOscuro, alternarModoOscuro } = usarTema();
@@ -44,8 +42,6 @@ const Configuracion = () => {
     }
   }, []);
 
-  const userId = usuario?.id || usuario?._id;
-
   const manejarToggleModoOscuro = () => {
     alternarModoOscuro();
     toast.success(
@@ -56,38 +52,6 @@ const Configuracion = () => {
   const manejarEliminarCuenta = () => {
     toast.success("Cuenta eliminada correctamente");
     setMostrarDialogoEliminar(false);
-  };
-
-  const conectarMercadoPago = async () => {
-    if (!userId) {
-      toast.error("Iniciá sesión para conectar Mercado Pago");
-      return;
-    }
-
-    try {
-      const resp = await fetch(
-        `${API_URL}/mercadopago/connect?usuarioId=${userId}`,
-        {
-          credentials: "include",
-        }
-      );
-
-      if (!resp.ok) {
-        throw new Error("No se pudo iniciar la conexión con Mercado Pago");
-      }
-
-      const data = await resp.json();
-
-      if (data?.url) {
-        window.location.href = data.url;
-        return;
-      }
-
-      throw new Error("Respuesta inválida del servidor (falta url)");
-    } catch (e) {
-      console.error(e);
-      toast.error("No se pudo conectar Mercado Pago");
-    }
   };
 
   return (
@@ -129,18 +93,18 @@ const Configuracion = () => {
             Métodos de pago
           </h2>
 
+          <h3 className="font-medium">Mercado Pago</h3>
           <p className="text-sm text-muted-foreground">
-            Para mayor seguridad, los pagos y tarjetas se gestionan directamente
-            con Mercado Pago.
+            Para mayor seguridad,{" "}
+            <span className="font-medium">
+              SobraZero procesa todos los pagos a través de Mercado Pago
+            </span>
+            .
+            <br />
+            Esto permite operar con los estándares de seguridad de la
+            plataforma, proteger tus datos y confirmar las transacciones de
+            forma confiable al momento de reservar.
           </p>
-
-          <Boton
-            className="w-full justify-between"
-            type="button"
-            onClick={conectarMercadoPago}
-          >
-            Mercado Pago
-          </Boton>
         </Tarjeta>
 
         <Tarjeta className="p-4">
@@ -154,12 +118,6 @@ const Configuracion = () => {
               onClick={() => navegar("/cambiar-clave")}
             >
               Cambiar contraseña
-            </button>
-            <button className="w-full text-left p-3 hover:bg-muted/50 rounded-md text-sm">
-              Verificación en dos pasos
-            </button>
-            <button className="w-full text-left p-3 hover:bg-muted/50 rounded-md text-sm">
-              Datos personales
             </button>
           </div>
         </Tarjeta>

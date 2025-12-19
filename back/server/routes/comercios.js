@@ -222,6 +222,14 @@ router.put("/:id", async (req, res, next) => {
             message: "No podés activar el comercio sin tener al menos un producto registrado"
           });
         }
+
+        // Validar que tenga alias de Mercado Pago
+        const aliasActual = datosActualizables.alias !== undefined ? datosActualizables.alias : comercio.alias;
+        if (!aliasActual || aliasActual.trim() === "") {
+          return res.status(400).json({
+            message: "No podés activar el comercio sin configurar tu alias de Mercado Pago"
+          });
+        }
       }
 
       if (datosActualizables.direccion) {

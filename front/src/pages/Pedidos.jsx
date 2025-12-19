@@ -1,4 +1,4 @@
-import { Clock, MapPin, Package, ChevronDown } from "lucide-react";
+import { Clock, MapPin, Package } from "lucide-react";
 import { Tarjeta } from "@/components/ui/Tarjeta";
 import { Insignia } from "@/components/ui/Insignia";
 import { Boton } from "@/components/ui/Boton";
@@ -11,6 +11,9 @@ import {
   ContenidoPlegable,
   ActivadorPlegable,
 } from "@/components/ui/Plegable";
+import { authHttp } from "@/services/http-client";
+
+const ENDPOINT_CHECKOUT = "/pagos/checkout";
 
 const ESTADOS_FILTRO = [
   { id: "en-curso", etiqueta: "En curso" },
@@ -55,7 +58,6 @@ const obtenerVarianteEstado = (estado) => {
 };
 
 const ItemPedido = ({ pedido, manejarReorden }) => {
-
   const estadoNormalizado = normalizarEstado(pedido.estado || pedido.status);
   const cantidadProductos = pedido.productos?.length || 0;
   const productos = pedido.productos || pedido.products || [];
@@ -118,7 +120,7 @@ const ItemPedido = ({ pedido, manejarReorden }) => {
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-medium">Total</span>
           <span className="text-lg font-bold text-primary">
-            ${pedido.total.toLocaleString()}
+            ${Number(pedido.total || 0).toLocaleString()}
           </span>
         </div>
 
@@ -191,10 +193,7 @@ const Pedidos = () => {
               cantidad: "1 porción",
             },
             { nombre: "Tarta de verduras", cantidad: "1 porción" },
-            {
-              nombre: "Flan casero con dulce de leche",
-              cantidad: "1 porción",
-            },
+            { nombre: "Flan casero con dulce de leche", cantidad: "1 porción" },
           ],
         },
         {
@@ -230,7 +229,6 @@ const Pedidos = () => {
     };
 
     window.addEventListener("storage", manejarCambioStorage);
-
     const interval = setInterval(manejarCambioStorage, 1000);
 
     return () => {
@@ -239,70 +237,84 @@ const Pedidos = () => {
     };
   }, []);
 
-  const obtenerEtiquetaEstado = (estado) => {
-    switch (normalizarEstado(estado)) {
-      case "pendiente":
-        return "En curso";
-      case "cancelado":
-        return "Cancelado";
-      case "retirado":
-        return "Retirado";
-      default:
-        return "Completado";
+  const obtenerUsuarioId = () => {
+    try {
+      const u = JSON.parse(localStorage.getItem("user") || "null");
+      return u?._id || u?.id || u?.uid || null;
+    } catch {
+      return null;
     }
   };
 
-  const obtenerVarianteEstado = (estado) => {
-    switch (normalizarEstado(estado)) {
-      case "pendiente":
-        return "default";
-      case "cancelado":
-        return "destructive";
-      case "retirado":
-        return "secondary";
-      default:
-        return "secondary";
+  const manejarReorden = async (pedido) => {
+    try {
+      const usuarioId = obtenerUsuarioId();
+      if (!usuarioId) {
+        toast.error("No pude encontrar tu usuario. Iniciá sesión de nuevo.");
+        return;
+      }
+
+      const comercioId = pedido.comercioId || pedido.storeId || pedido.comercio?._id;
+      if (!comercioId) {
+        toast.error("Este pedido no tiene comercioId para volver a pedir.");
+        return;
+      }
+
+      const productos = pedido.productos || pedido.products || [];
+      const primerProd = productos[0];
+
+      const productoNombre = primerProd?.nombre || primerProd?.name;
+      if (!productoNombre) {
+        toast.error("Este pedido no tiene productoNombre para volver a pedir.");
+        return;
+      }
+
+      const cantidadRaw = primerProd?.cantidad || primerProd?.quantity || 1;
+      const cantidad = Number(String(cantidadRaw).match(/\d+/)?.[0] || 1);
+
+      const r1 = await authHttp.post("/reservas", {
+        usuarioId,
+        comercioId,
+        productoNombre,
+        cantidad,
+      });
+
+      const reservaId = r1?.data?.reserva?._id;
+      if (!reservaId) {
+        toast.error("La reserva no devolvió un ID válido.");
+        return;
+      }
+
+      const precio_total = Number(pedido.total || 0);
+
+      const r2 = await authHttp.post("/pagos/crear-preferencia", {
+        reservaId,
+        precio_total,
+      });
+
+      const checkoutUrl = r2?.data?.checkout_url;
+      if (!checkoutUrl) {
+        toast.error("No llegó checkout_url desde Mercado Pago.");
+        return;
+      }
+
+      window.location.href = checkoutUrl;
+    } catch (e) {
+      toast.error("No se pudo iniciar el pago para volver a pedir.");
     }
   };
 
-  const alternarExpandido = (pedidoId) => {
-    setPedidosExpandidos((prev) =>
-      prev.includes(pedidoId)
-        ? prev.filter((id) => id !== pedidoId)
-        : [...prev, pedidoId]
-    );
-  };
-
-  const manejarReorden = (pedido) => {
-    const nuevoPedido = {
-      ...pedido,
-      id: `pedido-${Date.now()}`,
-      estado: "pendiente",
-      fecha: "Hoy",
-    };
-
-    const pedidosActualizados = [nuevoPedido, ...pedidos];
-    setPedidos(pedidosActualizados);
-    const jsonPedidos = JSON.stringify(pedidosActualizados);
-    localStorage.setItem("pedidos", jsonPedidos);
-    ultimoValorRef.current = jsonPedidos;
-
-    toast.success(
-      `Pedido de ${obtenerNombreComercio(pedido)} agregado nuevamente`
-    );
-  };
 
   const pedidosFiltrados =
     filtroEstado === "en-curso"
       ? pedidos.filter(
-        (pedido) => normalizarEstado(pedido.estado || pedido.status) === "pendiente"
+        (pedido) =>
+          normalizarEstado(pedido.estado || pedido.status) === "pendiente"
       )
-      : pedidos.filter(
-        (pedido) => {
-          const estado = normalizarEstado(pedido.estado || pedido.status);
-          return estado === "retirado" || estado === "cancelado";
-        }
-      );
+      : pedidos.filter((pedido) => {
+        const estado = normalizarEstado(pedido.estado || pedido.status);
+        return estado === "retirado" || estado === "cancelado";
+      });
 
   return (
     <div className="min-h-screen bg-background pb-20 relative">

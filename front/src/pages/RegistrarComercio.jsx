@@ -81,6 +81,7 @@ const esquemaComercio = z.object({
         message: "El teléfono debe tener al menos 10 dígitos",
       }
     ),
+  alias: z.string().optional(),
   registroLocalVigente: z.boolean().refine((valor) => valor === true, {
     message: "Debés marcar esta opción para continuar",
   }),
@@ -114,9 +115,10 @@ const RegistrarComercio = () => {
         { dia: "miercoles", abierto: true, horaApertura: "09:00", horaCierre: "18:00" },
         { dia: "jueves", abierto: true, horaApertura: "09:00", horaCierre: "18:00" },
         { dia: "viernes", abierto: true, horaApertura: "09:00", horaCierre: "18:00" },
-        { dia: "sabado", abierto: false, horaApertura: "", horaCierre: "" },
-        { dia: "domingo", abierto: false, horaApertura: "", horaCierre: "" },
+        { dia: "sabado", abierto: false, horaApertura: "09:00", horaCierre: "18:00" },
+        { dia: "domingo", abierto: false, horaApertura: "09:00", horaCierre: "18:00" },
       ],
+      alias: "",
       telefono: "",
       registroLocalVigente: false,
       localFisico: false,
@@ -143,6 +145,7 @@ const RegistrarComercio = () => {
         rubro: datos.tipoComercio,
         direccion: datos.direccion,
         horarios: datos.horarios,
+        alias: datos.alias,
         telefono: datos.telefono,
       };
 
@@ -267,6 +270,26 @@ const RegistrarComercio = () => {
                 />
               )}
             />
+
+            {/* Alias de Mercado Pago */}
+            <div className="space-y-2">
+              <Etiqueta htmlFor="alias">Alias de Mercado Pago</Etiqueta>
+              <Entrada
+                id="alias"
+                type="text"
+                placeholder="Ej: mi.comercio.mp"
+                aria-label="Alias de Mercado Pago"
+                {...register("alias")}
+              />
+              <p className="text-xs text-muted-foreground">
+                Ingresá tu alias de Mercado Pago para recibir los pagos de tus ventas
+              </p>
+              {errors.alias && (
+                <p className="text-sm text-red-600 dark:text-red-500">
+                  {errors.alias.message}
+                </p>
+              )}
+            </div>
 
             <div className="space-y-2">
               <Etiqueta htmlFor="telefono">Teléfono de contacto del comercio</Etiqueta>

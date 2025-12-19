@@ -13,6 +13,7 @@ const comercioSchema = new Schema(
       lng: { type: Number, required: true },
     },
     telefono: { type: String, required: true },
+    alias: { type: String }, // Alias de Mercado Pago para recibir pagos
 
     // Horarios de disponibilidad semanal
     horarios: [{
