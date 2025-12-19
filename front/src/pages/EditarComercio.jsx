@@ -1113,8 +1113,8 @@ const EditarComercio = () => {
             resolver cualquier inconveniente.
           </p>
         </Tarjeta>
-      </div >
-    </div >
+      </div>
+    </div>
   );
 };
 
