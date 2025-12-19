@@ -129,28 +129,40 @@ const Pedidos = () => {
     }
   };
 
-  /* ===== CARGA REAL DESDE BACKEND ===== */
   useEffect(() => {
     const cargarPedidos = async () => {
       try {
-        const usuarioId = obtenerUsuarioId();
-        if (!usuarioId) {
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+        const token = localStorage.getItem("token");
+
+        if (!user?._id || !token) {
+          console.log("No hay usuario o token");
           setPedidos([]);
           return;
         }
 
-        const res = await authHttp.get(`/reservas/usuario/${usuarioId}`);
-        setPedidos(res.data.reservas || []);
-      } catch (e) {
-        console.error(e);
-        toast.error("No se pudieron cargar tus pedidos");
-      } finally {
-        setCargando(false);
+        const res = await fetch(
+          `https://sobrazero-8o4y.onrender.com/api/reservas/usuario/${user._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const data = await res.json();
+        console.log("PEDIDOS DESDE BACKEND:", data);
+
+        setPedidos(data.reservas || []);
+      } catch (err) {
+        console.error("Error cargando pedidos:", err);
+        toast.error("No se pudieron cargar los pedidos");
       }
     };
 
     cargarPedidos();
   }, []);
+
 
   const pedidosFiltrados =
     filtroEstado === "en-curso"

@@ -9,6 +9,12 @@ router.post("/", async (req, res) => {
   try {
     const { usuarioId, comercioId, productoNombre, cantidad } = req.body;
 
+    console.log("\n🔵 [CREAR RESERVA] Datos recibidos:");
+    console.log("  - usuarioId:", usuarioId);
+    console.log("  - comercioId:", comercioId);
+    console.log("  - productoNombre:", productoNombre);
+    console.log("  - cantidad:", cantidad);
+
     if (!usuarioId || !comercioId || !productoNombre || !cantidad) {
       return res.status(400).json({ message: "Datos incompletos" });
     }
@@ -64,6 +70,12 @@ router.post("/", async (req, res) => {
       stockDevuelto: false,
     });
 
+    console.log("  ✅ Reserva creada exitosamente:");
+    console.log("    - _id:", reserva._id.toString());
+    console.log("    - usuarioId:", reserva.usuarioId.toString());
+    console.log("    - comercioId:", reserva.comercioId.toString());
+    console.log("    - estado:", reserva.estado);
+
     // Actualizar estadísticas del usuario
     await Usuario.findByIdAndUpdate(usuarioId, {
       $inc: {
@@ -83,12 +95,22 @@ router.get("/usuario/:usuarioId", async (req, res) => {
   try {
     const { usuarioId } = req.params;
 
+    console.log("\n🟢 [OBTENER RESERVAS] Consultando reservas:");
+    console.log("  - usuarioId:", usuarioId);
+
     const reservas = await Reserva.find({ usuarioId })
       .sort({ createdAt: -1 })
       .lean();
 
+    console.log("  - Reservas encontradas:", reservas.length);
+    if (reservas.length > 0) {
+      console.log("  - IDs de reservas:", reservas.map(r => r._id.toString()).join(", "));
+      console.log("  - Estados:", reservas.map(r => r.estado).join(", "));
+    }
+
     res.json({ ok: true, reservas });
   } catch (e) {
+    console.error("  ❌ Error obteniendo reservas:", e.message);
     res.status(500).json({ ok: false, message: "Error cargando pedidos" });
   }
 });
