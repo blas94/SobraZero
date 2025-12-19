@@ -6,6 +6,8 @@ const reservaSchema = new Schema(
     comercioId: { type: Schema.Types.ObjectId, ref: "Comercio", required: true },
     productoNombre: { type: String, required: true },
     cantidad: { type: Number, required: true },
+    precioOriginal: { type: Number, required: true },
+    precioDescuento: { type: Number, required: true },
     estado: {
       type: String,
       enum: ["pendiente", "pagada", "retirada", "cancelada", "expirada"],

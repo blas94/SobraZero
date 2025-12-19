@@ -257,6 +257,25 @@ router.post("/tutorial/paso", async (req, res) => {
   }
 });
 
+// Obtener estadísticas del usuario (dinero ahorrado y productos salvados)
+router.get("/estadisticas", async (req, res) => {
+  const payload = getAuthPayload(req);
+  if (!payload) return res.status(401).json({ error: "No autorizado" });
+
+  try {
+    const user = await Usuario.findById(payload.uid).select("dineroAhorrado productosSalvados");
+    if (!user) return res.status(404).json({ error: "Usuario no encontrado" });
+
+    return res.json({
+      dineroAhorrado: user.dineroAhorrado || 0,
+      productosSalvados: user.productosSalvados || 0,
+    });
+  } catch (e) {
+    console.error("Error obteniendo estadísticas:", e);
+    return res.status(500).json({ error: "Error al obtener estadísticas" });
+  }
+});
+
 // --- RECUPERACIÓN DE CONTRASEÑA ---
 
 router.post("/forgot-password", async (req, res) => {

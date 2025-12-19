@@ -20,6 +20,10 @@ const UserSchema = new mongoose.Schema(
     vioTutorial: { type: Boolean, default: false },
     tutorialPasos: { type: [String], default: [] },
 
+    // Estadísticas del usuario
+    dineroAhorrado: { type: Number, default: 0, min: 0 },
+    productosSalvados: { type: Number, default: 0, min: 0 },
+
     resetPasswordToken: { type: String, select: false },
     resetPasswordExpires: { type: Date, select: false },
 

@@ -35,6 +35,7 @@ import { obtenerPerfil } from "@/services/autenticacion";
 import { authHttp } from "@/services/http-client";
 import { useAuth } from "@/context/AuthContext";
 import { obtenerMisComercios } from "@/services/comercios";
+import { obtenerEstadisticasUsuario } from "@/services/estadisticas";
 
 const opcionesMenu = [
   {
@@ -73,6 +74,12 @@ const Perfil = () => {
   const [tieneComercioRegistrado, setTieneComercioRegistrado] = useState(false);
   const [miComercio, setMiComercio] = useState(null);
   const [cargandoComercio, setCargandoComercio] = useState(true);
+
+  // Estado para estadísticas del usuario
+  const [estadisticas, setEstadisticas] = useState({
+    dineroAhorrado: 0,
+    productosSalvados: 0,
+  });
 
   const [usuario, setUsuario] = useState(() => {
     const almacenado = localStorage.getItem("user");
@@ -136,8 +143,21 @@ const Perfil = () => {
       }
     };
 
+    const cargarEstadisticas = async () => {
+      try {
+        const stats = await obtenerEstadisticasUsuario();
+        setEstadisticas({
+          dineroAhorrado: stats.dineroAhorrado || 0,
+          productosSalvados: stats.productosSalvados || 0,
+        });
+      } catch (error) {
+        console.error("Error cargando estadísticas:", error);
+      }
+    };
+
     cargarPerfil();
     cargarComercio();
+    cargarEstadisticas();
   }, []);
 
   const manejarCerrarSesion = async () => {
@@ -179,7 +199,7 @@ const Perfil = () => {
             <div className="text-center p-3 rounded-lg bg-primary/5 border border-primary/20">
               <DollarSign className="w-6 h-6 mx-auto mb-1 text-primary" />
               <p className="text-xl font-bold text-primary mb-1">
-                {(usuario.pedidosCompletados * 450).toLocaleString()}
+                ${estadisticas.dineroAhorrado.toLocaleString("es-AR")}
               </p>
               <p className="text-xs text-muted-foreground">ahorrados</p>
             </div>
@@ -187,9 +207,9 @@ const Perfil = () => {
             <div className="text-center p-3 rounded-lg bg-primary/5 border border-primary/20">
               <Package className="w-6 h-6 mx-auto mb-1 text-primary" />
               <p className="text-xl font-bold text-primary mb-1">
-                {usuario.pedidosCompletados}
+                {estadisticas.productosSalvados}
               </p>
-              <p className="text-xs text-muted-foreground">productos</p>
+              <p className="text-xs text-muted-foreground">productos salvados</p>
             </div>
           </div>
         </Tarjeta>
