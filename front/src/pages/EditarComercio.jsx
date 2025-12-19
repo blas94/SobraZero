@@ -56,6 +56,7 @@ const EditarComercio = () => {
   const [horariosEditados, setHorariosEditados] = useState([]);
   const [productosEditados, setProductosEditados] = useState([]);
   const [mostrarDialogoImagen, setMostrarDialogoImagen] = useState(false);
+  const [tipoImagenDialogo, setTipoImagenDialogo] = useState("comercio"); // "comercio" o "producto"
   const [erroresProductos, setErroresProductos] = useState({});
 
   const tiposComercio = [
@@ -132,24 +133,31 @@ const EditarComercio = () => {
   }, []);
 
   const manejarClickImagen = () => {
+    setTipoImagenDialogo("comercio");
     setMostrarDialogoImagen(true);
   };
 
-  const manejarCambioImagen = (e) => {
+  const manejarCambioImagen = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         if (!datosComercio) return;
         const imageUrl = reader.result;
-        const comercioActualizado = { ...datosComercio, imageUrl };
-        localStorage.setItem(
-          "comercioRegistrado",
-          JSON.stringify(comercioActualizado)
-        );
-        setDatosComercio(comercioActualizado);
-        setMostrarDialogoImagen(false);
-        toast.success("Imagen actualizada");
+
+        try {
+          // Guardar en la base de datos
+          const comercioActualizado = await editarComercio(datosComercio._id, {
+            imageUrl
+          });
+
+          setDatosComercio(comercioActualizado);
+          setMostrarDialogoImagen(false);
+          toast.success("Imagen actualizada");
+        } catch (error) {
+          console.error("Error al guardar imagen:", error);
+          toast.error("Error al guardar la imagen");
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -519,583 +527,590 @@ const EditarComercio = () => {
       )}
 
       <div className="px-4 py-6 space-y-4 relative z-10">
-        <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg overflow-hidden group">
-          {datosComercio.imageUrl ? (
-            <img
-              src={datosComercio.imageUrl}
-              alt={`Imagen de portada de ${datosComercio.nombreComercio}`}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <ShoppingBag className="w-20 h-20 text-primary/40" />
-            </div>
-          )}
-          <button
-            onClick={manejarClickImagen}
-            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
-          >
-            <Camera className="w-12 h-12 text-white" />
-          </button>
-        </div>
-
-        <DialogoAlerta
-          open={mostrarDialogoImagen}
-          onOpenChange={setMostrarDialogoImagen}
-        >
-          <ContenidoDialogoAlerta>
-            <EncabezadoDialogoAlerta>
-              <TituloDialogoAlerta>Cambiar imagen del comercio</TituloDialogoAlerta>
-              <DescripcionDialogoAlerta>
-                Para obtener los mejores resultados, te recomendamos usar una
-                imagen en formato horizontal de medidas cercanas a 1920 x 1080
-                pixeles.
-              </DescripcionDialogoAlerta>
-            </EncabezadoDialogoAlerta>
-            <PieDialogoAlerta>
-              <Boton
-                variant="outline"
-                onClick={() => setMostrarDialogoImagen(false)}
-              >
-                Cancelar
-              </Boton>
-              <Boton
-                onClick={() => {
-                  referenciaArchivo.current?.click();
-                }}
-              >
-                Seleccionar imagen
-              </Boton>
-            </PieDialogoAlerta>
-          </ContenidoDialogoAlerta>
-        </DialogoAlerta>
-        <input
-          ref={referenciaArchivo}
-          type="file"
-          accept="image/*"
-          onChange={manejarCambioImagen}
-          className="hidden"
-          aria-label="Cambiar imagen del comercio"
-        />
-
-        {/* Sección de Información General */}
         <Tarjeta className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold">Información general</h3>
-            {campoEditando !== "informacion" && (
-              <Boton
-                variant="ghost"
-                size="sm"
-                onClick={() => setCampoEditando("informacion")}
-              >
-                Editar
-              </Boton>
-            )}
-          </div>
-
-          {campoEditando === "informacion" ? (
-            <div className="space-y-3">
-              <div>
-                <Etiqueta>Nombre del comercio</Etiqueta>
-                <Entrada
-                  value={nombreEditado}
-                  onChange={(e) => setNombreEditado(e.target.value)}
-                  placeholder="Nombre del comercio"
-                  aria-label="Nombre del comercio"
-                />
-              </div>
-              <div>
-                <Etiqueta>Tipo de comercio</Etiqueta>
-                <div className="grid grid-cols-2 gap-3">
-                  {tiposComercio.map((type) => (
-                    <button
-                      key={type.id}
-                      type="button"
-                      onClick={() => setTipoComercioEditado(type.id)}
-                      className={`p-3 rounded-lg border-2 transition-all ${tipoComercioEditado === type.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                        }`}
-                    >
-                      <span className="font-medium">{type.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <Etiqueta>Calle y número del comercio</Etiqueta>
-                <AutocompleteDireccion
-                  valor={direccionEditada}
-                  alCambiar={setDireccionEditada}
-                  alSeleccionarLugar={setDireccionEditada}
-                  placeholder="Ej: Av. Corrientes 1234, CABA"
-                  ariaLabel="Calle y número del comercio"
-                />
-              </div>
-
-              {/* Selector de Horarios Semanales */}
-              <SelectorHorarios
-                value={horariosEditados}
-                onChange={setHorariosEditados}
+          <h3 className="font-semibold mb-3">Foto de perfil del comercio</h3>
+          <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg overflow-hidden group">
+            {datosComercio.imageUrl ? (
+              <img
+                src={datosComercio.imageUrl}
+                alt={`Imagen de portada de ${datosComercio.nombreComercio}`}
+                className="w-full h-full object-cover"
               />
-
-              <div className="flex gap-2 pt-2">
-                <Boton
-                  size="sm"
-                  onClick={() => manejarGuardarCampo("informacion")}
-                >
-                  Guardar
-                </Boton>
-                <Boton
-                  size="sm"
-                  variant="outline"
-                  onClick={manejarCancelarEdicion}
-                >
-                  Cancelar
-                </Boton>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <ShoppingBag className="w-20 h-20 text-primary/40" />
               </div>
-            </div>
-          ) : (
-            <div className="space-y-3 text-sm">
-              {/* Nombre del comercio */}
-              <div>
-                <span className="font-medium text-foreground">Nombre del comercio:</span>
-                <p className="text-muted-foreground mt-1">{datosComercio.nombre}</p>
-              </div>
-
-              {/* Tipo */}
-              <div>
-                <span className="font-medium text-foreground">Tipo:</span>
-                <p className="text-muted-foreground mt-1">
-                  {tiposComercio.find(
-                    (t) => t.id === datosComercio.rubro
-                  )?.label || "No especificado"}
-                </p>
-              </div>
-
-              {/* Dirección */}
-              <div>
-                <span className="font-medium text-foreground">Dirección:</span>
-                <p className="text-muted-foreground mt-1">{datosComercio.direccion}</p>
-              </div>
-
-              {/* Horarios por día */}
-              <div>
-                <span className="font-medium text-foreground">Horarios de atención:</span>
-                <div className="mt-2 space-y-1">
-                  {horariosEditados.map((horario) => (
-                    <div key={horario.dia} className="flex items-center justify-between text-xs">
-                      <span className="capitalize text-muted-foreground">{horario.dia}:</span>
-                      <span className="text-muted-foreground">
-                        {horario.abierto
-                          ? `${horario.horaApertura} - ${horario.horaCierre}`
-                          : "Cerrado"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-        </Tarjeta>
-
-        {/* Sección de Alias de Mercado Pago */}
-        <Tarjeta className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold">Alias de Mercado Pago</h3>
-            {campoEditando !== "alias" && (
-              <Boton
-                variant="ghost"
-                size="sm"
-                onClick={() => setCampoEditando("alias")}
-              >
-                Editar
-              </Boton>
             )}
+            <button
+              onClick={manejarClickImagen}
+              className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+            >
+              <Camera className="w-12 h-12 text-white" />
+            </button>
           </div>
 
-          {campoEditando === "alias" ? (
-            <div className="space-y-3">
-              <div>
-                <Etiqueta>Alias de Mercado Pago</Etiqueta>
-                <Entrada
-                  value={aliasEditado}
-                  onChange={(e) => setAliasEditado(e.target.value)}
-                  placeholder="Ej: mi.comercio.mp"
-                  aria-label="Alias de Mercado Pago"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Ingresá tu alias de Mercado Pago para recibir los pagos de tus ventas
-                </p>
-              </div>
-              <div className="flex gap-2">
+          <DialogoAlerta
+            open={mostrarDialogoImagen}
+            onOpenChange={setMostrarDialogoImagen}
+          >
+            <ContenidoDialogoAlerta>
+              <EncabezadoDialogoAlerta>
+                <TituloDialogoAlerta>
+                  {tipoImagenDialogo === "comercio" ? "Cambiar imagen del comercio" : "Agregar imagen del producto"}
+                </TituloDialogoAlerta>
+                <DescripcionDialogoAlerta>
+                  {tipoImagenDialogo === "comercio" ? (
+                    <>
+                      Para obtener los mejores resultados, te recomendamos usar una
+                      imagen en formato horizontal de medidas cercanas a 1920 x 1080
+                      pixeles.
+                    </>
+                  ) : (
+                    <>
+                      Para obtener los mejores resultados, te recomendamos usar una
+                      imagen en formato vertical de medidas cercanas a 1080 x 1920
+                      pixeles.
+                    </>
+                  )}
+                </DescripcionDialogoAlerta>
+              </EncabezadoDialogoAlerta>
+              <PieDialogoAlerta>
                 <Boton
-                  size="sm"
-                  onClick={() => manejarGuardarCampo("alias")}
-                >
-                  Guardar
-                </Boton>
-                <Boton
-                  size="sm"
                   variant="outline"
-                  onClick={manejarCancelarEdicion}
+                  onClick={() => setMostrarDialogoImagen(false)}
                 >
                   Cancelar
                 </Boton>
-              </div>
-            </div>
-          ) : (
-            <div className="text-sm">
-              <span className="font-medium text-foreground">Alias:</span>
-              <p className="text-muted-foreground mt-1">
-                {datosComercio.alias || "No especificado"}
-              </p>
-            </div>
-          )}
-        </Tarjeta>
-
-        <Tarjeta className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold">Productos individuales</h3>
-            {campoEditando !== "productos" && (
-              <Boton
-                variant="ghost"
-                size="sm"
-                onClick={() => setCampoEditando("productos")}
-              >
-                Editar
-              </Boton>
-            )}
-          </div>
-
-          {campoEditando === "productos" ? (
-            <div className="space-y-4">
-              {productosEditados.map((producto, index) => (
-                <Tarjeta key={producto.id} className="p-3 bg-muted/50">
-                  <Plegable
-                    open={productosExpandidos.includes(producto.id)}
-                    onOpenChange={() => alternarProductoExpandido(producto.id)}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <ActivadorPlegable className="flex items-center gap-2 text-xs font-medium hover:underline cursor-pointer">
-                        <ChevronDown
-                          className={`w-4 h-4 transition-transform ${productosExpandidos.includes(producto.id)
-                            ? "rotate-180"
-                            : ""
-                            }`}
-                        />
-                        <span>Producto {index + 1}</span>
-                      </ActivadorPlegable>
-                      <Boton
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => manejarEliminarProducto(producto.id)}
-                        className="h-6 w-6 p-0"
-                      >
-                        <span className="sr-only">Eliminar producto</span>
-                        <Trash2 className="w-4 h-4" />
-                      </Boton>
-                    </div>
-                    <ContenidoPlegable>
-                      <div className="space-y-2 pt-2">
-                        <div>
-                          <Etiqueta className="text-xs">
-                            Imagen del producto (opcional)
-                          </Etiqueta>
-                          <div className="flex items-center gap-2">
-                            {producto.imageUrl && (
-                              <div className="relative">
-                                <img
-                                  src={producto.imageUrl}
-                                  alt={`Imagen del producto ${producto.name}`}
-                                  className="w-16 h-16 object-cover rounded"
-                                />
-                                <button
-                                  onClick={() =>
-                                    manejarActualizarProducto(
-                                      producto.id,
-                                      "imageUrl",
-                                      ""
-                                    )
-                                  }
-                                  className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold hover:bg-destructive/90"
-                                >
-                                  X
-                                </button>
-                              </div>
-                            )}
-                            <Entrada
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) =>
-                                manejarCambioImagenProducto(producto.id, e)
-                              }
-                              className="h-8"
-                              aria-label="Imagen del producto"
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <Etiqueta className="text-xs">Nombre</Etiqueta>
-                          <Entrada
-                            value={producto.name}
-                            onChange={(e) =>
-                              manejarActualizarProducto(
-                                producto.id,
-                                "name",
-                                e.target.value
-                              )
-                            }
-                            placeholder="Nombre del producto"
-                            aria-label="Nombre del producto"
-                            className="h-8"
-                          />
-                          {erroresProductos[producto.id]?.name && (
-                            <p className="text-xs text-red-600 dark:text-red-500 mt-1">
-                              {erroresProductos[producto.id].name}
-                            </p>
-                          )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <Etiqueta className="text-xs">Stock</Etiqueta>
-                            <Entrada
-                              type="number"
-                              value={producto.stock || ""}
-                              onChange={(e) =>
-                                manejarActualizarProducto(
-                                  producto.id,
-                                  "stock",
-                                  parseInt(e.target.value) || 0
-                                )
-                              }
-                              placeholder=""
-                              aria-label="Stock del producto"
-                              className="h-8"
-                            />
-                            {erroresProductos[producto.id]?.stock && (
-                              <p className="text-xs text-red-600 dark:text-red-500 mt-1">
-                                {erroresProductos[producto.id].stock}
-                              </p>
-                            )}
-                          </div>
-                          <div>
-                            <Etiqueta className="text-xs">
-                              Peso en kilos (opcional)
-                            </Etiqueta>
-                            <Entrada
-                              type="number"
-                              step="0.01"
-                              min="0"
-                              value={
-                                producto.weight !== undefined
-                                  ? producto.weight
-                                  : ""
-                              }
-                              onChange={(e) =>
-                                manejarActualizarProducto(
-                                  producto.id,
-                                  "weight",
-                                  e.target.value
-                                    ? parseFloat(e.target.value)
-                                    : undefined
-                                )
-                              }
-                              placeholder=""
-                              aria-label="Peso en kilos del producto"
-                              className="h-8"
-                            />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-2 mt-2">
-                          <div>
-                            <Etiqueta className="text-xs">Precio original</Etiqueta>
-                            <Entrada
-                              type="number"
-                              value={producto.originalPrice || ""}
-                              onChange={(e) =>
-                                manejarActualizarProducto(
-                                  producto.id,
-                                  "originalPrice",
-                                  parseInt(e.target.value) || 0
-                                )
-                              }
-                              placeholder=""
-                              aria-label="Precio original del producto"
-                              className="h-8"
-                            />
-                            {erroresProductos[producto.id]?.originalPrice && (
-                              <p className="text-xs text-red-600 dark:text-red-500 mt-1">
-                                {erroresProductos[producto.id].originalPrice}
-                              </p>
-                            )}
-                          </div>
-                          <div>
-                            <Etiqueta className="text-xs">
-                              Precio con descuento
-                            </Etiqueta>
-                            <Entrada
-                              type="number"
-                              value={producto.discountedPrice || ""}
-                              onChange={(e) =>
-                                manejarActualizarProducto(
-                                  producto.id,
-                                  "discountedPrice",
-                                  parseInt(e.target.value) || 0
-                                )
-                              }
-                              placeholder=""
-                              aria-label="Precio con descuento del producto"
-                              className="h-8"
-                            />
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Este es el precio que se cobrara al publico
-                            </p>
-                            {erroresProductos[producto.id]?.discountedPrice && (
-                              <p className="text-xs text-red-600 dark:text-red-500 mt-1">
-                                {erroresProductos[producto.id].discountedPrice}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        {producto.discountedPrice > 0 && (
-                          <div className="mt-3 p-2 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded">
-                            <p className="text-xs font-medium text-green-700 dark:text-green-400">
-                              Ganancia neta por producto vendido: $
-                              {(producto.discountedPrice * 0.95).toFixed(2)}
-                            </p>
-                            <p className="text-xs text-green-600 dark:text-green-500 mt-0.5">
-                              SobraZero se lleva un 5% de comision
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </ContenidoPlegable>
-                  </Plegable>
-                </Tarjeta>
-              ))}
-              <Boton
-                variant="outline"
-                size="sm"
-                onClick={manejarAgregarProducto}
-                className="w-full"
-              >
-                Agregar producto
-              </Boton>
-              <div className="flex gap-2 pt-2">
                 <Boton
-                  size="sm"
-                  onClick={() => manejarGuardarCampo("productos")}
+                  onClick={() => {
+                    referenciaArchivo.current?.click();
+                  }}
                 >
-                  Guardar
+                  Seleccionar imagen
                 </Boton>
+              </PieDialogoAlerta>
+            </ContenidoDialogoAlerta>
+          </DialogoAlerta>
+          <input
+            ref={referenciaArchivo}
+            type="file"
+            accept="image/*"
+            onChange={manejarCambioImagen}
+            className="hidden"
+            aria-label="Cambiar imagen del comercio"
+          />
+
+          {/* Sección de Información General */}
+          <Tarjeta className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold">Información general</h3>
+              {campoEditando !== "informacion" && (
                 <Boton
+                  variant="ghost"
                   size="sm"
-                  variant="outline"
-                  onClick={manejarCancelarEdicion}
+                  onClick={() => setCampoEditando("informacion")}
                 >
-                  Cancelar
+                  Editar
                 </Boton>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {datosComercio.productos && datosComercio.productos.length > 0 ? (
-                datosComercio.productos.map((producto, index) => (
-                  <div
-                    key={producto.id}
-                    className="text-sm text-muted-foreground"
-                  >
-                    <strong>Producto {index + 1}:</strong>{" "}
-                    <strong>Nombre:</strong> {producto.name} -{" "}
-                    <strong>Stock:</strong> {producto.stock}
-                    {producto.weight && (
-                      <>
-                        {" "}
-                        - <strong>Peso:</strong> {producto.weight}kilos
-                      </>
-                    )}{" "}
-                    - <strong>Precio con descuento:</strong> $
-                    {producto.discountedPrice}
-                    {producto.discountedPrice > 0 && (
-                      <>
-                        {" "}
-                        - <strong>Ganancia neta:</strong> $
-                        {(producto.discountedPrice * 0.95).toFixed(2)}
-                      </>
-                    )}
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No hay productos individuales registrados
-                </p>
               )}
             </div>
-          )}
-        </Tarjeta>
 
-        <Tarjeta className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold">Información de contacto</h2>
-            {campoEditando !== "contacto" && (
-              <Boton
-                variant="ghost"
-                size="sm"
-                onClick={() => setCampoEditando("contacto")}
-              >
-                Editar
-              </Boton>
-            )}
-          </div>
+            {campoEditando === "informacion" ? (
+              <div className="space-y-3">
+                <div>
+                  <Etiqueta>Nombre del comercio</Etiqueta>
+                  <Entrada
+                    value={nombreEditado}
+                    onChange={(e) => setNombreEditado(e.target.value)}
+                    placeholder="Nombre del comercio"
+                    aria-label="Nombre del comercio"
+                  />
+                </div>
+                <div>
+                  <Etiqueta>Tipo de comercio</Etiqueta>
+                  <div className="grid grid-cols-2 gap-3">
+                    {tiposComercio.map((type) => (
+                      <button
+                        key={type.id}
+                        type="button"
+                        onClick={() => setTipoComercioEditado(type.id)}
+                        className={`p-3 rounded-lg border-2 transition-all ${tipoComercioEditado === type.id
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-primary/50"
+                          }`}
+                      >
+                        <span className="font-medium">{type.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <Etiqueta>Calle y número del comercio</Etiqueta>
+                  <AutocompleteDireccion
+                    valor={direccionEditada}
+                    alCambiar={setDireccionEditada}
+                    alSeleccionarLugar={setDireccionEditada}
+                    placeholder="Ej: Av. Corrientes 1234, CABA"
+                    ariaLabel="Calle y número del comercio"
+                  />
+                </div>
 
-          {campoEditando === "contacto" ? (
-            <div className="space-y-3">
-              <div>
-                <Etiqueta>Teléfono de contacto del comercio</Etiqueta>
-                <Entrada
-                  value={telefonoEditado}
-                  onChange={(e) => setTelefonoEditado(e.target.value)}
-                  placeholder="Ej: +54 11 1234-5678"
-                  aria-label="Teléfono de contacto del comercio"
+                {/* Selector de Horarios Semanales */}
+                <SelectorHorarios
+                  value={horariosEditados}
+                  onChange={setHorariosEditados}
                 />
-              </div>
 
-              <div className="flex gap-2">
+                <div className="flex gap-2 pt-2">
+                  <Boton
+                    size="sm"
+                    onClick={() => manejarGuardarCampo("informacion")}
+                  >
+                    Guardar
+                  </Boton>
+                  <Boton
+                    size="sm"
+                    variant="outline"
+                    onClick={manejarCancelarEdicion}
+                  >
+                    Cancelar
+                  </Boton>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 text-sm">
+                {/* Nombre del comercio */}
+                <div>
+                  <span className="font-medium text-foreground">Nombre del comercio:</span>
+                  <p className="text-muted-foreground mt-1">{datosComercio.nombre}</p>
+                </div>
+
+                {/* Tipo */}
+                <div>
+                  <span className="font-medium text-foreground">Tipo:</span>
+                  <p className="text-muted-foreground mt-1">
+                    {tiposComercio.find(
+                      (t) => t.id === datosComercio.rubro
+                    )?.label || "No especificado"}
+                  </p>
+                </div>
+
+                {/* Dirección */}
+                <div>
+                  <span className="font-medium text-foreground">Dirección:</span>
+                  <p className="text-muted-foreground mt-1">{datosComercio.direccion}</p>
+                </div>
+
+                {/* Horarios por día */}
+                <div>
+                  <span className="font-medium text-foreground">Horarios de atención:</span>
+                  <div className="mt-2 space-y-1">
+                    {horariosEditados.map((horario) => (
+                      <div key={horario.dia} className="flex items-center justify-between text-xs">
+                        <span className="capitalize text-muted-foreground">{horario.dia}:</span>
+                        <span className="text-muted-foreground">
+                          {horario.abierto
+                            ? `${horario.horaApertura} - ${horario.horaCierre}`
+                            : "Cerrado"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </Tarjeta>
+
+          {/* Sección de Alias de Mercado Pago */}
+          <Tarjeta className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold">Alias de Mercado Pago</h3>
+              {campoEditando !== "alias" && (
                 <Boton
+                  variant="ghost"
                   size="sm"
-                  onClick={() => manejarGuardarCampo("contacto")}
+                  onClick={() => setCampoEditando("alias")}
                 >
-                  Guardar
+                  Editar
                 </Boton>
+              )}
+            </div>
+
+            {campoEditando === "alias" ? (
+              <div className="space-y-3">
+                <div>
+                  <Etiqueta>Alias de Mercado Pago</Etiqueta>
+                  <Entrada
+                    value={aliasEditado}
+                    onChange={(e) => setAliasEditado(e.target.value)}
+                    placeholder="Ej: mi.comercio.mp"
+                    aria-label="Alias de Mercado Pago"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Ingresá tu alias de Mercado Pago para recibir los pagos de tus ventas
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Boton
+                    size="sm"
+                    onClick={() => manejarGuardarCampo("alias")}
+                  >
+                    Guardar
+                  </Boton>
+                  <Boton
+                    size="sm"
+                    variant="outline"
+                    onClick={manejarCancelarEdicion}
+                  >
+                    Cancelar
+                  </Boton>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm">
+                <span className="font-medium text-foreground">Alias:</span>
+                <p className="text-muted-foreground mt-1">
+                  {datosComercio.alias || "No especificado"}
+                </p>
+              </div>
+            )}
+          </Tarjeta>
+
+          <Tarjeta className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold">Productos individuales</h3>
+              {campoEditando !== "productos" && (
                 <Boton
+                  variant="ghost"
                   size="sm"
+                  onClick={() => setCampoEditando("productos")}
+                >
+                  Editar
+                </Boton>
+              )}
+            </div>
+
+            {campoEditando === "productos" ? (
+              <div className="space-y-4">
+                {productosEditados.map((producto, index) => (
+                  <Tarjeta key={producto.id} className="p-3 bg-muted/50">
+                    <Plegable
+                      open={productosExpandidos.includes(producto.id)}
+                      onOpenChange={() => alternarProductoExpandido(producto.id)}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <ActivadorPlegable className="flex items-center gap-2 text-xs font-medium hover:underline cursor-pointer">
+                          <ChevronDown
+                            className={`w-4 h-4 transition-transform ${productosExpandidos.includes(producto.id)
+                              ? "rotate-180"
+                              : ""
+                              }`}
+                          />
+                          <span>Producto {index + 1}</span>
+                        </ActivadorPlegable>
+                        <Boton
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => manejarEliminarProducto(producto.id)}
+                          className="h-6 w-6 p-0"
+                        >
+                          <span className="sr-only">Eliminar producto</span>
+                          <Trash2 className="w-4 h-4" />
+                        </Boton>
+                      </div>
+                      <ContenidoPlegable>
+                        <div className="space-y-2 pt-2">
+                          <div>
+                            <Etiqueta className="text-xs">
+                              Imagen del producto (opcional)
+                            </Etiqueta>
+                            <div className="flex items-center gap-2">
+                              {producto.imageUrl && (
+                                <div className="relative">
+                                  <img
+                                    src={producto.imageUrl}
+                                    alt={`Imagen del producto ${producto.name}`}
+                                    className="w-16 h-16 object-cover rounded"
+                                  />
+                                  <button
+                                    onClick={() =>
+                                      manejarActualizarProducto(
+                                        producto.id,
+                                        "imageUrl",
+                                        ""
+                                      )
+                                    }
+                                    className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold hover:bg-destructive/90"
+                                  >
+                                    X
+                                  </button>
+                                </div>
+                              )}
+                              <Entrada
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) =>
+                                  manejarCambioImagenProducto(producto.id, e)
+                                }
+                                className="h-8"
+                                aria-label="Imagen del producto"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <Etiqueta className="text-xs">Nombre</Etiqueta>
+                            <Entrada
+                              value={producto.name}
+                              onChange={(e) =>
+                                manejarActualizarProducto(
+                                  producto.id,
+                                  "name",
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Nombre del producto"
+                              aria-label="Nombre del producto"
+                              className="h-8"
+                            />
+                            {erroresProductos[producto.id]?.name && (
+                              <p className="text-xs text-red-600 dark:text-red-500 mt-1">
+                                {erroresProductos[producto.id].name}
+                              </p>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <Etiqueta className="text-xs">Stock</Etiqueta>
+                              <Entrada
+                                type="number"
+                                value={producto.stock || ""}
+                                onChange={(e) =>
+                                  manejarActualizarProducto(
+                                    producto.id,
+                                    "stock",
+                                    parseInt(e.target.value) || 0
+                                  )
+                                }
+                                placeholder=""
+                                aria-label="Stock del producto"
+                                className="h-8"
+                              />
+                              {erroresProductos[producto.id]?.stock && (
+                                <p className="text-xs text-red-600 dark:text-red-500 mt-1">
+                                  {erroresProductos[producto.id].stock}
+                                </p>
+                              )}
+                            </div>
+                            <div>
+                              <Etiqueta className="text-xs">
+                                Peso en kilos (opcional)
+                              </Etiqueta>
+                              <Entrada
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={
+                                  producto.weight !== undefined
+                                    ? producto.weight
+                                    : ""
+                                }
+                                onChange={(e) =>
+                                  manejarActualizarProducto(
+                                    producto.id,
+                                    "weight",
+                                    e.target.value
+                                      ? parseFloat(e.target.value)
+                                      : undefined
+                                  )
+                                }
+                                placeholder=""
+                                aria-label="Peso en kilos del producto"
+                                className="h-8"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 mt-2">
+                            <div>
+                              <Etiqueta className="text-xs">Precio original</Etiqueta>
+                              <Entrada
+                                type="number"
+                                value={producto.originalPrice || ""}
+                                onChange={(e) =>
+                                  manejarActualizarProducto(
+                                    producto.id,
+                                    "originalPrice",
+                                    parseInt(e.target.value) || 0
+                                  )
+                                }
+                                placeholder=""
+                                aria-label="Precio original del producto"
+                                className="h-8"
+                              />
+                              {erroresProductos[producto.id]?.originalPrice && (
+                                <p className="text-xs text-red-600 dark:text-red-500 mt-1">
+                                  {erroresProductos[producto.id].originalPrice}
+                                </p>
+                              )}
+                            </div>
+                            <div>
+                              <Etiqueta className="text-xs">
+                                Precio con descuento
+                              </Etiqueta>
+                              <Entrada
+                                type="number"
+                                value={producto.discountedPrice || ""}
+                                onChange={(e) =>
+                                  manejarActualizarProducto(
+                                    producto.id,
+                                    "discountedPrice",
+                                    parseInt(e.target.value) || 0
+                                  )
+                                }
+                                placeholder=""
+                                aria-label="Precio con descuento del producto"
+                                className="h-8"
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Este es el precio que se cobrara al publico
+                              </p>
+                              {erroresProductos[producto.id]?.discountedPrice && (
+                                <p className="text-xs text-red-600 dark:text-red-500 mt-1">
+                                  {erroresProductos[producto.id].discountedPrice}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          {producto.discountedPrice > 0 && (
+                            <div className="mt-3 p-2 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900 rounded">
+                              <p className="text-xs font-medium text-green-700 dark:text-green-400">
+                                Ganancia neta por producto vendido: $
+                                {(producto.discountedPrice * 0.95).toFixed(2)}
+                              </p>
+                              <p className="text-xs text-green-600 dark:text-green-500 mt-0.5">
+                                SobraZero se lleva un 5% de comision
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </ContenidoPlegable>
+                    </Plegable>
+                  </Tarjeta>
+                ))}
+                <Boton
                   variant="outline"
-                  onClick={manejarCancelarEdicion}
+                  size="sm"
+                  onClick={manejarAgregarProducto}
+                  className="w-full"
                 >
-                  Cancelar
+                  Agregar producto
                 </Boton>
+                <div className="flex gap-2 pt-2">
+                  <Boton
+                    size="sm"
+                    onClick={() => manejarGuardarCampo("productos")}
+                  >
+                    Guardar
+                  </Boton>
+                  <Boton
+                    size="sm"
+                    variant="outline"
+                    onClick={manejarCancelarEdicion}
+                  >
+                    Cancelar
+                  </Boton>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="space-y-2 text-sm">
-              <div className="flex items-start gap-2 text-muted-foreground">
-                <span className="font-medium">Teléfono:</span>
-                <span>{datosComercio.telefono || "No especificado"}</span>
+            ) : (
+              <div className="space-y-2">
+                {datosComercio.productos && datosComercio.productos.length > 0 ? (
+                  datosComercio.productos.map((producto, index) => (
+                    <div
+                      key={producto.id || producto._id || index}
+                      className="text-sm text-muted-foreground"
+                    >
+                      Producto {index + 1}: Nombre: {producto.nombre || "-"} - Stock: {producto.stock || 0}
+                      {producto.peso && (
+                        <>
+                          {" "}
+                          - Peso: {producto.peso}kg
+                        </>
+                      )}{" "}
+                      - Precio con descuento: ${producto.precioDescuento || 0}
+                      {producto.precioDescuento > 0 && (
+                        <>
+                          {" "}
+                          - Ganancia neta: $
+                          {(producto.precioDescuento * 0.95).toFixed(2)}
+                        </>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No hay productos individuales registrados
+                  </p>
+                )}
               </div>
-              <div className="flex items-start gap-2 text-muted-foreground">
-                <span className="font-medium">Email:</span>
-                <span>{datosComercio.correo || "No especificado"}</span>
-              </div>
-            </div>
-          )}
+            )}
+          </Tarjeta>
 
-          <p className="text-xs text-muted-foreground pt-3 border-t border-border mt-3">
-            <strong>Aclaración:</strong> Esta información no se visualizará
-            públicamente. Solo quedará en registro personal de SobraZero para
-            resolver cualquier inconveniente.
-          </p>
-        </Tarjeta>
+          <Tarjeta className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-semibold">Información de contacto</h2>
+              {campoEditando !== "contacto" && (
+                <Boton
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setCampoEditando("contacto")}
+                >
+                  Editar
+                </Boton>
+              )}
+            </div>
+
+            {campoEditando === "contacto" ? (
+              <div className="space-y-3">
+                <div>
+                  <Etiqueta>Teléfono de contacto del comercio</Etiqueta>
+                  <Entrada
+                    value={telefonoEditado}
+                    onChange={(e) => setTelefonoEditado(e.target.value)}
+                    placeholder="Ej: +54 11 1234-5678"
+                    aria-label="Teléfono de contacto del comercio"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <Boton
+                    size="sm"
+                    onClick={() => manejarGuardarCampo("contacto")}
+                  >
+                    Guardar
+                  </Boton>
+                  <Boton
+                    size="sm"
+                    variant="outline"
+                    onClick={manejarCancelarEdicion}
+                  >
+                    Cancelar
+                  </Boton>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2 text-sm">
+                <div className="flex items-start gap-2 text-muted-foreground">
+                  <span className="font-medium">Teléfono:</span>
+                  <span>{datosComercio.telefono || "No especificado"}</span>
+                </div>
+              </div>
+            )}
+
+            <p className="text-xs text-muted-foreground pt-3 border-t border-border mt-3">
+              <strong>Aclaración:</strong> Esta información no se visualizará
+              públicamente. Solo quedará en registro personal de SobraZero para
+              resolver cualquier inconveniente.
+            </p>
+          </Tarjeta>
       </div >
     </div >
   );

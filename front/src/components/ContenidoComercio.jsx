@@ -422,19 +422,28 @@ const ContenidoComercio = ({
           <div className="flex items-center gap-2 mb-3">
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
             <span className="font-medium">{comercio.calificacion}</span>
-            <span className="text-sm text-muted-foreground">({comercio.totalResenas} reseñas)</span>
+            <span className="text-sm text-muted-foreground">({comercio.totalResenas} Reseñas)</span>
           </div>
 
           <div className="space-y-2 text-sm">
             <div className="flex items-start gap-2 text-muted-foreground">
               <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
               <span>
-                {comercio.direccion} - {comercio.distancia}
+                {comercio.direccion}{comercio.distancia ? ` ${comercio.distancia}` : ""}
               </span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Clock className="w-4 h-4" />
-              <span>Retiro hoy: {comercio.horarioRetiro}</span>
+              <span>
+                Retiro hoy: {(() => {
+                  const hoy = new Date().toLocaleDateString('es-AR', { weekday: 'long' }).toLowerCase();
+                  const horarioHoy = comercio.horarios?.find(h => h.dia === hoy);
+                  if (horarioHoy && horarioHoy.abierto) {
+                    return `${horarioHoy.horaApertura} - ${horarioHoy.horaCierre}`;
+                  }
+                  return comercio.horarioRetiro || "Cerrado";
+                })()}
+              </span>
             </div>
           </div>
         </Tarjeta>
@@ -594,8 +603,8 @@ const ContenidoComercio = ({
                     >
                       <Star
                         className={`w-6 h-6 transition-colors ${estrella <= nuevaReseñaCalificacion
-                            ? "fill-yellow-400 text-yellow-400"
-                            : "fill-gray-300 text-gray-300 dark:fill-gray-600 dark:text-gray-600"
+                          ? "fill-yellow-400 text-yellow-400"
+                          : "fill-gray-300 text-gray-300 dark:fill-gray-600 dark:text-gray-600"
                           }`}
                       />
                     </button>
