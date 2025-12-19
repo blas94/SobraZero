@@ -42,6 +42,7 @@ const EditarComercio = () => {
   const [campoEditando, setCampoEditando] = useState(null);
   const [productosExpandidos, setProductosExpandidos] = useState([]);
   const referenciaArchivo = useRef(null);
+  const referenciaArchivoProducto = useRef(null);
 
   const [nombreEditado, setNombreEditado] = useState("");
   const [tipoComercioEditado, setTipoComercioEditado] = useState("");
@@ -57,6 +58,7 @@ const EditarComercio = () => {
   const [productosEditados, setProductosEditados] = useState([]);
   const [mostrarDialogoImagen, setMostrarDialogoImagen] = useState(false);
   const [tipoImagenDialogo, setTipoImagenDialogo] = useState("comercio"); // "comercio" o "producto"
+  const [productoImagenActual, setProductoImagenActual] = useState(null); // ID del producto para el que se está seleccionando imagen
   const [erroresProductos, setErroresProductos] = useState({});
 
   const tiposComercio = [
@@ -119,7 +121,7 @@ const EditarComercio = () => {
           weight: p.peso,
           originalPrice: p.precioOriginal,
           discountedPrice: p.precioDescuento,
-          imageUrl: undefined, // Por ahora no manejamos imágenes de productos
+          imageUrl: p.imageUrl, // Cargar imagen guardada
         }));
         setProductosEditados(productosFormateados);
       } catch (error) {
@@ -146,16 +148,23 @@ const EditarComercio = () => {
         const imageUrl = reader.result;
 
         try {
+          console.log("🖼️ Guardando imagen de comercio...");
+          console.log("📤 Enviando imagenUrl al backend");
+
           // Guardar en la base de datos
           const comercioActualizado = await editarComercio(datosComercio._id, {
-            imageUrl
+            imagenUrl: imageUrl
           });
+
+          console.log("✅ Respuesta del backend:", comercioActualizado);
+          console.log("🖼️ imagenUrl en respuesta:", comercioActualizado.imagenUrl);
 
           setDatosComercio(comercioActualizado);
           setMostrarDialogoImagen(false);
           toast.success("Imagen actualizada");
         } catch (error) {
-          console.error("Error al guardar imagen:", error);
+          console.error("❌ Error al guardar imagen:", error);
+          console.error("📋 Detalles del error:", error.response?.data);
           toast.error("Error al guardar la imagen");
         }
       };
@@ -176,17 +185,25 @@ const EditarComercio = () => {
     setProductosEditados([...productosEditados, nuevoProducto]);
   };
 
-  const manejarCambioImagenProducto = (productoId, evento) => {
+  const manejarClickImagenProducto = (productoId) => {
+    setProductoImagenActual(productoId);
+    setTipoImagenDialogo("producto");
+    setMostrarDialogoImagen(true);
+  };
+
+  const manejarCambioImagenProducto = (evento) => {
     const file = evento.target.files?.[0];
-    if (file) {
+    if (file && productoImagenActual) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const imageUrl = reader.result;
         setProductosEditados(
           productosEditados.map((p) =>
-            p.id === productoId ? { ...p, imageUrl } : p
+            p.id === productoImagenActual ? { ...p, imageUrl } : p
           )
         );
+        setMostrarDialogoImagen(false);
+        setProductoImagenActual(null);
         toast.success("Imagen del producto actualizada");
       };
       reader.readAsDataURL(file);
@@ -531,9 +548,9 @@ const EditarComercio = () => {
         <Tarjeta className="p-4">
           <h3 className="font-semibold mb-3">Foto de perfil del comercio</h3>
           <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20 rounded-lg overflow-hidden group">
-            {datosComercio.imageUrl ? (
+            {datosComercio.imagenUrl ? (
               <img
-                src={datosComercio.imageUrl}
+                src={datosComercio.imagenUrl}
                 alt={`Imagen de portada de ${datosComercio.nombreComercio}`}
                 className="w-full h-full object-cover"
               />
@@ -584,7 +601,11 @@ const EditarComercio = () => {
                 </Boton>
                 <Boton
                   onClick={() => {
-                    referenciaArchivo.current?.click();
+                    if (tipoImagenDialogo === "comercio") {
+                      referenciaArchivo.current?.click();
+                    } else {
+                      referenciaArchivoProducto.current?.click();
+                    }
                   }}
                 >
                   Seleccionar imagen
@@ -599,6 +620,14 @@ const EditarComercio = () => {
             onChange={manejarCambioImagen}
             className="hidden"
             aria-label="Cambiar imagen del comercio"
+          />
+          <input
+            ref={referenciaArchivoProducto}
+            type="file"
+            accept="image/*"
+            onChange={manejarCambioImagenProducto}
+            className="hidden"
+            aria-label="Cambiar imagen del producto"
           />
         </Tarjeta>
 
@@ -848,15 +877,17 @@ const EditarComercio = () => {
                                 </button>
                               </div>
                             )}
-                            <Entrada
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) =>
-                                manejarCambioImagenProducto(producto.id, e)
-                              }
-                              className="h-8"
-                              aria-label="Imagen del producto"
-                            />
+                            {!producto.imageUrl && (
+                              <Boton
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => manejarClickImagenProducto(producto.id)}
+                                className="h-8"
+                              >
+                                Seleccionar imagen
+                              </Boton>
+                            )}
                           </div>
                         </div>
                         <div>

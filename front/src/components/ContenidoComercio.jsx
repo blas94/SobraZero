@@ -387,9 +387,17 @@ const ContenidoComercio = ({
   return (
     <>
       <div className="relative h-48 bg-gradient-to-br from-primary/20 to-accent/20">
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <ShoppingBag className="w-20 h-20 text-primary/40" />
-        </div>
+        {comercio.imagenUrl ? (
+          <img
+            src={comercio.imagenUrl}
+            alt={`Imagen de ${comercio.nombre}`}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <ShoppingBag className="w-20 h-20 text-primary/40" />
+          </div>
+        )}
 
         {mostrarBotonVolver && (
           <Boton
