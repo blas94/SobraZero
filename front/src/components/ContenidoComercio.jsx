@@ -422,7 +422,7 @@ const ContenidoComercio = ({
           <div className="flex items-center gap-2 mb-3">
             <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
             <span className="font-medium">{comercio.calificacion}</span>
-            <span className="text-sm text-muted-foreground">({comercio.totalResenas} Reseñas)</span>
+            <span className="text-sm text-muted-foreground">{comercio.totalResenas} Reseñas</span>
           </div>
 
           <div className="space-y-2 text-sm">

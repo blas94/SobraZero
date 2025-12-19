@@ -42,6 +42,7 @@ const comercioSchema = new Schema(
       peso: Number,
       precioOriginal: Number,
       precioDescuento: Number,
+      imageUrl: String, // URL de la imagen del producto
     }],
 
     // Calificaciones
